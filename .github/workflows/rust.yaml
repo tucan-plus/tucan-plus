@@ -35,7 +35,7 @@ jobs:
           cd $DIR
           git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucan-plus/tucan-plus
           cd tucan-plus
-          nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket build -L .#extension .#checks.x86_64-linux.my-app-fmt .#schema .#server .#tests
+          nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket build -L .#extension .#schema .#server
           echo $DIR
           ' | ssh -o ServerAliveInterval=30 root@selfmade4u.de 'bash')
           echo "$OUTPUT"

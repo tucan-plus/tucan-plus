@@ -1,4 +1,11 @@
 ```
+# DO THIS IN A VM
+
+python3 -m venv env
+source env/bin/activate
+python3 -m pip install qecore
+
+
 sudo dnf install gnome-ponytail-daemon python3-gnome-ponytail-daemon
 # https://github.com/pygobject/pygobject-stubs/blob/master/src/gi-stubs/repository/Atspi.pyi not in release yet
 pip install dogtail git+https://github.com/pygobject/pygobject-stubs --no-cache-dir --config-settings=config=Atspi

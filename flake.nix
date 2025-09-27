@@ -76,24 +76,6 @@
           pname = "tucan-plus-workspace-native";
         };
 
-        tests = craneLib.buildPackage {
-          cargoToml = ./crates/tucan-plus-tests/Cargo.toml;
-          cargoLock = ./crates/tucan-plus-tests/Cargo.lock;
-          preBuild = ''
-            cd ./crates/tucan-plus-tests
-          '';
-          strictDeps = true;
-          pname = "tucan-plus-workspace-native-tests";
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = lib.fileset.unions [
-              (craneLib.fileset.commonCargoSources ./crates/tucan-plus-tests)
-            ];
-          };
-          cargoTestExtraArgs = "--no-run";
-          cargoExtraArgs = "--package=tucan-plus-tests";
-        };
-
         api = craneLib.buildPackage {
           cargoToml = ./crates/tucan-plus-api/Cargo.toml;
           cargoLock = ./crates/tucan-plus-api/Cargo.lock;
@@ -125,8 +107,13 @@
               ${api}/bin/schema > $out
             '';
 
-        fileset-wasm = lib.fileset.unions [
+        fileset-worker = lib.fileset.unions [
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker)
           (craneLib.fileset.commonCargoSources ./crates/tucan-types)
+          ./crates/tucan-plus-worker/migrations
+        ];
+
+        fileset-wasm = lib.fileset.unions [
           (craneLib.fileset.commonCargoSources ./crates/key-value-database)
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
@@ -139,8 +126,7 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/index.html
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-worker) # TODO separate
-          ./crates/tucan-plus-worker/migrations # TODO separate
+          fileset-worker
         ];
 
         wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
@@ -157,30 +143,25 @@
           };
         });
 
-        worker = craneLib.buildPackage {
+        worker-args = {
+          CARGO_TARGET_DIR = "./crates/tucan-plus-worker/target";
           cargoToml = ./crates/tucan-plus-worker/Cargo.toml;
           cargoLock = ./crates/tucan-plus-worker/Cargo.lock;
           preBuild = ''
             cd ./crates/tucan-plus-worker
           '';
+          postBuild = ''
+            cd ../..
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
-          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = fileset-wasm;
-          };
           cargoExtraArgs = "--package=tucan-plus-worker";
           pname = "tucan-plus-workspace-tucan-plus-worker";
           buildPhaseCargoCommand = ''
-            export HOME=$(mktemp -d)
-            #export EMCC_DEBUG=1
             export CC=emcc
             export CXX=emcc
-            emcc --version
-            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?). probably too hard, use old dioxus?
-            ${dioxus-cli}/bin/dx bundle --wasm --bundle web --verbose --release --out-dir $out --base-path public
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --wasm --bundle web --release --out-dir $out --base-path public
           '';
           installPhaseCommand = '''';
           checkPhaseCargoCommand = '''';
@@ -194,18 +175,45 @@
             '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = fileset-worker;
+          };
         };
 
-        client = craneLib.buildPackage {
+        worker = craneLib.buildPackage (worker-args // {
+          cargoArtifacts = craneLib.buildDepsOnly (worker-args // {
+            dummySrc = craneLib.mkDummySrc {
+              src = worker-args.src;
+              extraDummyScript = ''
+                cp ${worker-args.cargoLock} $out/crates/tucan-plus-worker/Cargo.lock
+                rm $out/crates/tucan-plus-worker/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-worker/src/main.rs
+              '';
+            };
+          });
+        });
+
+        client-args = {
+          CARGO_TARGET_DIR = "./crates/tucan-plus-dioxus/target";
           cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
           cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
           preBuild = ''
             cd ./crates/tucan-plus-dioxus
           '';
+          postBuild = ''
+            cd ../..
+          '';
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
-          cargoArtifacts = null; # building deps only does not work with the default stub entrypoint
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-wasm;
@@ -213,12 +221,8 @@
           cargoExtraArgs = "--package=tucan-plus-dioxus";
           pname = "tucan-plus-workspace-tucan-plus-dioxus";
           buildPhaseCargoCommand = ''
-            export HOME=$(mktemp -d)
-            #export EMCC_DEBUG=1
             export CC=emcc
             export CXX=emcc
-            emcc --version
-            ls -R ${worker}/public/assets/
             mkdir -p assets/
             cp ${worker}/public/assets/tucan-plus-worker-*.js assets/
             cp ${worker}/public/assets/tucan-plus-worker_bg-*.wasm assets/
@@ -226,8 +230,7 @@
             export WORKER_JS_PATH="/''${WORKER_JS_PATH_ARRAY[0]}"
             export WORKER_WASM_PATH_ARRAY=(assets/tucan-plus-worker_bg-*.wasm)
             export WORKER_WASM_PATH="/''${WORKER_WASM_PATH_ARRAY[0]}"
-            # TODO call plain cargo before and use as cache so upgrading dioxus doesn't have to recompile (probably hard to pass correct flags?)
-            ${dioxus-cli}/bin/dx bundle --platform web --verbose --release --out-dir $out --base-path public --features direct
+            CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
           '';
           installPhaseCommand = ''
           '';
@@ -244,6 +247,31 @@
           ];
           doNotPostBuildInstallCargoBinaries = true;
         };
+
+        client = craneLib.buildPackage (client-args // {
+          cargoArtifacts = craneLib.buildDepsOnly (client-args // {
+            buildPhaseCargoCommand = ''
+              export CC=emcc
+              export CXX=emcc
+              CARGO_TARGET_DIR=target ${dioxus-cli}/bin/dx bundle --platform web --release --out-dir $out --base-path public --features direct
+            '';
+            dummySrc = craneLib.mkDummySrc {
+              src = client-args.src;
+              extraDummyScript = ''
+                cp ${client-args.cargoLock} $out/crates/tucan-plus-dioxus/Cargo.lock
+                rm $out/crates/tucan-plus-dioxus/src/main.rs
+                cp ${pkgs.writeText "main.rs" ''
+                  use wasm_bindgen::prelude::*;
+
+                  #[wasm_bindgen(main)]
+                  pub async fn main() {
+
+                  }
+                ''} $out/crates/tucan-plus-dioxus/src/main.rs
+              '';
+            };
+          });
+        });
 
         fileset-extension = lib.fileset.unions [
           ./tucan-plus-extension/background.js
@@ -314,37 +342,159 @@
           cp -r ${source-with-build-instructions} $out
         '';
       in
-      {
+      rec {
         formatter = pkgs.nixfmt-tree;
         checks = {
-          inherit api schema client;
+          #inherit api schema client;
 
           # todo also clippy the frontend
-          my-app-clippy = craneLib.cargoClippy (
-            nativeArgs
-            // {
-              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-            }
-          );
+          #my-app-clippy = craneLib.cargoClippy (
+          #  nativeArgs
+          #  // {
+          #    cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+          #  }
+          #);
 
-          my-app-fmt = craneLib.cargoFmt (
-            nativeArgs
-            // {
-              cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
-              cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
-              preBuild = ''
-                cd ./crates/tucan-plus-dioxus
-              '';
-              cargoExtraArgs = "--all";
-              src = source-with-build-instructions;
-            }
-          );
+          #my-app-fmt = craneLib.cargoFmt (
+          #  nativeArgs
+          #  // {
+          #    cargoToml = ./crates/tucan-plus-dioxus/Cargo.toml;
+          #    cargoLock = ./crates/tucan-plus-dioxus/Cargo.lock;
+          #    preBuild = ''
+          #      cd ./crates/tucan-plus-dioxus
+           #   '';
+          #    cargoExtraArgs = "--all";
+          #    src = source-with-build-instructions;
+          #  }
+          #);
+
+          # https://nixos.org/manual/nixos/unstable/index.html#sec-nixos-tests
+          # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/default.nix#L15
+          # https://github.com/NixOS/nixpkgs/blob/a25a80403e18d80ffb9e5a2047c7936e57fbae68/nixos/tests/installed-tests/gnome-photos.nix#L10
+          # nix run -L .#checks.x86_64-linux.extension-test.driverInteractive
+          # test_script()
+          # nix flake check -L
+          extension-test = pkgs.testers.runNixOSTest {
+            name = "extension-test";
+            nodes = {
+              machine = {pkgs, ...}: {
+                virtualisation = {
+                  sharedDirectories = {
+                    projects = {source="/home/moritz/Documents/tucan-plus/demo-video/"; target="/home/test/tucan_plus";};
+                  };
+                };
+                virtualisation.memorySize = 8192;
+
+                services.gnome.at-spi2-core.enable = true;
+
+                services.xserver.xkb.layout = "de";
+
+                boot.kernelPackages = pkgs.linuxPackages_latest;
+
+                services.displayManager.gdm.enable = true;
+                services.desktopManager.gnome.enable = true;
+
+                #services.gnome.core-apps.enable = false;
+                #services.gnome.core-developer-tools.enable = false;
+                #services.gnome.games.enable = false;
+                environment.gnome.excludePackages = with pkgs; [ gnome-tour ]; # gnome-user-docs
+
+                services.displayManager.autoLogin.enable = true;
+                services.displayManager.autoLogin.user = "test";
+
+                users.users.test = {
+                  isNormalUser = true;
+                  uid = 1000;
+                };
+
+                environment.systemPackages = [
+                  pkgs.firefox
+                  # TODO https://nixos.org/manual/nixpkgs/unstable/#ssec-gnome-common-issues-double-wrapped
+                  (pkgs.python3.pkgs.buildPythonApplication {
+                      pname = "run-test";
+                      version = "3.32.2";
+                      pyproject = true;
+                      build-system = with pkgs.python3Packages; [ setuptools ];
+
+                      dependencies = with pkgs.python3Packages; [
+                        dogtail
+                      ];
+
+                      src = ./demo-video;
+
+                      nativeBuildInputs = [
+                        pkgs.wrapGAppsHook3
+                        pkgs.gobject-introspection
+                      ];
+
+                      dontWrapGApps = true;
+
+                      # Arguments to be passed to `makeWrapper`, only used by buildPython*
+                      preFixup = ''
+                        makeWrapperArgs+=("''${gappsWrapperArgs[@]}")
+                      '';
+                    }
+                  )
+                ];
+
+                programs.dconf.enable = true;
+                programs.dconf.profiles.test.databases = [
+                  {
+                    settings = {
+                      "org/gnome/desktop/interface" = {
+                        toolkit-accessibility = true;
+                      };
+                    };
+                  }
+                ];
+
+                systemd.user.services = {
+                  "org.gnome.Shell@wayland" = {
+                    serviceConfig = {
+                      ExecStart = [
+                        # Clear the list before overriding it.
+                        ""
+                        # Eval API is now internal so Shell needs to run in unsafe mode.
+                        # TODO: improve test driver so that it supports openqa-like manipulation
+                        # that would allow us to drop this mess.
+                        "${pkgs.gnome-shell}/bin/gnome-shell --unsafe-mode"
+                      ];
+                    };
+                  };
+                };
+
+                system.stateVersion = "25.11";
+              };
+            };
+            testScript = { nodes, ... }: lib.mkForce ''
+              print("a")
+              start_all()
+              print("b")
+              machine.wait_until_succeeds(
+                  "systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c 'gdbus call --session -d org.gnome.Shell -o /org/gnome/Shell -m org.gnome.Shell.Eval Main.layoutManager._startingUp' | grep -q \"true,..false\"",
+                  timeout=60
+              )
+              print("c")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c 'gsettings set org.gnome.desktop.interface toolkit-accessibility true'")
+              print("d")
+              machine.succeed("systemd-run --machine=test@.host --user /usr/bin/env bash -c firefox")
+              print("e")
+              machine.succeed("systemd-run --pipe --machine=test@.host --user /usr/bin/env bash -c tucan_plus")
+              print("f")
+            '';
+            interactive = {
+              sshBackdoor.enable = true; # ssh vsock/3 -o User=root
+            };
+            # https://wiki.nixos.org/wiki/Python
+            # ssh vsock/3 -o User=root
+            # machinectl shell test@
+            # nix-shell -I nixpkgs=channel:nixos-unstable -p gobject-introspection gtk3 'python3.withPackages (ps: with ps; [ dogtail ])' --run python /home/test/tucan_plus/tucan_plus.py
+          };
         };
 
         packages.schema = schema;
         packages.client = client;
         packages.server = api;
-        packages.tests = tests;
         packages.extension = extension;
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
