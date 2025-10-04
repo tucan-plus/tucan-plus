@@ -1,15 +1,10 @@
 use std::sync::LazyLock;
 
-use crate::{
-    TucanConnector, authenticated_retryable_get,
-    head::{html_head, logged_in_head, logged_out_head},
-};
+use crate::head::{html_head, logged_in_head, logged_out_head};
 use html_handler::{Root, parse_document};
-use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use time::{Duration, OffsetDateTime};
-use tucan_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::CoursePrepRequest};
+use tucan_types::{LoginResponse, TucanError, courseprep::CoursePrepRequest};
 /*
     let key = format!("unparsed_month.{request}");
 
@@ -19,6 +14,7 @@ use tucan_types::{LoginResponse, RevalidationStrategy, TucanError, courseprep::C
     );
 */
 #[expect(clippy::too_many_lines)]
+#[allow(unused)]
 pub(crate) fn month_internal(
     login_response: &LoginResponse,
     content: &str,

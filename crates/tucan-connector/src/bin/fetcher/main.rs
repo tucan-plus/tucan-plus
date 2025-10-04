@@ -1,16 +1,30 @@
+#[cfg(not(target_arch = "wasm32"))]
 use std::future::Future;
+#[cfg(not(target_arch = "wasm32"))]
 use std::panic::AssertUnwindSafe;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::Arc;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::stream::FuturesUnordered;
+#[cfg(not(target_arch = "wasm32"))]
 use futures_util::{FutureExt, StreamExt};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
+#[cfg(not(target_arch = "wasm32"))]
+use tucan_plus_worker::MyDatabase;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::coursedetails::CourseDetailsRequest;
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::registration::{AnmeldungRequest, RegistrationState};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LoginRequest, RevalidationStrategy, Tucan};
+#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::{LoginResponse, TucanError};
 
+#[cfg(not(target_arch = "wasm32"))]
 fn main() -> Result<(), TucanError> {
     dotenvy::dotenv().unwrap();
     tokio::runtime::Builder::new_current_thread()
@@ -20,8 +34,9 @@ fn main() -> Result<(), TucanError> {
         .block_on(async_main())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
-    let tucan = TucanConnector::new().await?;
+    let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
 
     /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),
@@ -54,12 +69,14 @@ async fn async_main() -> Result<(), TucanError> {
     Ok(())
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 struct Fetcher {
     anmeldung: AtomicU64,
     module: AtomicU64,
     course: AtomicU64,
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 impl Fetcher {
     pub const fn new() -> Self {
         Self {
@@ -85,7 +102,7 @@ impl Fetcher {
             let result = AssertUnwindSafe(async {
                 tucan
                     .anmeldung(
-                        login_response.clone(),
+                        &login_response.clone(),
                         RevalidationStrategy::cache(),
                         anmeldung_request.clone(),
                     )
@@ -187,3 +204,7 @@ impl Fetcher {
         }
     }
 }
+
+
+#[cfg(target_arch = "wasm32")]
+pub fn main() {}

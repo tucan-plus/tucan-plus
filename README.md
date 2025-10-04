@@ -104,6 +104,55 @@ dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path publi
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucan-plus-extension/manifest.json
 See https://extensionworkshop.com/documentation/develop/debugging/.
 
+### VSCode
+
+https://github.com/rust-lang/cargo/issues/16038
+https://github.com/rust-lang/cargo/issues/15177
+https://github.com/rust-lang/cargo/issues/1197
+
+Does not work but one by one works:
+```
+cargo check --target wasm32-unknown-unknown --target x86_64-unknown-linux-gnu
+```
+
+```
+tucan-plus-multi-target
+    tucan-plus
+    wasm32-unknown-unknown
+        .vscode/settings.json
+        .cargo/config.toml
+        Cargo.toml # workspace with subset of crates
+        -> tucan-plus
+    x86_64-unknown-linux-gnu
+        .vscode/settings.json
+        .cargo/config.toml
+        Cargo.toml # workspace with subset of crates
+        -> tucan-plus
+```
+
+```toml
+[workspace]
+members = [
+    "./tucan-plus/crates/tucan-plus-dioxus/",
+    "./tucan-plus/crates/tucan-connector/",
+    "./tucan-plus/crates/tucan-plus-worker/",
+    "./tucan-plus/crates/tucan-plus-service-worker/"
+]
+resolver = "3"
+```
+
+```toml
+[target.wasm32-unknown-unknown]
+rustflags = ["--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
+```
+
+```json
+{
+    "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.files.watcher": "server",
+}
+```
+
 ## Building extension (not for development)
 
 ```bash

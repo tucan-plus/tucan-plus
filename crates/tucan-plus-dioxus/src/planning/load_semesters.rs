@@ -1,20 +1,13 @@
-use std::sync::Arc;
-
-use dioxus::{hooks::use_context, html::FileEngine, signals::Signal};
-use fragile::Fragile;
+use dioxus::{hooks::use_context, html::FileData, signals::Signal};
 use futures::StreamExt as _;
-use js_sys::Uint8Array;
 use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
     FEwefweewf, MyDatabase, Wlewifhewefwef,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
-    schema::{anmeldungen_entries, anmeldungen_plan},
 };
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _, registration::AnmeldungResponse,
 };
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::RcTucanType;
 
@@ -23,14 +16,11 @@ pub async fn handle_semester(
     tucan: RcTucanType,
     login_response: &LoginResponse,
     semester: Semester,
-    element: Signal<Option<Arc<dyn FileEngine>>>,
+    file_names: Signal<Vec<FileData>>,
 ) {
     let worker: MyDatabase = use_context();
-    let element = element().unwrap();
-    let file_names = element.files();
-    for file_name in file_names {
-        let file = element.read_file(&file_name).await.unwrap();
-        let decompressed = decompress(&file).await.unwrap();
+    for file in file_names() {
+        let decompressed = decompress(&file.read_bytes().await.unwrap()).await.unwrap();
         let mut result: Vec<AnmeldungResponse> =
             serde_json::from_reader(decompressed.as_slice()).unwrap();
         result.sort_by_key(|e| e.path.len());

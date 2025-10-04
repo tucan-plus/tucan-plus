@@ -1,3 +1,5 @@
+#[cfg(not(target_arch = "wasm32"))]
+pub(crate) mod everything {
 use std::convert::Infallible;
 
 use axum::{
@@ -539,3 +541,8 @@ pub fn router() -> OpenApiRouter<TucanConnector> {
         .routes(routes!(student_result_endpoint))
         .routes(routes!(gradeoverview_endpoint))
 }
+
+}
+
+#[cfg(not(target_arch = "wasm32"))]
+pub use everything::router;

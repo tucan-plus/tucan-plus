@@ -73,7 +73,7 @@ pub fn LoginComponent() -> Element {
             loading.set(false);
         });
     };
-    let set_fake_session = move |_event: Event<MouseData>| {
+    let _set_fake_session = move |_event: Event<MouseData>| {
         async move {
             // TODO deduplicate
             #[cfg(feature = "direct")]

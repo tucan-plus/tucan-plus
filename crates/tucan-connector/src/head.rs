@@ -299,7 +299,7 @@ pub fn vv_something<'a>(
                     );
                     let _altsysteme = if html_handler.peek().is_some() {
                         <li class="intern depth_3 linkItem " title="Altsysteme" id=_linkclass>
-                            <a class=_linkclass href=url>
+                            <a class=_linkclass href=_url>
                                 "Altsysteme"
                             </a>
                         </li>

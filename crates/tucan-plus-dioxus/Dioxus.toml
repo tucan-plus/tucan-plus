@@ -1,8 +1,10 @@
 [application]
 name = "tucan-plus"
-default_platform = "web"
-out_dir = "dist"
-asset_dir = "public"
+
+[bundle]
+identifier = "de.selfmade4u"
+publisher = "Moritz Hedtke"
+icon = ["/build/source/target/dx/tucan-plus-dioxus/release/linux/app/assets/logo.png"]
 
 [web.app]
 title = "TUCaN Plus"
@@ -14,11 +16,7 @@ backend = "http://127.0.0.1:3000/api/"
 # keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias
 # dx bundle --platform android --release
 [bundle.android]
-jks_file = "../my-release-key.jks"
+jks_file = "./my-release-key.jks"
 jks_password = "password"
 key_alias = "my-alias"
 key_password = "password"
-
-[web.watcher]
-reload_html = true
-watch_path = ["src", "public"]

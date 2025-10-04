@@ -29,29 +29,14 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
-use fragile::Fragile;
-use log::info;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
-use std::cell::RefCell;
-#[cfg(target_arch = "wasm32")]
-use std::collections::HashMap;
-use std::fmt::Debug;
 use std::ops::Deref;
-use std::rc::Rc;
 use std::sync::Arc;
-use tucan_plus_worker::{RequestResponse, RequestResponseEnum};
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
-use wasm_bindgen::prelude::Closure;
-use wasm_bindgen::{JsCast as _, JsValue};
-#[cfg(target_arch = "wasm32")]
-use web_sys::BroadcastChannel;
-use web_sys::{AddEventListenerOptions, MessageEvent, WorkerOptions, WorkerType};
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(
@@ -71,6 +56,12 @@ pub static LOGO_SVG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+#[used]
+pub static LOGO_PNG: Asset = asset!(
+    "/assets/logo.png",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 // unfortunately the asset! macro produces a different hash as the build output
 #[cfg(target_arch = "wasm32")]
 #[used]
@@ -87,12 +78,14 @@ pub static WORKER_WASM: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+/*
 #[cfg(target_arch = "wasm32")]
 #[used]
 pub static SERVICE_WORKER_JS: Asset = asset!(
     env!("SERVICE_WORKER_JS_PATH"),
     AssetOptions::builder().with_hash_suffix(false)
 );
+*/
 
 pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
 

@@ -1,19 +1,15 @@
 use html_handler::{Root, parse_document};
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy, TucanError,
+    LoginResponse, TucanError,
     mydocuments::{Document, MyDocumentsResponse},
 };
 
-use crate::{
-    TucanConnector, authenticated_retryable_get,
-    head::{footer, html_head, logged_in_head},
-};
+use crate::head::{footer, html_head, logged_in_head};
 
 pub(crate) fn my_documents_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<MyDocumentsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

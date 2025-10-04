@@ -1,5 +1,4 @@
-use dioxus::{hooks::use_context, html::MouseData};
-use fragile::Fragile;
+use dioxus::hooks::use_context;
 use log::info;
 use tucan_plus_worker::{
     ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModule,
@@ -9,9 +8,8 @@ use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
-use web_sys::Worker;
 
-use crate::{RcTucanType, student_result::StudentResult};
+use crate::RcTucanType;
 
 pub async fn recursive_update(
     worker: MyDatabase,

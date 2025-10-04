@@ -1,5 +1,5 @@
 use log::info;
-use time::{Duration, OffsetDateTime};
+use time::OffsetDateTime;
 use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
     LoginResponse, RevalidationStrategy, TucanError,
@@ -36,7 +36,7 @@ pub async fn vv(
         .await;
     if revalidation_strategy.max_age != 0 {
         if let Some(CacheEntry {
-            key,
+            key: _,
             value: content,
             updated: date,
         }) = &old_content_and_date

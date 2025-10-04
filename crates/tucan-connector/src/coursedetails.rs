@@ -1,17 +1,14 @@
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, authenticated_retryable_get,
+    COURSEDETAILS_REGEX,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::{Either, Itertools};
-use log::info;
 use scraper::CaseSensitivity;
 use sha3::{Digest, Sha3_256};
-use time::{Duration, OffsetDateTime};
-use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{
-    InstructorImage, LoginResponse, RevalidationStrategy, TucanError,
+    InstructorImage, LoginResponse, TucanError,
     coursedetails::{
         CourseAnmeldefrist, CourseDetailsRequest, CourseDetailsResponse, CourseUebungsGruppe,
         InstructorImageWithLink, Room, Termin,
@@ -79,29 +76,29 @@ pub(crate) fn course_details_internal(
                                     "Veranstaltungsdetails"
                                 </caption>
                                 <tbody>
-                                    let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    let _editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
                                         <tr>
                 <td class="tbdata" colspan="3">
-                    <b>anmeldungsstatus
+                    <b>_anmeldungsstatus
                     </b>
                 </td>
             </tr>
         <tr>
             <td class="tbcontrol" colspan="3">
-                            <a href=newprep_url class="arrow">
+                            <a href=_newprep_url class="arrow">
                                     "Material hinzufügen"
                                 </a>
-                                        <a href=material_url class="arrow">"Material"</a>
-                                <a href=action_url class="arrow">"Nachrichten"</a>
-                                                                <a href=courseequipment_url class="arrow">"Ausstattung"</a>
-                                                    <a href=examslist_url class="arrow">"Noteneingabe"</a>
-                        <a href=action_url class="arrow">"Teilnehmer"</a>
+                                        <a href=_material_url class="arrow">"Material"</a>
+                                <a href=_action_url class="arrow">"Nachrichten"</a>
+                                                                <a href=_courseequipment_url class="arrow">"Ausstattung"</a>
+                                                    <a href=_examslist_url class="arrow">"Noteneingabe"</a>
+                        <a href=_action_url class="arrow">"Teilnehmer"</a>
                                                         </td>
         </tr>
                                     } => () else {
                                         <tr>
                                             <td class="tbcontrol" colspan="3">
-                                                let material_and_messages_url = if html_handler.peek().is_some() {
+                                                let _material_and_messages_url = if html_handler.peek().is_some() {
                                                     <a href=material_url class="arrow">
                                                         "Material"
                                                     </a>
@@ -370,14 +367,14 @@ pub(crate) fn course_details_internal(
                                         "Material zur gesamten Veranstaltung"
                                     </caption>
                                     <tbody>
-                                        let material = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
-                                            let material = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                        let _material = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
+                                            let _material = while html_handler.peek().is_some() && html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbsubhead", CaseSensitivity::CaseSensitive) {
                                                 <tr>
                                                     <td class="tbsubhead" colspan="3"><span name="materialCategory">"Information"</span></td>
                                                 </tr>
                                                 <tr>
                                                     <td>"1"</td>
-                                                    <td class="tbdata_nob" name="materialDescription" materialid=material_id colspan="2">material_title</td>
+                                                    <td class="tbdata_nob" name="materialDescription" materialid=_material_id colspan="2">_material_title</td>
                                                 </tr>
                                                 <tr class="tbdata">
                                                     <td></td>
@@ -386,15 +383,15 @@ pub(crate) fn course_details_internal(
                                                 <tr class="tbdata">
                                                     <td></td>
                                                     <td colspan="2">
-                                                        text
-                                                        <a title=link_title href=link_href target="_blank">link_text</a>
+                                                        _text
+                                                        <a title=_link_title href=_link_href target="_blank">_link_text</a>
                                                     </td>
                                                 </tr>
                                             } => ();
                                         } => () else {
-                                            let editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbcontrol", CaseSensitivity::CaseSensitive) {
+                                            let _editor = if html_handler.peek().unwrap().first_child().unwrap().value().as_element().unwrap().has_class("tbcontrol", CaseSensitivity::CaseSensitive) {
                                                 <tr>
-                                                    <td class="tbcontrol" colspan="3"><a href=newprep_url class="arrow">"Material hinzufügen"</a></td>
+                                                    <td class="tbcontrol" colspan="3"><a href=_newprep_url class="arrow">"Material hinzufügen"</a></td>
                                                 </tr>
                                             } => ();
                                             <tr>
@@ -544,21 +541,21 @@ pub(crate) fn course_details_internal(
                                                 </td>
                                                 <td class="tbdata rw rw-course-date" xss="">
                                                     let date = if html_handler.peek().unwrap().value().is_element() {
-                                                        <a name="appointmentDate" appointmentid=id href=courseprep_url>date</a>
+                                                        <a name="appointmentDate" appointmentid=_id href=_courseprep_url>date</a>
                                                     } => date else {
                                                         date
                                                     } => date;
                                                 </td>
                                                 <td class="tbdata rw rw-course-from" xss="">
                                                     let time_start = if html_handler.peek().unwrap().value().is_element() {
-                                                        <a name="appointmentTimeFrom" href=courseprep_url>time_start</a>
+                                                        <a name="appointmentTimeFrom" href=_courseprep_url>time_start</a>
                                                     } => time_start else {
                                                         time_start
                                                     } => time_start;
                                                 </td>
                                                 <td class="tbdata rw rw-course-to" xss="">
                                                     let time_end = if html_handler.peek().unwrap().value().is_element() {
-                                                        <a name="appointmentTimeTo" href=courseprep_url>time_end</a>
+                                                        <a name="appointmentTimeTo" href=_courseprep_url>time_end</a>
                                                     } => time_end else {
                                                         time_end
                                                     } => time_end;
@@ -679,7 +676,7 @@ pub(crate) fn course_details_internal(
                                                         </li>
                                                     } => (title, number) else {
                                                         <li class="courseListCellHover numout" title=title>
-                                                            <a href=href class="numlink">number</a>
+                                                            <a href=_href class="numlink">number</a>
                                                         </li>
                                                     } => (title, number);
                                                 } => short_termin.either_into();
@@ -735,14 +732,14 @@ pub(crate) fn course_details_internal(
                             <input name="APPNAME" type="hidden" value="CampusNet"></input>
                             <input name="PRGNAME" type="hidden" value="COURSEDETAILSSAVE"></input>
                             <input name="ARGUMENTS" type="hidden" value="sessionno,menuid,study,coursedetailid,showdate,mgshowdate,lgshow,sign,close,coursename,credits,location,language,max_participantsno,min_participantsno,sws,shortdescription,coursetyp,courselevel,medianumbers"></input>
-                            <input name="sessionno" type="hidden" value=sessionno></input>
-                            <input name="menuid" type="hidden" value=menuid></input>
-                            <input name="study" type="hidden" value=study></input>
-                            <input name="courseno" type="hidden" value=courseno></input>
-                            <input name="coursedetailid" type="hidden" value=coursedetailid></input>
-                            <input name="close" type="hidden" value=close></input>
-                            <input name="coursename" type="hidden" value=coursename></input>
-                            <input name="medianumbers" type="hidden" value=medianumbers></input>
+                            <input name="sessionno" type="hidden" value=_sessionno></input>
+                            <input name="menuid" type="hidden" value=_menuid></input>
+                            <input name="study" type="hidden" value=_study></input>
+                            <input name="courseno" type="hidden" value=_courseno></input>
+                            <input name="coursedetailid" type="hidden" value=_coursedetailid></input>
+                            <input name="close" type="hidden" value=_close></input>
+                            <input name="coursename" type="hidden" value=_coursename></input>
+                            <input name="medianumbers" type="hidden" value=_medianumbers></input>
                         } => ();
                     </form>
                     <script type="text/javascript">
@@ -772,8 +769,7 @@ pub(crate) fn course_details_internal(
             "ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ",
             "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo",
             "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo",
-        ]
-        .into_iter())
+        ])
     {
         // hack, one person has a second name at one place and not at the other
         // place

@@ -1,15 +1,13 @@
 use std::str::FromStr;
 
 use html_handler::{Root, parse_document};
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, ModuleGrade, RevalidationStrategy, SemesterId, Semesterauswahl, TucanError,
+    LoginResponse, ModuleGrade, SemesterId, Semesterauswahl, TucanError,
     courseresults::{ModuleResult, ModuleResultsResponse},
     gradeoverview::GradeOverviewRequest,
 };
 
 use crate::{
-    TucanConnector, authenticated_retryable_get,
     gradeoverview::GRADEOVERVIEW_REGEX,
     head::{footer, html_head, logged_in_head},
 };
@@ -18,7 +16,7 @@ use crate::{
 pub(crate) fn course_results_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<ModuleResultsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

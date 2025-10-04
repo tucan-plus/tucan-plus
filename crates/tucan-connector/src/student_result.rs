@@ -1,17 +1,12 @@
 use std::sync::LazyLock;
 
-use crate::{
-    TucanConnector, authenticated_retryable_get,
-    head::{footer, html_head, logged_in_head, logged_out_head},
-};
+use crate::head::{footer, html_head, logged_in_head, logged_out_head};
 use ego_tree::NodeRef;
 use html_handler::{InElement, MyNode, Root, parse_document};
-use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, TucanError,
+    LeistungsspiegelGrade, LoginResponse, TucanError,
     student_result::{
         CourseOfStudySelection, StudentResultEntry, StudentResultLevel, StudentResultResponse,
         StudentResultRules, StudentResultState,
@@ -288,7 +283,7 @@ fn part1<T>(
 pub(crate) fn student_result_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

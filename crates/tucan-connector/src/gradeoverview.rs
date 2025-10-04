@@ -1,15 +1,13 @@
 use std::sync::LazyLock;
 
-use log::info;
 use regex::Regex;
-use time::{Duration, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy,
-    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse, Grades},
+    LoginResponse,
+    gradeoverview::{GradeOverviewResponse, Grades},
 };
 
 use crate::{
-    TucanConnector, TucanError, authenticated_retryable_get,
+    TucanError,
     head::{footer, html_head, logged_in_head},
 };
 use html_handler::{Root, parse_document};
@@ -25,7 +23,7 @@ pub static GRADEOVERVIEW_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 pub(crate) fn gradeoverview_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<GradeOverviewResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

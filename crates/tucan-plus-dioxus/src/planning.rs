@@ -1,29 +1,20 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
-use std::cell::RefCell;
-use std::sync::Arc;
-
-use dioxus::html::FileEngine;
+use dioxus::html::FileData;
 use dioxus::prelude::*;
-use fragile::Fragile;
 use futures::StreamExt;
-use js_sys::Uint8Array;
 use log::info;
-use tucan_plus_planning::decompress;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
-use tucan_plus_worker::{AnmeldungenRequest, AnmeldungenRequest2, Fewe, MyDatabase};
-use tucan_types::registration::AnmeldungResponse;
-use tucan_types::student_result::{StudentResultLevel, StudentResultResponse};
+use tucan_plus_worker::{AnmeldungenEntriesInSemester, AnmeldungenRequest, AnmeldungenRequest2, Fewe, MyDatabase, UpdateAnmeldungEntry};
+use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{
-    CONCURRENCY, LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan,
+    LoginResponse, RevalidationStrategy, Tucan,
 };
-use wasm_bindgen_futures::JsFuture;
-use web_sys::{FileList, HtmlInputElement, Worker};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
-use crate::{MyRc, RcTucanType, Route};
+use crate::{RcTucanType, Route};
 
 #[component]
 pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
@@ -33,15 +24,15 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         let value = tucan.clone();
         async move {
             // TODO FIXME don't unwrap here
-            let student_result = value
+            
+            value
                 .student_result(
                     &current_session_handle().unwrap(),
                     RevalidationStrategy::cache(),
                     course_of_study().parse().unwrap_or(0),
                 )
                 .await
-                .unwrap();
-            student_result
+                .unwrap()
         }
     });
     rsx! {
@@ -64,8 +55,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
-    let mut wintersemester: Signal<Option<Arc<dyn FileEngine>>> = use_signal(|| None);
+    let mut sommersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut wintersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -248,50 +239,42 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 }
             }
         }
-    }
-    /* for i in 2020..2030 {
-        Fragment {
-            key: "{i}",
-            h2 {
-                "Sommersemester {i}"
-            }
-            AnmeldungenEntries {
-                future,
-                entries: QueryDsl::filter(
-                    anmeldungen_entries::table,
-                    anmeldungen_entries::course_of_study
-                        .eq(&course_of_study)
-                        .and(
-                            anmeldungen_entries::semester
-                                .eq(Semester::Sommersemester)
-                                .and(anmeldungen_entries::year.eq(i))
-                        ),
-                )
-                .select(AnmeldungEntry::as_select())
-                .load(&mut *connection.borrow_mut())
-                .expect("Error loading anmeldungen"),
-            }
-            h2 {
-                "Wintersemester {i}"
-            }
-            AnmeldungenEntries {
-                future,
-                entries: QueryDsl::filter(
-                    anmeldungen_entries::table,
-                    anmeldungen_entries::course_of_study
-                        .eq(&course_of_study)
-                        .and(
-                            anmeldungen_entries::semester
-                                .eq(Semester::Wintersemester)
-                                .and(anmeldungen_entries::year.eq(i))
-                        ),
-                )
-                .select(AnmeldungEntry::as_select())
-                .load(&mut *connection.borrow_mut())
-                .expect("Error loading anmeldungen"),
+        for i in 2020..2030 {
+            Fragment {
+                key: "{i}",
+                h2 {
+                    "Sommersemester {i}"
+                }
+                AnmeldungenEntries {
+                    future,
+                    entries: {
+                    let worker = worker.clone();
+                    let course_of_study = course_of_study.clone();
+                        use_resource(move || {
+                    let worker = worker.clone();
+                    let course_of_study = course_of_study.clone();
+                    async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Sommersemester }).await}
+                    }).value()
+                },
+                }
+                h2 {
+                    "Wintersemester {i}"
+                }
+                AnmeldungenEntries {
+                    future,
+                    entries: {
+                    let worker = worker.clone();
+                    let course_of_study = course_of_study.clone();
+                        use_resource(move || {
+                    let worker = worker.clone();
+                    let course_of_study = course_of_study.clone();
+                    async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Wintersemester }).await}
+                    }).value()
+                },
+                }
             }
         }
-    } */
+    }
 }
 
 pub struct PrepPlanningReturn {
@@ -311,14 +294,15 @@ pub enum PlanningState {
 }
 
 #[component]
-fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
-    info!("{:?}", entries);
+fn AnmeldungenEntries(future: Resource<Vec<Element>>, entries: ReadSignal<Option<Vec<AnmeldungEntry>>>) -> Element {
+    let worker: MyDatabase = use_context();
     rsx! {
         table {
             class: "table",
             tbody {
-                for (key, entry) in entries
+                for (key, entry) in entries()
                     .iter()
+                    .flatten()
                     .map(|entry| (format!("{}{:?}", entry.id, entry.available_semester), entry)) {
                     tr {
                         key: "{key}",
@@ -343,18 +327,17 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 },
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
+                                        let worker = worker.clone();
                                         move |event| {
-                                            /*
-                                            event.prevent_default();
-                                            let connection = connection.clone();
-                                            entry.state = State::NotPlanned;
-                                            diesel::update(&entry)
-                                                .set(&entry)
-                                                .execute(&mut *connection.borrow_mut())
-                                                .unwrap();
-                                            future.restart();
-                                            */
+                                            let mut entry = entry.clone();
+                                            let worker = worker.clone();
+                                            async move {
+                                                event.prevent_default();
+                                                entry.state = State::NotPlanned;
+                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                future.restart();
+                                            }
                                         }
                                     },
                                     selected: entry.state == State::NotPlanned,
@@ -362,18 +345,17 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 }
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
+                                        let worker = worker.clone();
                                         move |event| {
-                                            /*
-                                            event.prevent_default();
-                                            let connection = connection.clone();
-                                            entry.state = State::Planned;
-                                            diesel::update(&entry)
-                                                .set(&entry)
-                                                .execute(&mut *connection.borrow_mut())
-                                                .unwrap();
-                                            future.restart();
-                                            */
+                                            let mut entry = entry.clone();
+                                            let worker = worker.clone();
+                                            async move {
+                                                event.prevent_default();
+                                                entry.state = State::Planned;
+                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                future.restart();
+                                            }
                                         }
                                     },
                                     selected: entry.state == State::Planned,
@@ -381,18 +363,17 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                 }
                                 option {
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
+                                        let worker = worker.clone();
                                         move |event| {
-                                            /*
-                                            event.prevent_default();
-                                            let connection = connection.clone();
-                                            entry.state = State::Done;
-                                            diesel::update(&entry)
-                                                .set(&entry)
-                                                .execute(&mut *connection.borrow_mut())
-                                                .unwrap();
-                                            future.restart();
-                                            */
+                                            let mut entry = entry.clone();
+                                            let worker = worker.clone();
+                                            async move {
+                                                event.prevent_default();
+                                                entry.state = State::Done;
+                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                future.restart();
+                                            }
                                         }
                                     },
                                     selected: entry.state == State::Done,
@@ -406,19 +387,18 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     key: "",
                                     value: "",
                                     onclick: {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
+                                        let worker = worker.clone();
                                         move |event| {
-                                            /*
-                                            event.prevent_default();
-                                            let connection = connection.clone();
-                                            entry.semester = None;
-                                            entry.year = None;
-                                            diesel::update(&entry)
-                                                .set(&entry)
-                                                .execute(&mut *connection.borrow_mut())
-                                                .unwrap();
-                                            future.restart();
-                                            */
+                                            let mut entry = entry.clone();
+                                            let worker = worker.clone();
+                                            async move {
+                                                event.prevent_default();
+                                                entry.semester = None;
+                                                entry.year = None;
+                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                future.restart();
+                                            }
                                         }
                                     },
                                     selected: entry.semester.is_none() && entry.year.is_none(),
@@ -428,19 +408,18 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     option {
                                         key: "sose{i}",
                                         onclick: {
-                                            let mut entry = entry.clone();
+                                            let entry = entry.clone();
+                                            let worker = worker.clone();
                                             move |event| {
-                                                /*
-                                                event.prevent_default();
-                                                let connection = connection.clone();
-                                                entry.semester = Some(Semester::Sommersemester);
-                                                entry.year = Some(i);
-                                                diesel::update(&entry)
-                                                    .set(&entry)
-                                                    .execute(&mut *connection.borrow_mut())
-                                                    .unwrap();
-                                                future.restart();
-                                                */
+                                                let mut entry = entry.clone();
+                                                let worker = worker.clone();
+                                                async move {
+                                                    event.prevent_default();
+                                                    entry.semester = Some(Semester::Sommersemester);
+                                                    entry.year = Some(i);
+                                                    worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                    future.restart();
+                                                }
                                             }
                                         },
                                         selected: entry.semester == Some(Semester::Sommersemester)
@@ -450,19 +429,18 @@ fn AnmeldungenEntries(entries: Vec<AnmeldungEntry>) -> Element {
                                     option {
                                         key: "wise{i}",
                                         onclick: {
-                                            let mut entry = entry.clone();
+                                            let entry = entry.clone();
+                                            let worker = worker.clone();
                                             move |event| {
-                                                /*
-                                                event.prevent_default();
-                                                let connection = connection.clone();
-                                                entry.semester = Some(Semester::Wintersemester);
-                                                entry.year = Some(i);
-                                                diesel::update(&entry)
-                                                    .set(&entry)
-                                                    .execute(&mut *connection.borrow_mut())
-                                                    .unwrap();
-                                                future.restart();
-                                                */
+                                                let mut entry = entry.clone();
+                                                let worker = worker.clone();
+                                                async move {
+                                                    event.prevent_default();
+                                                    entry.semester = Some(Semester::Wintersemester);
+                                                    entry.year = Some(i);
+                                                    worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                                    future.restart();
+                                                }
                                             }
                                         },
                                         selected: entry.semester == Some(Semester::Wintersemester)
@@ -545,11 +523,12 @@ async fn prep_planning(
                 if (!entries.is_empty() && expanded())
                     || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                     AnmeldungenEntries {
-                        entries: entries
+                        future: use_resource(|| async { Vec::new() }),
+                        entries: ReadSignal::new(use_signal(|| Some(entries
                             .iter()
                             .filter(|entry| expanded() || entry.state != State::NotPlanned)
                             .cloned()
-                            .collect::<Vec<_>>(),
+                            .collect::<Vec<_>>()))),
                     }
                 }
                 if expanded() || inner.iter().any(|v| v.has_contents) {

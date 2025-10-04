@@ -1,17 +1,14 @@
 use itertools::Itertools;
-use log::info;
 use scraper::CaseSensitivity::CaseSensitive;
-use time::{Duration, OffsetDateTime};
 use tucan_types::moduledetails::{
     Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin,
 };
-use tucan_types::{InstructorImage, RevalidationStrategy};
+use tucan_types::InstructorImage;
 use tucan_types::{
     LoginResponse,
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
+    moduledetails::ModuleDetailsResponse,
 };
 
-use crate::{TucanConnector, authenticated_retryable_get};
 use crate::{
     TucanError,
     head::{footer, html_head, logged_in_head, logged_out_head},
@@ -22,7 +19,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 pub(crate) fn module_details_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

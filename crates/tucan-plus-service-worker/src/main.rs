@@ -1,4 +1,3 @@
-use std::{cell::RefCell, time::Duration};
 
 use log::info;
 use wasm_bindgen::prelude::*;

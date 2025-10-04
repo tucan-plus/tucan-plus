@@ -1,13 +1,11 @@
-use log::info;
-use time::{Duration, OffsetDateTime, macros::offset};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy,
+    LoginResponse,
     coursedetails::CourseDetailsRequest,
     mlsstart::{MlsStart, Nachricht, StundenplanEintrag},
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanError,
     head::{footer, html_head, logged_in_head},
 };
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
@@ -16,7 +14,7 @@ use html_handler::{MyElementRef, MyNode, Root, parse_document};
 pub(crate) fn after_login_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<MlsStart, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());

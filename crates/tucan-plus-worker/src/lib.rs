@@ -1,14 +1,13 @@
-#[cfg(not(target_arch = "wasm32"))]
-use std::{cell::RefCell, rc::Rc};
 
-use derive_more::From;
-use diesel::{prelude::*, r2d2::CustomizeConnection, upsert::excluded};
+#[cfg(not(target_arch = "wasm32"))]
+use diesel::r2d2::CustomizeConnection;
+use diesel::{prelude::*, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
-#[cfg(not(target_arch = "wasm32"))]
-use fragile::Fragile;
-use serde::{Deserialize, Serialize, de::DeserializeOwned};
+#[cfg(target_arch = "wasm32")]
+use serde::{Serialize, Deserialize, de::DeserializeOwned};
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
@@ -28,15 +27,21 @@ pub mod schema;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
-pub trait RequestResponse: Serialize + Sized
-where
-    RequestResponseEnum: From<Self>,
-{
+#[cfg(target_arch = "wasm32")]
+pub trait RequestResponse: Serialize + Sized where
+    RequestResponseEnum: From<Self>, {
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg(not(target_arch = "wasm32"))]
+pub trait RequestResponse: Sized {
+    type Response;
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct CacheRequest {
     pub key: String,
 }
@@ -53,7 +58,8 @@ impl RequestResponse for CacheRequest {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct StoreCacheRequest(pub CacheEntry);
 
 impl RequestResponse for StoreCacheRequest {
@@ -70,7 +76,8 @@ impl RequestResponse for StoreCacheRequest {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct AnmeldungenRequest {
     pub course_of_study: String,
 }
@@ -91,7 +98,8 @@ impl RequestResponse for AnmeldungenRequest {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct AnmeldungenRequest2 {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
@@ -113,7 +121,8 @@ impl RequestResponse for AnmeldungenRequest2 {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct Fewe {
     pub course_of_study: String,
     pub anmeldung: Anmeldung,
@@ -135,7 +144,8 @@ impl RequestResponse for Fewe {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct FEwefweewf {
     pub inserts: Vec<Anmeldung>,
 }
@@ -154,7 +164,8 @@ impl RequestResponse for FEwefweewf {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct Wlewifhewefwef {
     pub insert: AnmeldungEntry,
 }
@@ -182,7 +193,8 @@ impl RequestResponse for Wlewifhewefwef {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct ChildUrl {
     pub course_of_study: String,
     pub url: String,
@@ -216,7 +228,8 @@ impl RequestResponse for ChildUrl {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct UpdateModule {
     pub course_of_study: String,
     pub semester: Semesterauswahl,
@@ -252,7 +265,53 @@ impl RequestResponse for UpdateModule {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct UpdateAnmeldungEntry {
+    pub entry: AnmeldungEntry
+}
+
+impl RequestResponse for UpdateAnmeldungEntry {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        diesel::update(&self.entry)
+            .set(&self.entry)
+            .execute(connection)
+            .unwrap();
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct AnmeldungenEntriesInSemester {
+    pub course_of_study: String,
+    pub year: i32,
+    pub semester: Semester,
+}
+
+impl RequestResponse for AnmeldungenEntriesInSemester {
+    type Response = Vec<AnmeldungEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+       QueryDsl::filter(
+        anmeldungen_entries::table,
+        anmeldungen_entries::course_of_study
+            .eq(&self.course_of_study)
+            .and(
+                anmeldungen_entries::semester
+                    .eq(self.semester)
+                    .and(anmeldungen_entries::year.eq(self.year))
+            ),
+    )
+    .select(AnmeldungEntry::as_select())
+    .load(connection)
+    .unwrap()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct SetStateAndCredits {
     pub inserts: Vec<AnmeldungEntry>,
 }
@@ -279,7 +338,8 @@ impl RequestResponse for SetStateAndCredits {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct SetCpAndModuleCount {
     pub course_of_study: String,
     pub name: String,
@@ -313,7 +373,8 @@ impl RequestResponse for SetCpAndModuleCount {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct ExportDatabaseRequest;
 
 impl RequestResponse for ExportDatabaseRequest {
@@ -324,7 +385,8 @@ impl RequestResponse for ExportDatabaseRequest {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, From)]
+#[cfg(target_arch = "wasm32")]
+#[derive(Serialize, Deserialize, Debug, derive_more::From)]
 pub enum RequestResponseEnum {
     AnmeldungenRequest(AnmeldungenRequest),
     AnmeldungenRequest2(AnmeldungenRequest2),
@@ -338,8 +400,11 @@ pub enum RequestResponseEnum {
     CacheRequest(CacheRequest),
     StoreCacheRequest(StoreCacheRequest),
     ExportDatabaseRequest(ExportDatabaseRequest),
+    UpdateAnmeldungEntry(UpdateAnmeldungEntry),
+    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester)
 }
 
+#[cfg(target_arch = "wasm32")]
 impl RequestResponseEnum {
     pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
         match self {
@@ -379,10 +444,17 @@ impl RequestResponseEnum {
             RequestResponseEnum::ExportDatabaseRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
+            RequestResponseEnum::UpdateAnmeldungEntry(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
         }
     }
 }
 
+#[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize)]
 pub struct MessageWithId {
     pub id: String,
@@ -393,9 +465,11 @@ pub struct MessageWithId {
 #[derive(Clone)]
 pub struct MyDatabase(diesel::r2d2::Pool<diesel::r2d2::ConnectionManager<SqliteConnection>>);
 
+#[cfg(not(target_arch = "wasm32"))]
 #[derive(Debug)]
 struct ConnectionCustomizer;
 
+#[cfg(not(target_arch = "wasm32"))]
 impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
     for ConnectionCustomizer
 {
@@ -409,7 +483,7 @@ impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
         Ok(())
     }
 
-    fn on_release(&self, conn: C) {}
+    fn on_release(&self, _conn: C) {}
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -446,10 +520,10 @@ impl MyDatabase {
         Self(pool)
     }
 
-    pub async fn send_message<R: RequestResponse + std::fmt::Debug>(&self, value: R) -> R::Response
-    where
-        RequestResponseEnum: std::convert::From<R>,
-    {
+    pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        value: R,
+    ) -> R::Response {
         value.execute(&mut self.0.get().unwrap())
     }
 }
@@ -468,8 +542,8 @@ impl MyDatabase {
 
         let lock_manager = web_sys::window().unwrap().navigator().locks();
         let lock_closure: Closure<dyn Fn(_) -> Promise> = {
-            Closure::new(move |event: web_sys::Lock| {
-                let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            Closure::new(move |_event: web_sys::Lock| {
+                let mut cb = |_resolve: js_sys::Function, reject: js_sys::Function| {
                     use web_sys::{WorkerOptions, WorkerType};
 
                     let options = WorkerOptions::new();
@@ -500,7 +574,7 @@ impl MyDatabase {
                 return js_sys::Promise::new(&mut cb);
             })
         };
-        lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional = lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
@@ -525,7 +599,7 @@ impl MyDatabase {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&id).unwrap();
 
-        let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+        let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {

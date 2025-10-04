@@ -1,12 +1,9 @@
 use std::sync::LazyLock;
 
-use log::info;
 use regex::Regex;
 use scraper::CaseSensitivity;
-use time::macros::offset;
-use time::{Duration, Month, OffsetDateTime};
 use tucan_types::{
-    LoginResponse, RevalidationStrategy,
+    LoginResponse,
     coursedetails::CourseDetailsRequest,
     moduledetails::ModuleDetailsRequest,
     registration::{
@@ -16,7 +13,7 @@ use tucan_types::{
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanConnector, TucanError, authenticated_retryable_get,
+    COURSEDETAILS_REGEX, TucanError,
     head::{footer, html_head, logged_in_head},
 };
 use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
@@ -62,7 +59,7 @@ fn is_tbsubhead(
 pub(crate) fn anmeldung_internal(
     login_response: &LoginResponse,
     content: &str,
-    nothing: &(),
+    _nothing: &(),
 ) -> Result<AnmeldungResponse, TucanError> {
     static REGISTRATION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
         Regex::new(
