@@ -61,7 +61,7 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
 cd crates/tucan-plus-dioxus/
-dx serve --web --features api --verbose
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose --wasm-split
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
