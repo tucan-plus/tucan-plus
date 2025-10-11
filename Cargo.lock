@@ -2486,7 +2486,7 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "futures-sink",
- "gloo-utils",
+ "gloo-utils 0.2.0",
  "http",
  "js-sys",
  "pin-project",
@@ -2508,6 +2508,19 @@ dependencies = [
  "futures-core",
  "js-sys",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "gloo-utils"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "037fcb07216cb3a30f7292bd0176b050b7b9a052ba830ef7d5d65f6dc64ba58e"
+dependencies = [
+ "js-sys",
+ "serde",
+ "serde_json",
+ "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
@@ -5012,17 +5025,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_derive_internals"
-version = "0.29.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.106",
-]
-
-[[package]]
 name = "serde_json"
 version = "1.0.145"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5902,32 +5904,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e421abadd41a4225275504ea4d6566923418b7f05506fbc9c0fe86ba7396114b"
 
 [[package]]
-name = "tsify-next"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7d0f2208feeb5f7a6edb15a2389c14cd42480ef6417318316bb866da5806a61d"
-dependencies = [
- "gloo-utils",
- "serde",
- "serde-wasm-bindgen",
- "serde_json",
- "tsify-next-macros",
- "wasm-bindgen",
-]
-
-[[package]]
-name = "tsify-next-macros"
-version = "0.5.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f81253930d0d388a3ab8fa4ae56da9973ab171ef833d1be2e9080fc3ce502bd6"
-dependencies = [
- "proc-macro2",
- "quote",
- "serde_derive_internals",
- "syn 2.0.106",
-]
-
-[[package]]
 name = "tucan-connector"
 version = "0.1.2"
 dependencies = [
@@ -6021,7 +5997,7 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-extensions-sys",
+ "web-extensions",
  "web-sys",
 ]
 
@@ -6560,13 +6536,27 @@ dependencies = [
 ]
 
 [[package]]
-name = "web-extensions-sys"
-version = "0.4.1"
-source = "git+https://github.com/mohe2015/web-extensions-sys?branch=cookies#03c3cd1121f6e02672277238fe463b6af286f0b2"
+name = "web-extensions"
+version = "0.3.0"
+source = "git+https://github.com/mohe2015/web-extensions?branch=cookies#8d106d7804c0b0f08e62120a907b12c95f2eb29c"
 dependencies = [
+ "gloo-utils 0.1.7",
  "js-sys",
  "serde",
- "tsify-next",
+ "serde_derive",
+ "serde_json",
+ "thiserror 1.0.69",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-extensions-sys",
+]
+
+[[package]]
+name = "web-extensions-sys"
+version = "0.4.1"
+source = "git+https://github.com/mohe2015/web-extensions-sys?branch=cookies#dbf0ec7b4054f427bb13ea600685bef576c6498f"
+dependencies = [
+ "js-sys",
  "wasm-bindgen",
  "wasm-bindgen-futures",
 ]
