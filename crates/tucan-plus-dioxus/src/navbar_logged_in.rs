@@ -29,10 +29,10 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
 
 #[component]
 pub fn NavbarLoggedIn(
-    current_session: ReadSignal<LoginResponse>,
-    data: ReadSignal<Option<MlsStart>>,
+    current_session: LoginResponse,
+    data: Option<MlsStart>,
 ) -> Element {
-    let disabled = if data().is_none() {
+    let disabled = if data.is_none() {
         "disabled"
     } else {
         Default::default()
@@ -67,7 +67,7 @@ pub fn NavbarLoggedIn(
                                 format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.messages_url)
                             }),
                         "Nachrichten"
-                        if data().is_none() {
+                        if data.is_none() {
                             " "
                             span {
                                 class: "spinner-grow spinner-grow-sm",
@@ -101,7 +101,7 @@ pub fn NavbarLoggedIn(
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse",
                         "Vorlesungsverzeichnis"
-                        if data().is_none() {
+                        if data.is_none() {
                             " "
                             span {
                                 class: "spinner-grow spinner-grow-sm",
@@ -125,7 +125,7 @@ pub fn NavbarLoggedIn(
                                 )
                             }),
                         "Lehrveranstaltungssuche"
-                        if data().is_none() {
+                        if data.is_none() {
                             " "
                             span {
                                 class: "spinner-grow spinner-grow-sm",
@@ -142,7 +142,7 @@ pub fn NavbarLoggedIn(
                         "Raumsuche"
                     }
                 }
-                Vorlesungsverzeichnisse { data }
+                Vorlesungsverzeichnisse { data: data.clone() }
                 li {
                     a {
                         class: "dropdown-item",
@@ -166,7 +166,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000268,-A,-A,-N1",
-                            current_session().id,
+                            current_session.id,
                         ),
                         "Stundenplan"
                     }
@@ -179,7 +179,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000269,-A,-A,-N0",
-                            current_session().id,
+                            current_session.id,
                         ),
                         "Tagesansicht"
                     }
@@ -189,7 +189,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER&ARGUMENTS=-N{:015},-N000270,-A,-A,-N1",
-                            current_session().id,
+                            current_session.id,
                         ),
                         "Wochenansicht"
                     }
@@ -199,7 +199,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MONTH&ARGUMENTS=-N{:015},-N000271,-A",
-                            current_session().id,
+                            current_session.id,
                         ),
                         "Monatsansicht"
                     }
@@ -209,7 +209,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCHEDULER_EXPORT&ARGUMENTS=-N{:015},-N000272,",
-                            current_session().id,
+                            current_session.id,
                         ),
                         "Export"
                     }
@@ -230,7 +230,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000273,-Astudveranst%2Ehtml",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Veranstaltungen"}
                     }
@@ -276,7 +276,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENTCHOICECOURSES&ARGUMENTS=-N{:015},-N000307,",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Meine Wahlbereiche"}
                     }
@@ -297,7 +297,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYREGISTRATIONS&ARGUMENTS=-N{:015},-N000308,-N000000000000000",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Mein aktueller Anmeldestatus"}
                     }
@@ -318,7 +318,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000280,-Astudpruefungen%2Ehtml",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Prüfungen"}
                     }
@@ -342,7 +342,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=SCPCHOICE&ARGUMENTS=-N{:015},-N000389,",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Mein Prüfungsplan"}
                     }
@@ -352,7 +352,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000391,-Astudplan%2Ehtml",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Mein Prüfungsplan - Wichtige Hinweise"}
                     }
@@ -362,7 +362,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000323,-Astudergebnis%2Ehtml",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Semesterergebnisse"}
                     }
@@ -416,7 +416,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000337,-Aservice%2Ehtml",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Service"}
                     }
@@ -429,7 +429,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PERSADDRESS&ARGUMENTS=-N{:015},-N000339,-A",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Persönliche Daten"}
                     }
@@ -451,7 +451,7 @@ pub fn NavbarLoggedIn(
                                 format!("https://www.tucan.tu-darmstadt.de{}", v.logged_in_head.antraege_url)
                             }),
                         "Anträge"
-                        if data().is_none() {
+                        if data.is_none() {
                             " "
                             span {
                                 class: "spinner-grow spinner-grow-sm",
@@ -466,7 +466,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=HOLDINFO&ARGUMENTS=-N{:015},-N000652,",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Sperren"}
                     }
@@ -487,7 +487,7 @@ pub fn NavbarLoggedIn(
                         class: "dropdown-item",
                         href: format!(
                             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000441,-Abewerbung",
-                            current_session().id,
+                            current_session.id,
                         ),
                         {"Bewerbung"}
                     }
@@ -506,7 +506,7 @@ pub fn NavbarLoggedIn(
                                 )
                             }),
                         {"Meine Bewerbung"}
-                        if data().is_none() {
+                        if data.is_none() {
                             " "
                             span {
                                 class: "spinner-grow spinner-grow-sm",
@@ -532,7 +532,7 @@ pub fn NavbarLoggedIn(
                 class: "nav-link",
                 href: format!(
                     "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&ARGUMENTS=-N{:015},-N000340,-Ahilfe%2Ehtml",
-                    current_session().id,
+                    current_session.id,
                 ),
                 {"Hilfe"}
             }
