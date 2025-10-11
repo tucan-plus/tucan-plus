@@ -487,6 +487,7 @@
 
         client-args = {
           dioxusExtraArgs = "--features direct --web";
+          # TODO FIXME dioxus creates duplicate .wasm files in wasm and assets folder
           dioxusMainArgs = "--out-dir $out --wasm-split";
           buildDepsOnly = {
             preBuild = ''
@@ -517,7 +518,7 @@
             '';
             # temporary https://github.com/DioxusLabs/dioxus/issues/4758
             postBuild = ''
-              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+              #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
             '';
           };
           
