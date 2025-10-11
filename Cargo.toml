@@ -8,16 +8,13 @@ version = "0.1.0"
 
 [profile.wasm-release]
 inherits = "release"
-opt-level = "z"
-debug = true
-lto = true
-codegen-units = 1
-panic = "abort"
-incremental = false
+debug = true # wasm-split
+lto = true # wasm-split
 
 [profile.wasm-dev]
 inherits = "dev"
 lto = true # wasm-split
+debug = true # wasm-split
 
 [patch.crates-io]
 sqlite-wasm-rs = { git = "https://github.com/mohe2015/sqlite-wasm-rs.git", branch = "sqlite3_os_end" }
