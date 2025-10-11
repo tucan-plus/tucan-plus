@@ -116,7 +116,11 @@ pub fn Navbar() -> Element {
                 }
             }
         }
-        Outlet::<Route> {
+        // this breaks with wasm-split because it is suspending here but setAttribute should still not fail then
+        SuspenseBoundary {
+            fallback: |_| rsx! { span { "Loading..." } },
+            Outlet::<Route> {
+            }
         }
     }
 }

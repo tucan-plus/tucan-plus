@@ -10,7 +10,7 @@ rust-version = "1.86"
 [dependencies]
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router", "wasm-split" ] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", optional = true }
-dioxus-router = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["wasm-split"] }
+dioxus-router = { git = "https://github.com/mohe2015/dioxus.git", branch = "my" }
 tucan-types = { path = "../tucan-types" }
 log = { version = "0.4" }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
