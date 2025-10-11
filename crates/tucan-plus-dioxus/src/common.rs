@@ -74,9 +74,7 @@ async fn handle_timeout<O: Clone + 'static>(
     // do we also get a timeout for an unauthenticated vv url when we are logged in?
     // for debugging getting a timed out session would be useful
     #[cfg(feature = "direct")]
-    web_extensions_sys::chrome()
-        .cookies()
-        .set(web_extensions_sys::SetCookieDetails {
+    web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
             name: Some("id".to_owned()),
             partition_key: None,
             store_id: None,
@@ -92,9 +90,7 @@ async fn handle_timeout<O: Clone + 'static>(
         .await;
 
     #[cfg(feature = "direct")]
-    web_extensions_sys::chrome()
-        .cookies()
-        .set(web_extensions_sys::SetCookieDetails {
+    web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
             name: Some("cnsc".to_owned()),
             partition_key: None,
             store_id: None,

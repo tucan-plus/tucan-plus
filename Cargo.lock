@@ -5998,6 +5998,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-extensions",
+ "web-extensions-sys",
  "web-sys",
 ]
 

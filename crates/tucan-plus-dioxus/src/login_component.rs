@@ -36,9 +36,7 @@ pub fn LoginComponent() -> Element {
             {
                 Ok(response) => {
                     #[cfg(feature = "direct")]
-                    web_extensions_sys::chrome()
-                        .cookies()
-                        .set(web_extensions_sys::SetCookieDetails {
+                    web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
                             name: Some("id".to_owned()),
                             partition_key: None,
                             store_id: None,
@@ -76,9 +74,7 @@ pub fn LoginComponent() -> Element {
         async move {
             // TODO deduplicate
             #[cfg(feature = "direct")]
-            web_extensions_sys::chrome()
-                .cookies()
-                .set(web_extensions_sys::SetCookieDetails {
+            web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
                     name: Some("id".to_owned()),
                     partition_key: None,
                     store_id: None,
@@ -94,9 +90,7 @@ pub fn LoginComponent() -> Element {
                 .await;
 
             #[cfg(feature = "direct")]
-            web_extensions_sys::chrome()
-                .cookies()
-                .set(web_extensions_sys::SetCookieDetails {
+            web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
                     name: Some("cnsc".to_owned()),
                     partition_key: None,
                     store_id: None,
