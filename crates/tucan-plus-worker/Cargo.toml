@@ -17,7 +17,7 @@ libsqlite3-sys = { version = "0.35.0", features = ["bundled"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # TODO FIXME: separate the rpc layer
-sqlite-wasm-rs = { version = "0.4", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { git = "https://github.com/mohe2015/sqlite-wasm-rs.git", branch = "sqlite3_os_end", default-features = false, features = ["bundled"] }
 getrandom = { version = "0.3", features = ["wasm_js"] }
 wasm-bindgen-futures = "0.4"
 serde-wasm-bindgen = "0.6"

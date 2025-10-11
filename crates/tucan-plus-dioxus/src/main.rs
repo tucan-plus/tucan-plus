@@ -63,6 +63,7 @@ pub async fn main() {
     }
 }
 
+#[wasm_split::wasm_split(worker)]
 async fn worker_main() {
     use std::cell::RefCell;
 

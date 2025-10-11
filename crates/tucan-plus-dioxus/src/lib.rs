@@ -111,9 +111,7 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
 
 #[cfg(feature = "direct")]
 pub async fn login_response() -> Option<tucan_types::LoginResponse> {
-    let session_id = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
+    let session_id = web_extensions::cookies::get(web_extensions::cookies::CookieDetails {
             name: "id".to_owned(),
             partition_key: None,
             store_id: None,
@@ -122,9 +120,7 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
         .await?
         .value;
 
-    let cnsc = web_extensions_sys::chrome()
-        .cookies()
-        .get(web_extensions_sys::CookieDetails {
+    let cnsc = web_extensions::cookies::get(web_extensions::cookies::CookieDetails {
             name: "cnsc".to_owned(),
             url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
             partition_key: None,
