@@ -3,7 +3,6 @@ import { handleOpenInTucan } from "./open-in-tucan.js"
 import { customUiRules } from "./custom-ui.js";
 
 if (chrome.contextMenus) {
-
     chrome.contextMenus.onClicked.addListener((info, tab) => {
         asyncClosure(async () => {
             const id = await chrome.cookies.get({
