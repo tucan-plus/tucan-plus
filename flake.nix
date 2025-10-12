@@ -58,8 +58,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "9208b4a65fb7602155770d8197013e86ea27b01d";
-            hash = "sha256-Xo5SzFZOqCiTB3eVG/bySc+MUUoMifQGVlUrPbnscZQ=";
+            rev = "72bfb16e204240883aee195ef7c2993c26ad0d9b";
+            hash = "sha256-GGP60d3IJpVAlvnfk8CjvLrb42GoHp+KsVAPa+Nvv9Q=";
           };
           doCheck = false;
           strictDeps = true;
@@ -855,6 +855,7 @@
           packages = [
             pkgs.bashInteractive
             pkgs.nixfmt-tree
+            pkgs.nixfmt-rfc-style
             pkgs.wabt
             pkgs.wasm-tools
             pkgs.nodejs

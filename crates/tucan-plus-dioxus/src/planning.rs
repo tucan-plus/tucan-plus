@@ -49,7 +49,7 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
 }
 
 pub type MyResource = Resource<(
-    RecursiveAnmeldungenResponse,
+    Option<RecursiveAnmeldungenResponse>,
     Vec<((i32, Semester), Vec<AnmeldungEntry>)>,
 )>;
 
@@ -256,9 +256,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
             if let Some(value) = future.value()() {
+                if let Some(value) = value.0 {
                 RegistrationTreeNode {
-                    future,
-                    value: value.0
+                        future,
+                        value: value
+                    }
                 }
                 for ((i, semester), value) in value.1 {
                     Fragment {

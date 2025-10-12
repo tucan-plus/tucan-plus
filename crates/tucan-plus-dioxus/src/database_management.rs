@@ -10,7 +10,7 @@ pub fn ExportDatabase() -> Element {
         let worker = worker.clone();
         async move {
             worker
-                .send_message_with_timeout(ExportDatabaseRequest, Duration::from_secs(10 * 60))
+                .send_message_with_timeout(ExportDatabaseRequest {}, Duration::from_secs(10 * 60))
                 .await
                 .expect("export timed out")
         }

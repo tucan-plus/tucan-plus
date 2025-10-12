@@ -63,9 +63,9 @@ pub fn Navbar() -> Element {
             div {
                 class: "container-fluid",
                 { back_button }
-                a {
+                Link {
+                    to: Route::Root { },
                     class: "navbar-brand",
-                    href: "#/",
                     img {
                         src: LOGO_SVG,
                         height: 24,
@@ -116,7 +116,6 @@ pub fn Navbar() -> Element {
                 }
             }
         }
-        // this breaks with wasm-split because it is suspending here but setAttribute should still not fail then
         SuspenseBoundary {
             fallback: |_| rsx! { span { "Loading..." } },
             Outlet::<Route> {
