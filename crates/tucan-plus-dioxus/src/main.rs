@@ -44,7 +44,9 @@ pub async fn main() {
         msg.push_str(&stack);
         msg.push_str("\n\n");
         error(msg.clone());
-        alert(msg.as_str());
+        if web_sys::window().is_some() {
+            alert(msg.as_str());
+        }
     }));
     #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
@@ -101,6 +103,7 @@ async fn worker_main() {
                 connection.replace(SqliteConnection::establish(":memory:").unwrap());
             drop(old_connection);
             info!("databases: {:?}", util.list());
+            util.delete_db("tucan-plus.db").unwrap();
             util.import_db("tucan-plus.db", &import.data).unwrap();
             connection.replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
             connection

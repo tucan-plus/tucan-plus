@@ -53,6 +53,8 @@ pub fn ImportDatabase() -> Element {
             async move {
                 success.set(false);
                 loading.set(true);
+                #[cfg(target_arch = "wasm32")]
+                crate::sleep(Duration::from_millis(0)).await;
                 worker
                     .send_message_with_timeout(
                         ImportDatabaseRequest {
