@@ -250,39 +250,39 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     value
                 }
             }
-        }
-        for i in 2020..2030 {
-            Fragment {
-                key: "{i}",
-                h2 {
-                    "Sommersemester {i}"
-                }
-                AnmeldungenEntries {
-                    future,
-                    entries: {
-                    let worker = worker.clone();
-                    let course_of_study = course_of_study.clone();
-                        use_resource(move || {
-                    let worker = worker.clone();
-                    let course_of_study = course_of_study.clone();
-                    async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Sommersemester }).await}
-                    }).value()
-                },
-                }
-                h2 {
-                    "Wintersemester {i}"
-                }
-                AnmeldungenEntries {
-                    future,
-                    entries: {
-                    let worker = worker.clone();
-                    let course_of_study = course_of_study.clone();
-                        use_resource(move || {
-                    let worker = worker.clone();
-                    let course_of_study = course_of_study.clone();
-                    async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Wintersemester }).await}
-                    }).value()
-                },
+            for i in 2020..2030 {
+                Fragment {
+                    key: "{i}",
+                    h2 {
+                        "Sommersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        future,
+                        entries: {
+                        let worker = worker.clone();
+                        let course_of_study = course_of_study.clone();
+                            use_resource(move || {
+                        let worker = worker.clone();
+                        let course_of_study = course_of_study.clone();
+                        async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Sommersemester }).await}
+                        }).value()
+                    },
+                    }
+                    h2 {
+                        "Wintersemester {i}"
+                    }
+                    AnmeldungenEntries {
+                        future,
+                        entries: {
+                        let worker = worker.clone();
+                        let course_of_study = course_of_study.clone();
+                            use_resource(move || {
+                        let worker = worker.clone();
+                        let course_of_study = course_of_study.clone();
+                        async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Wintersemester }).await}
+                        }).value()
+                    },
+                    }
                 }
             }
         }
@@ -477,7 +477,7 @@ fn RegistrationTreeNode(
     let inner = value.inner;
     let cp = value.credits;
     let modules = value.modules;
-    let mut expanded = use_signal(|| true); // TODO FIXME
+    let mut expanded = use_signal(|| false); // TODO FIXME
     rsx! {
         div {
             class: "h3",
