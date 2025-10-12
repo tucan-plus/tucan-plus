@@ -499,11 +499,11 @@ fn RegistrationTreeNode(
                 || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                 AnmeldungenEntries {
                     future,
-                    entries: ReadSignal::new(use_signal(|| Some(entries
+                    entries: Some(entries
                         .iter()
                         .filter(|entry| expanded() || entry.state != State::NotPlanned)
                         .cloned()
-                        .collect::<Vec<_>>()))),
+                        .collect::<Vec<_>>()),
                 }
             }
             if expanded() || inner.iter().any(|v| v.has_contents) {
