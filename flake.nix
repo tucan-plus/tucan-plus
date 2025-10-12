@@ -14,6 +14,7 @@
     };
   };
 
+  # TODO use https://github.com/NixOS/nixpkgs/blob/a132f0878179d5c133cd248b35543af15ba4ea13/lib/default.nix#L564C9-L564C38 to clean this mess up
   outputs =
     inputs@{
       self,
@@ -531,7 +532,7 @@
               #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
             '';
             nativeBuildInputs = nativeBuildInputs ++ [
-              # don't rebuild deps if version changes
+              # don't rebuild deps if version changes, maybe later patch this in post-build?
               (pkgs.writeShellScriptBin "git" ''
                 echo ${self.rev or "dirty"}
               '')
