@@ -59,10 +59,16 @@ jobs:
       with:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
         path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi
-    - env:
+    - if: ${{ inputs.publish }}
+      env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes ${{ !inputs.publish && '--prerelease' }} v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+        gh release create --generate-notes v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+    - if: ${{ !inputs.publish }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create --generate-notes --prerelease v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
     - run: |
         mkdir pages
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
