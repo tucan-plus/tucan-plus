@@ -555,6 +555,11 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                         "data-bs-hide": "collapse", "Semesterplanung" }
                 }
                 li {
+                    Link { to: Route::MigrateV0ToV1 {}, class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse", "Dateiversionsmigration" }
+                }
+                li {
                     Link { to: Route::ExportDatabase {}, class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Datenbankexport" }

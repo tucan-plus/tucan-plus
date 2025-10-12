@@ -34,6 +34,7 @@ pub mod student_result;
 pub mod vv;
 
 use crate::export_semester::FetchAnmeldung;
+use crate::export_semester::MigrateV0ToV1;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
@@ -233,6 +234,8 @@ pub enum Route {
     ExportDatabase {},
     #[route("/import-database")]
     ImportDatabase {},
+    #[route("/migrate-v0-to-v1")]
+    MigrateV0ToV1 {},
 }
 
 #[component]
