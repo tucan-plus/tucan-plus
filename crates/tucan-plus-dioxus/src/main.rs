@@ -3,7 +3,7 @@ use std::panic;
 use dioxus::prelude::*;
 use tracing::Level;
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
-use tucan_plus_worker::MyDatabase;
+use tucan_plus_worker::{MyDatabase, RequestResponseEnum};
 use tucan_types::LoginResponse;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -73,14 +73,14 @@ async fn worker_main() {
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
-    let _util = sqlite_wasm_rs::sahpool_vfs::install(
+    let util = sqlite_wasm_rs::sahpool_vfs::install(
         &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
         true,
     )
     .await
     .unwrap();
 
-    let mut connection = SqliteConnection::establish("sqlite://tucan-plus.db?mode=rwc").unwrap();
+    let mut connection = SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap();
 
     connection.run_pending_migrations(MIGRATIONS).unwrap();
 
@@ -95,7 +95,22 @@ async fn worker_main() {
         info!("Got message at worker {:?}", event.data());
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
-        let result = value.message.execute(&mut connection.borrow_mut());
+
+        let result = if let RequestResponseEnum::ImportDatabaseRequest(import) = value.message {
+            let old_connection =
+                connection.replace(SqliteConnection::establish(":memory:").unwrap());
+            drop(old_connection);
+            info!("databases: {:?}", util.list());
+            util.import_db("tucan-plus.db", &import.data).unwrap();
+            connection.replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
+            connection
+                .borrow_mut()
+                .run_pending_migrations(MIGRATIONS)
+                .unwrap();
+            JsValue::null()
+        } else {
+            value.message.execute(&mut connection.borrow_mut())
+        };
 
         let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
 

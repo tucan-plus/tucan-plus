@@ -399,9 +399,7 @@ impl RequestResponse for ImportDatabaseRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        connection
-            .deserialize_readonly_database_from_buffer(&self.data)
-            .unwrap()
+        panic!("should be special cased at caller")
     }
 }
 
@@ -503,9 +501,9 @@ impl MyDatabase {
                 .await
                 .unwrap();
 
-            "sqlite:///data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
+            "file:/data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
         } else {
-            "sqlite://tucan-plus.db?mode=rwc"
+            "file:tucan-plus.db?mode=rwc"
         };
 
         let pool = Pool::builder()

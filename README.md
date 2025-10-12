@@ -75,7 +75,7 @@ cd crates/tucan-plus-api/
 bacon run
 
 cargo install diesel_cli --no-default-features --features sqlite
-DATABASE_URL=sqlite://$(mktemp) diesel database reset
+DATABASE_URL=file:$(mktemp) diesel database reset
 
 # Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
 # Event handlers must be registered synchronously
