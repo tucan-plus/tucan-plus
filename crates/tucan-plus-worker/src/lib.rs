@@ -505,7 +505,7 @@ impl RequestResponse for SetCpAndModuleCount {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct ExportDatabaseRequest;
+pub struct ExportDatabaseRequest {}
 
 impl RequestResponse for ExportDatabaseRequest {
     type Response = Vec<u8>;

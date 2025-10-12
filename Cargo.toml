@@ -8,8 +8,8 @@ version = "0.1.0"
 
 [profile.wasm-release]
 inherits = "release"
-#debug = true # wasm-split
-#lto = true # wasm-split
+debug = true # wasm-split
+lto = true # wasm-split
 
 [profile.wasm-dev]
 inherits = "dev"
