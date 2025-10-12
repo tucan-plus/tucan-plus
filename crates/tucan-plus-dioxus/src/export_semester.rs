@@ -8,7 +8,7 @@ use std::{
     sync::atomic::{AtomicUsize, Ordering},
 };
 
-use crate::{RcTucanType, compress};
+use crate::{RcTucanType, compress, decompress};
 use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
@@ -288,111 +288,96 @@ pub fn MigrateV0ToV1() -> Element {
         let tucan = tucan.clone();
         async move {
             loading.set(true);
-            let anmeldung_response = tucan
-                .anmeldung(
-                    &current_session_handle().unwrap(),
-                    RevalidationStrategy::cache(),
-                    AnmeldungRequest::default(),
-                )
+            let semester = if true { "sose" } else { "wise" };
+            let decompressed = decompress(&file()[0].read_bytes().await.unwrap())
                 .await
                 .unwrap();
-            let datetime = time::OffsetDateTime::now_utc();
-            let datetime = datetime.to_offset(offset!(+2));
-            let date = datetime.date();
-            let registration_sose = Month::March <= date.month() && date.month() <= Month::August;
-            let semester = if registration_sose { "sose" } else { "wise" };
-
-            for course_of_study in anmeldung_response.studiumsauswahl {
-                log::info!("start");
-                let session = current_session_handle().unwrap();
-                let atomic_current = use_signal_sync(|| BigRational::zero());
-                let atomic_total = use_signal_sync(|| BigRational::one());
-                spawn({
-                    let mut result = result.clone();
-                    let tucan = tucan.clone();
-                    let atomic_current = atomic_current.clone();
+            let mut anmeldung_response: Vec<AnmeldungResponse> =
+                serde_json::from_reader(decompressed.as_slice()).unwrap();
+            let some_anmeldung = anmeldung_response[0].clone();
+            let course_of_study = some_anmeldung
+                .studiumsauswahl
+                .iter()
+                .find(|e| e.selected)
+                .unwrap()
+                .clone();
+            log::info!("start");
+            let session = current_session_handle().unwrap();
+            let atomic_current = use_signal_sync(|| BigRational::zero());
+            let atomic_total = use_signal_sync(|| BigRational::one());
+            spawn({
+                let mut result = result.clone();
+                let tucan = tucan.clone();
+                let atomic_current = atomic_current.clone();
+                let atomic_total = atomic_total.clone();
+                async move {
+                    let mut atomic_current = atomic_current.clone();
                     let atomic_total = atomic_total.clone();
-                    async move {
-                        let mut atomic_current = atomic_current.clone();
-                        let atomic_total = atomic_total.clone();
-                        let response = recursive_anmeldung(
-                            &tucan.0,
-                            &session,
-                            BigRational::new(BigInt::from(1), BigInt::from(3)),
-                            atomic_current,
-                            atomic_total,
-                            course_of_study.value.clone(),
-                        );
-                        let response = response.collect::<Vec<AnmeldungResponse>>().await;
-                        let modules: HashSet<_> = response
-                            .iter()
-                            .flat_map(|anmeldung| anmeldung.entries.iter())
-                            .flat_map(|entry| entry.module.iter())
-                            .map(|module| module.url.clone())
-                            .collect();
-                        let modules_len = 3 * modules.len();
-                        let module_stream =
-                            futures::stream::iter(modules).flat_map_unordered(None, |module_id| {
-                                let tucan = tucan.clone();
-                                let session = session.clone();
-                                let future = async move {
-                                    let change = BigRational::new(
-                                        BigInt::from(1),
-                                        BigInt::from(modules_len),
-                                    );
-                                    let module = tucan
-                                        .0
-                                        .module_details(
-                                            &session,
-                                            RevalidationStrategy::cache(),
-                                            module_id.clone(),
-                                        )
-                                        .await
-                                        .unwrap();
-                                    atomic_current.with_mut(|current| *current += change.clone());
-                                    (module_id, module)
-                                };
-                                Box::pin(future).into_stream()
-                            });
-                        let module_response = module_stream.collect().await;
 
-                        log::info!("downloaded done 3");
-                        let content = serde_json::to_string(&SemesterExportV1 {
-                            anmeldungen: response,
-                            modules: module_response,
-                        })
-                        .unwrap();
-                        let in_data = content.as_bytes();
-                        let mut encoder =
-                            async_compression::tokio::write::BrotliEncoder::with_quality(
-                                Vec::new(),
-                                async_compression::Level::Precise(9),
-                            );
-                        info!("file chunks: {}", in_data.len() / 100 / 1024);
-                        let chunk_part = 3 * in_data.len() / 100 / 1024;
-                        for chunk in in_data.chunks(100 * 1024).enumerate() {
-                            let change =
-                                BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
-                            encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
-                            info!("{}/{}", chunk.0, in_data.len() / 100 / 1024);
-                            atomic_current.with_mut(|current| *current += change.clone());
-                            #[cfg(target_arch = "wasm32")]
-                            crate::sleep(Duration::from_millis(0)).await;
-                        }
-                        encoder.shutdown().await.unwrap();
-                        let compressed = encoder.into_inner();
-                        result.push((
-                            format!(
-                                "registration{}_{}.{semester}-v1-tucan",
-                                course_of_study.value, course_of_study.name
-                            ),
-                            compressed,
-                        ));
-                        loading.set(false);
+                    let modules: HashSet<_> = anmeldung_response
+                        .iter()
+                        .flat_map(|anmeldung| anmeldung.entries.iter())
+                        .flat_map(|entry| entry.module.iter())
+                        .map(|module| module.url.clone())
+                        .collect();
+                    let modules_len = 3 * modules.len();
+                    let module_stream =
+                        futures::stream::iter(modules).flat_map_unordered(None, |module_id| {
+                            let tucan = tucan.clone();
+                            let session = session.clone();
+                            let future = async move {
+                                let change =
+                                    BigRational::new(BigInt::from(1), BigInt::from(modules_len));
+                                let module = tucan
+                                    .0
+                                    .module_details(
+                                        &session,
+                                        RevalidationStrategy::cache(),
+                                        module_id.clone(),
+                                    )
+                                    .await
+                                    .unwrap();
+                                atomic_current.with_mut(|current| *current += change.clone());
+                                (module_id, module)
+                            };
+                            Box::pin(future).into_stream()
+                        });
+                    let module_response = module_stream.collect().await;
+
+                    log::info!("downloaded done 3");
+                    let content = serde_json::to_string(&SemesterExportV1 {
+                        anmeldungen: anmeldung_response,
+                        modules: module_response,
+                    })
+                    .unwrap();
+                    let in_data = content.as_bytes();
+                    let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
+                        Vec::new(),
+                        async_compression::Level::Precise(9),
+                    );
+                    info!("file chunks: {}", in_data.len() / 100 / 1024);
+                    let chunk_part = 3 * in_data.len() / 100 / 1024;
+                    for chunk in in_data.chunks(100 * 1024).enumerate() {
+                        let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
+                        encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
+                        info!("{}/{}", chunk.0, in_data.len() / 100 / 1024);
+                        atomic_current.with_mut(|current| *current += change.clone());
+                        #[cfg(target_arch = "wasm32")]
+                        crate::sleep(Duration::from_millis(0)).await;
                     }
-                });
-                progresses.push((atomic_current, atomic_total));
-            }
+                    encoder.shutdown().await.unwrap();
+                    let compressed = encoder.into_inner();
+                    result.push((
+                        format!(
+                            "registration{}_{}.{semester}-v1-tucan",
+                            course_of_study.value, course_of_study.name
+                        ),
+                        compressed,
+                    ));
+                    loading.set(false);
+                }
+            });
+            progresses.push((atomic_current, atomic_total));
         }
     };
 
