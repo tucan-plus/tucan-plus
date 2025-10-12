@@ -201,20 +201,23 @@ fn prep_planning(
 }
 
 impl RequestResponse for RecursiveAnmeldungenRequest {
-    type Response = RecursiveAnmeldungenResponse;
+    type Response = Option<RecursiveAnmeldungenResponse>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let root = AnmeldungenRootRequest {
             course_of_study: self.course_of_study.clone(),
         }
         .execute(connection);
-        assert_eq!(root.len(), 1);
-        prep_planning(
+        assert!(root.len() <= 1);
+        if root.is_empty() {
+            return None;
+        }
+        Some(prep_planning(
             connection,
             &self.course_of_study,
             &self.expanded,
             root[0].clone(),
-        )
+        ))
     }
 }
 
