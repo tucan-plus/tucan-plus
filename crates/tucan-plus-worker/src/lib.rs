@@ -388,6 +388,20 @@ impl RequestResponse for ExportDatabaseRequest {
     }
 }
 
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct ImportDatabaseRequest {
+    data: Vec<u8>
+}
+
+impl RequestResponse for ImportDatabaseRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        connection.deserialize_readonly_database_from_buffer(&self.data).unwrap()
+    }
+}
+
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
@@ -419,7 +433,8 @@ pub enum RequestResponseEnum {
     ExportDatabaseRequest(ExportDatabaseRequest),
     UpdateAnmeldungEntry(UpdateAnmeldungEntry),
     AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester),
-    PingRequest(PingRequest)
+    PingRequest(PingRequest),
+    ImportDatabaseRequest(ImportDatabaseRequest),
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -469,6 +484,9 @@ impl RequestResponseEnum {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
             RequestResponseEnum::PingRequest(value) => {
+                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+            }
+            RequestResponseEnum::ImportDatabaseRequest(value) => {
                 serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
             }
         }
@@ -546,6 +564,15 @@ impl MyDatabase {
         value: R,
     ) -> R::Response {
         value.execute(&mut self.0.get().unwrap())
+    }
+
+    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: std::time::Duration
+    ) -> Result<R::Response, ()>
+    {
+        Ok(self.send_message(message).await)
     }
 }
 
@@ -638,7 +665,7 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.send_message_with_timeout(message, Duration::from_secs(10)).await.unwrap()
+        self.send_message_with_timeout(message, Duration::from_secs(10)).await.expect("timed out")
     }
 
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(

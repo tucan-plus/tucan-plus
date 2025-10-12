@@ -60,37 +60,14 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```bash
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
-Note that the router will call `.suspend()` so you should add a SuspenseBoundary above the Outlet to prevent suspending the entire page.
-
 cd crates/tucan-plus-dioxus/
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose --wasm-split --features "dioxus-router?/wasm-split"
+dx serve --web --features api --verbose
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
 dx bundle --web --features direct --release --wasm-split --features "dioxus-router?/wasm-split"
 ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
-
-# 8.7 MB original size
-# 4.8 MB seems absolute minimum
-
-RUST_BACKTRACE=1 DIOXUS_LOG=trace,walrus::module::functions::local_function=debug,walrus::ir::traversals=debug cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml bundle --web --features direct --release --trace --wasm-split --features "dioxus-router?/wasm-split"
-
-twiggy dominators /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
-
-llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
-llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 
-
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
-
-cargo install wasm-bindgen-cli@0.2.104
-
-# https://github.com/DioxusLabs/dioxus/issues/4237
-wasm2wat /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm | grep --color '"env"'
-
-cd crates/tucan-plus-worker/
-dx serve --bundle web --target wasm32-unknown-unknown --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cp -r ../../target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
 
 # in second tab
 cargo install --locked bacon
@@ -110,6 +87,21 @@ cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plu
 
 # http://localhost:8080/#/
 
+
+# 8.7 MB original size
+# 4.8 MB seems absolute minimum
+
+RUST_BACKTRACE=1 DIOXUS_LOG=trace,walrus::module::functions::local_function=debug,walrus::ir::traversals=debug cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml bundle --web --features direct --release --trace --wasm-split --features "dioxus-router?/wasm-split"
+
+twiggy dominators /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
+
+llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
+llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 
+
+cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
+
+# https://github.com/DioxusLabs/dioxus/issues/4237
+wasm2wat /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm | grep --color '"env"'
 
 wasm-tools addr2line ./target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 0xc3d99e 0xb4c65d 0x86d66e 0xbcf4cf 0x8bd9d
 

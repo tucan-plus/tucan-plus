@@ -1,10 +1,12 @@
 
+use std::time::Duration;
+
 use dioxus::prelude::*;
 use tucan_plus_worker::{ExportDatabaseRequest, MyDatabase};
 
 async fn export_db() -> Vec<u8> {
     let worker: MyDatabase = use_context();
-    worker.send_message(ExportDatabaseRequest).await
+    worker.send_message_with_timeout(ExportDatabaseRequest, Duration::from_mins(10)).await.expect("export timed out")
 }
 
 #[component]
