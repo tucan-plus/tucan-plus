@@ -5998,7 +5998,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-extensions",
- "web-extensions-sys 0.4.1",
+ "web-extensions-sys",
  "web-sys",
 ]
 
@@ -6539,7 +6539,7 @@ dependencies = [
 [[package]]
 name = "web-extensions"
 version = "0.3.0"
-source = "git+https://github.com/mohe2015/web-extensions?branch=cookies#d4b93d0632ae7b0a97b31c738a6f0f65fa252a27"
+source = "git+https://github.com/mohe2015/web-extensions?branch=cookies#5a6979647fe1f9b11113218632ebeac496c4a420"
 dependencies = [
  "gloo-utils 0.1.7",
  "js-sys",
@@ -6549,17 +6549,7 @@ dependencies = [
  "thiserror 1.0.69",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-extensions-sys 0.4.2",
-]
-
-[[package]]
-name = "web-extensions-sys"
-version = "0.4.1"
-source = "git+https://github.com/mohe2015/web-extensions-sys?branch=cookies#dbf0ec7b4054f427bb13ea600685bef576c6498f"
-dependencies = [
- "js-sys",
- "wasm-bindgen",
- "wasm-bindgen-futures",
+ "web-extensions-sys",
 ]
 
 [[package]]

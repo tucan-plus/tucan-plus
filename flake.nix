@@ -488,7 +488,7 @@
         client-args = {
           dioxusExtraArgs = "--features direct --web";
           # TODO FIXME dioxus creates duplicate .wasm files in wasm and assets folder
-          dioxusMainArgs = "--out-dir $out --wasm-split";
+          dioxusMainArgs = "--out-dir $out --wasm-split --features \"dioxus-router?/wasm-split\"";
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
