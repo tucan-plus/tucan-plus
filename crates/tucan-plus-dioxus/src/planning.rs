@@ -1,6 +1,8 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
+use std::collections::HashSet;
+
 use dioxus::html::FileData;
 use dioxus::prelude::*;
 use futures::StreamExt;
@@ -8,7 +10,7 @@ use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
     AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenRootRequest, MyDatabase, UpdateAnmeldungEntry,
+    AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest, UpdateAnmeldungEntry,
 };
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
@@ -68,20 +70,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             let course_of_study = course_of_study.clone();
             let worker = worker.clone();
             async move {
-                // TODO FIXME I think based on course of study we can create an
-                // anmeldung_request and then this here is not special cased any more?
-                let result = worker
-                    .send_message(AnmeldungenRootRequest {
+                worker
+                    .send_message(RecursiveAnmeldungenRequest {
                         course_of_study: course_of_study.clone(),
+                        traverse_into: HashSet::new(),
                     })
-                    .await;
-                futures::stream::iter(result.into_iter())
-                    .then(async |anmeldung| {
-                        prep_planning(&worker, &course_of_study, anmeldung)
-                            .await
-                            .element
-                    })
-                    .collect::<Vec<Element>>()
                     .await
             }
         })
@@ -477,27 +470,11 @@ fn AnmeldungenEntries(
     }
 }
 
-async fn prep_planning(
+fn prep_planning_render(
     worker: &MyDatabase,
     course_of_study: &str,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
-    let results = worker
-        .send_message(AnmeldungChildrenRequest {
-            course_of_study: course_of_study.to_owned(),
-            anmeldung: anmeldung.clone(),
-        })
-        .await;
-    let entries = worker
-        .send_message(AnmeldungEntriesRequest {
-            course_of_study: course_of_study.to_owned(),
-            anmeldung: anmeldung.clone(),
-        })
-        .await;
-    let inner: Vec<PrepPlanningReturn> = futures::stream::iter(results.iter())
-        .then(async |result| Box::pin(prep_planning(worker, course_of_study, result.clone())).await)
-        .collect()
-        .await;
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0

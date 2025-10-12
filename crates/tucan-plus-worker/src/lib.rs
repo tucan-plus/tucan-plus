@@ -1,3 +1,4 @@
+use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
@@ -21,6 +22,7 @@ use crate::{
 use tucan_types::{
     Semesterauswahl,
     courseresults::ModuleResult,
+    registration::AnmeldungRequest,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 
@@ -122,6 +124,60 @@ impl RequestResponse for AnmeldungChildrenRequest {
         .select(Anmeldung::as_select())
         .load(connection)
         .unwrap()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct RecursiveAnmeldungenRequest {
+    pub course_of_study: String,
+    pub traverse_into: HashSet<AnmeldungRequest>,
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct RecursiveAnmeldungenResponse {
+    results: Vec<Anmeldung>,
+    entries: Vec<AnmeldungEntry>,
+    inner: Vec<RecursiveAnmeldungenResponse>,
+}
+
+fn prep_planning(
+    connection: &mut SqliteConnection,
+    course_of_study: &str,
+    anmeldung: Anmeldung, // ahh this needs to be a signal?
+) -> RecursiveAnmeldungenResponse {
+    let results = AnmeldungChildrenRequest {
+        course_of_study: course_of_study.to_owned(),
+        anmeldung: anmeldung.clone(),
+    }
+    .execute(connection);
+    let entries = AnmeldungEntriesRequest {
+        course_of_study: course_of_study.to_owned(),
+        anmeldung: anmeldung.clone(),
+    }
+    .execute(connection);
+    let inner: Vec<RecursiveAnmeldungenResponse> = results
+        .iter()
+        .map(|result| prep_planning(connection, course_of_study, result.clone()))
+        .collect();
+    RecursiveAnmeldungenResponse {
+        results,
+        entries,
+        inner,
+    }
+}
+
+impl RequestResponse for RecursiveAnmeldungenRequest {
+    type Response = RecursiveAnmeldungenResponse;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        let root = AnmeldungenRootRequest {
+            course_of_study: self.course_of_study.clone(),
+        }
+        .execute(connection);
+        assert_eq!(root.len(), 1);
+        prep_planning(connection, &self.course_of_study, root[0].clone())
     }
 }
 
@@ -453,6 +509,7 @@ request_response_enum!(
     AnmeldungenEntriesInSemester
     PingRequest
     ImportDatabaseRequest
+    RecursiveAnmeldungenRequest
 );
 
 #[cfg(target_arch = "wasm32")]

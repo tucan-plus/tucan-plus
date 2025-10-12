@@ -6041,6 +6041,7 @@ dependencies = [
  "enum_dispatch",
  "erased-serde",
  "fragile",
+ "futures",
  "getrandom 0.3.3",
  "js-sys",
  "libsqlite3-sys",
