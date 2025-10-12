@@ -10,6 +10,7 @@ version = "0.1.0"
 inherits = "release"
 debug = true # wasm-split
 lto = true # wasm-split
+codegen-units = 256
 
 [profile.wasm-dev]
 inherits = "dev"

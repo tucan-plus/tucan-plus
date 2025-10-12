@@ -58,8 +58,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "60edb2c7b9139b60853deda78720e12a95875447";
-            hash = "sha256-lhU1R0EXb1foexykorsWZWtzF+Ru5H4tzH4y0qRM458=";
+            rev = "5039545a77a73f1b882e5e010ff912bc5dd92280";
+            hash = "sha256-iNxg67Rw0mKPQV4Svlt11ZBLJacT5QWJdoKVYDIk83w=";
           };
           doCheck = false;
           strictDeps = true;

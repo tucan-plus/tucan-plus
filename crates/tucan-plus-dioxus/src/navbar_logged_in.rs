@@ -32,7 +32,7 @@ pub fn NavbarLoggedIn(
     current_session: LoginResponse,
     data: Option<MlsStart>,
 ) -> Element {
-    // seems like this breaks hydration in release with wasm splitting?
+    // seems like this breaks updating in release with wasm splitting?
     let disabled = if data.is_none() {
         "disabled"
     } else {
