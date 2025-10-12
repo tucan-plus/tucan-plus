@@ -63,9 +63,9 @@ pub fn Navbar() -> Element {
             div {
                 class: "container-fluid",
                 { back_button }
-                a {
+                Link {
+                    to: Route::Root { },
                     class: "navbar-brand",
-                    href: "#/",
                     img {
                         src: LOGO_SVG,
                         height: 24,

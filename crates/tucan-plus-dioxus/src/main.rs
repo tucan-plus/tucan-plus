@@ -1,6 +1,6 @@
 use std::panic;
 
-use dioxus::prelude::*;
+use dioxus::{prelude::*, subsecond};
 use tracing::Level;
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
 use tucan_plus_worker::MyDatabase;
@@ -200,7 +200,10 @@ async fn frontend_main() {
     ));
 
     let launcher = launcher.with_context(Anonymize(anonymize));
+    launch(launcher);
+}
 
+fn launch(launcher: LaunchBuilder) {
     launcher.launch(App);
 }
 
