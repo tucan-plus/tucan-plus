@@ -7,11 +7,6 @@ use crate::{
     navbar_logged_out::NavbarLoggedOut,
 };
 
-//use crate::{LoginComponent, LogoutComponent, RcTucanType,
-// navbar_logged_in::NavbarLoggedIn, navbar_logged_out::NavbarLoggedOut};
-
-// https://github.com/marc2332/dioxus-query
-
 #[component]
 pub fn Navbar() -> Element {
     let tucan: RcTucanType = use_context();
@@ -94,18 +89,20 @@ pub fn Navbar() -> Element {
                     id: "navbarSupportedContent",
                     ul {
                         class: "navbar-nav me-auto mb-2 mb-xl-0",
-                        if let Some(current_session) = current_session() {
-                            if let Some(Ok(data)) = data() {
-                                NavbarLoggedIn {
-                                    current_session,
-                                    data,
-                                }
-                            } else {
-                                NavbarLoggedOut {
+                        match (current_session(), data()) {
+                            (Some(current_session), Some(Ok(data))) => {
+                                rsx! {
+                                    NavbarLoggedIn {
+                                        current_session,
+                                        data,
+                                    }
                                 }
                             }
-                        } else {
-                            NavbarLoggedOut {
+                            _ => {
+                                rsx! {
+                                    NavbarLoggedOut {
+                                    }
+                                }
                             }
                         }
                     }
@@ -119,7 +116,11 @@ pub fn Navbar() -> Element {
                 }
             }
         }
-        Outlet::<Route> {
+        // this breaks with wasm-split because it is suspending here but setAttribute should still not fail then
+        SuspenseBoundary {
+            fallback: |_| rsx! { span { "Loading..." } },
+            Outlet::<Route> {
+            }
         }
     }
 }

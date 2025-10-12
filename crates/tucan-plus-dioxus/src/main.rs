@@ -63,6 +63,7 @@ pub async fn main() {
     }
 }
 
+#[wasm_split::wasm_split(worker)]
 async fn worker_main() {
     use std::cell::RefCell;
 
@@ -114,6 +115,7 @@ async fn worker_main() {
     global.post_message(&JsValue::from_str("ready")).unwrap();
 }
 
+#[wasm_split::wasm_split(frontend)]
 async fn frontend_main() {
     let anonymize = {
         #[cfg(feature = "direct")]

@@ -123,7 +123,7 @@ pub fn FetchAnmeldung() -> Element {
                         });
                         let module_response = module_stream.collect().await;
 
-                        log::info!("downloaded done 2");
+                        log::info!("downloaded done 3");
                         let content = serde_json::to_string(&SemesterExportV1 {
                             anmeldungen: response,
                             modules: module_response
@@ -131,7 +131,7 @@ pub fn FetchAnmeldung() -> Element {
                         let in_data = content.as_bytes();
                         let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
                             Vec::new(),
-                            async_compression::Level::Best,
+                            async_compression::Level::Precise(9),
                         );
                         info!("file chunks: {}", in_data.len()/100/1024);
                         let chunk_part = 3*in_data.len()/100/1024;

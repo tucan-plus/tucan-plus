@@ -58,8 +58,8 @@
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "10baa108f7f8df5ee1f08e99bdc900dd459c05ae";
-            hash = "sha256-A9cod9tevPzH/QcRWOc4IzDSBoFMEgmB3A3dy5QAbzk=";
+            rev = "9208b4a65fb7602155770d8197013e86ea27b01d";
+            hash = "sha256-Xo5SzFZOqCiTB3eVG/bySc+MUUoMifQGVlUrPbnscZQ=";
           };
           doCheck = false;
           strictDeps = true;
@@ -487,7 +487,8 @@
 
         client-args = {
           dioxusExtraArgs = "--features direct --web";
-          dioxusMainArgs = "--out-dir $out";
+          # TODO FIXME dioxus creates duplicate .wasm files in wasm and assets folder
+          dioxusMainArgs = "--out-dir $out --wasm-split --features \"dioxus-router?/wasm-split\"";
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
@@ -517,7 +518,7 @@
             '';
             # temporary https://github.com/DioxusLabs/dioxus/issues/4758
             postBuild = ''
-              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+              #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
             '';
           };
           
@@ -853,6 +854,7 @@
           ];
           packages = [
             pkgs.bashInteractive
+            pkgs.wabt
             pkgs.wasm-tools
             pkgs.nodejs
             pkgs.bun
