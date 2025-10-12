@@ -1,4 +1,3 @@
-
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
@@ -9,7 +8,7 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 #[cfg(target_arch = "wasm32")]
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
@@ -31,8 +30,10 @@ pub mod schema;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 #[cfg(target_arch = "wasm32")]
-pub trait RequestResponse: Serialize + Sized where
-    RequestResponseEnum: From<Self>, {
+pub trait RequestResponse: Serialize + Sized
+where
+    RequestResponseEnum: From<Self>,
+{
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
@@ -271,7 +272,7 @@ impl RequestResponse for UpdateModule {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
-    pub entry: AnmeldungEntry
+    pub entry: AnmeldungEntry,
 }
 
 impl RequestResponse for UpdateAnmeldungEntry {
@@ -297,19 +298,19 @@ impl RequestResponse for AnmeldungenEntriesInSemester {
     type Response = Vec<AnmeldungEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-       QueryDsl::filter(
-        anmeldungen_entries::table,
-        anmeldungen_entries::course_of_study
-            .eq(&self.course_of_study)
-            .and(
-                anmeldungen_entries::semester
-                    .eq(self.semester)
-                    .and(anmeldungen_entries::year.eq(self.year))
-            ),
-    )
-    .select(AnmeldungEntry::as_select())
-    .load(connection)
-    .unwrap()
+        QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(
+                    anmeldungen_entries::semester
+                        .eq(self.semester)
+                        .and(anmeldungen_entries::year.eq(self.year)),
+                ),
+        )
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap()
     }
 }
 
@@ -391,107 +392,70 @@ impl RequestResponse for ExportDatabaseRequest {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct ImportDatabaseRequest {
-    data: Vec<u8>
+    pub data: Vec<u8>,
 }
 
 impl RequestResponse for ImportDatabaseRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        connection.deserialize_readonly_database_from_buffer(&self.data).unwrap()
+        connection
+            .deserialize_readonly_database_from_buffer(&self.data)
+            .unwrap()
     }
 }
 
-
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct PingRequest {
-}
+pub struct PingRequest {}
 
 impl RequestResponse for PingRequest {
     type Response = ();
 
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
         ()
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[derive(Serialize, Deserialize, Debug, derive_more::From)]
-pub enum RequestResponseEnum {
-    AnmeldungenRequest(AnmeldungenRootRequest),
-    AnmeldungenRequest2(AnmeldungChildrenRequest),
-    Fewe(AnmeldungEntriesRequest),
-    FEwefweewf(InsertOrUpdateAnmeldungenRequest),
-    Wlewifhewefwef(UpdateAnmeldungEntryRequest),
-    ChildUrl(ChildUrl),
-    UpdateModule(UpdateModule),
-    SetStateAndCredits(SetStateAndCredits),
-    SetCpAndModuleCount(SetCpAndModuleCount),
-    CacheRequest(CacheRequest),
-    StoreCacheRequest(StoreCacheRequest),
-    ExportDatabaseRequest(ExportDatabaseRequest),
-    UpdateAnmeldungEntry(UpdateAnmeldungEntry),
-    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester),
-    PingRequest(PingRequest),
-    ImportDatabaseRequest(ImportDatabaseRequest),
-}
+macro_rules! request_response_enum {
+    ($($struct: ident)*) => {
+        #[cfg(target_arch = "wasm32")]
+        #[derive(Serialize, Deserialize, Debug, derive_more::From)]
+        pub enum RequestResponseEnum {
+            $($struct($struct)),*
+        }
 
-#[cfg(target_arch = "wasm32")]
-impl RequestResponseEnum {
-    pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
-        match self {
-            RequestResponseEnum::AnmeldungenRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::AnmeldungenRequest2(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::Fewe(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::FEwefweewf(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::Wlewifhewefwef(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::ChildUrl(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::UpdateModule(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::SetStateAndCredits(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::SetCpAndModuleCount(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::CacheRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::StoreCacheRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::ExportDatabaseRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::UpdateAnmeldungEntry(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::PingRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::ImportDatabaseRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+        #[cfg(target_arch = "wasm32")]
+        impl RequestResponseEnum {
+            pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
+                match self {
+                    $(RequestResponseEnum::$struct(value) => {
+                        serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+                    })*
+                }
             }
         }
-    }
+    };
 }
+
+request_response_enum!(
+    AnmeldungenRootRequest
+    AnmeldungChildrenRequest
+    AnmeldungEntriesRequest
+    InsertOrUpdateAnmeldungenRequest
+    UpdateAnmeldungEntryRequest
+    ChildUrl
+    UpdateModule
+    SetStateAndCredits
+    SetCpAndModuleCount
+    CacheRequest
+    StoreCacheRequest
+    ExportDatabaseRequest
+    UpdateAnmeldungEntry
+    AnmeldungenEntriesInSemester
+    PingRequest
+    ImportDatabaseRequest
+);
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize)]
@@ -569,9 +533,8 @@ impl MyDatabase {
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
-        timeout: std::time::Duration
-    ) -> Result<R::Response, ()>
-    {
+        timeout: std::time::Duration,
+    ) -> Result<R::Response, ()> {
         Ok(self.send_message(message).await)
     }
 }
@@ -585,7 +548,8 @@ pub struct MyDatabase {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
-    // Getters can only be declared on classes, so we need a fake type to declare it on.
+    // Getters can only be declared on classes, so we need a fake type to declare it
+    // on.
     #[wasm_bindgen]
     type meta;
 
@@ -619,9 +583,7 @@ impl MyDatabase {
                         Closure::new(move |event: web_sys::Event| {
                             use log::info;
 
-                            info!(
-                                "error at client {event:?}",
-                            );
+                            info!("error at client {event:?}",);
 
                             reject.call1(&JsValue::undefined(), &event).unwrap();
                         });
@@ -638,7 +600,8 @@ impl MyDatabase {
                 return js_sys::Promise::new(&mut cb);
             })
         };
-        let _intentional = lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional =
+            lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
@@ -647,7 +610,11 @@ impl MyDatabase {
 
         let this = Self { broadcast_channel };
 
-        while this.send_message_with_timeout(PingRequest {}, Duration::from_millis(100)).await.is_err() {
+        while this
+            .send_message_with_timeout(PingRequest {}, Duration::from_millis(100))
+            .await
+            .is_err()
+        {
             use log::info;
 
             info!("retry ping");
@@ -665,13 +632,15 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.send_message_with_timeout(message, Duration::from_secs(10)).await.expect("timed out")
+        self.send_message_with_timeout(message, Duration::from_secs(10))
+            .await
+            .expect("timed out")
     }
 
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
-        timeout: Duration
+        timeout: Duration,
     ) -> Result<R::Response, ()>
     where
         RequestResponseEnum: std::convert::From<R>,
@@ -692,7 +661,8 @@ impl MyDatabase {
                     resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
-            temporary_broadcast_channel.get()
+            temporary_broadcast_channel
+                .get()
                 .add_event_listener_with_callback(
                     "message",
                     temporary_message_closure.as_ref().unchecked_ref(),
@@ -701,12 +671,12 @@ impl MyDatabase {
             temporary_message_closure.forget();
 
             web_sys::window()
-            .unwrap()
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                &reject,
-                timeout.as_millis().try_into().unwrap(),
-            )
-            .unwrap();
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    &reject,
+                    timeout.as_millis().try_into().unwrap(),
+                )
+                .unwrap();
         };
 
         let promise = js_sys::Promise::new(&mut cb);
@@ -725,8 +695,9 @@ impl MyDatabase {
             info!("send a message to worker");
         }
 
-        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.map_err(|_| ());
-        Ok(serde_wasm_bindgen::from_value(result?)
-            .unwrap())
+        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
+            .await
+            .map_err(|_| ());
+        Ok(serde_wasm_bindgen::from_value(result?).unwrap())
     }
 }

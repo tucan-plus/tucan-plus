@@ -2,9 +2,7 @@ use std::panic;
 
 use dioxus::prelude::*;
 use tracing::Level;
-use tucan_plus_dioxus::{
-    Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route
-};
+use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
 #[cfg(target_arch = "wasm32")]
@@ -52,18 +50,18 @@ pub async fn main() {
     console_log::init().unwrap();
 
     dioxus::logger::init(Level::INFO).expect("logger failed to init");
-    
+
     tracing::info!("tracing works");
     log::info!("logging works");
 
-    if web_sys::window().is_some()  {
+    if web_sys::window().is_some() {
         frontend_main().await
     } else {
         worker_main().await
     }
 }
 
-#[wasm_split::wasm_split(worker)]
+#[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(worker))]
 async fn worker_main() {
     use std::cell::RefCell;
 
@@ -115,7 +113,7 @@ async fn worker_main() {
     global.post_message(&JsValue::from_str("ready")).unwrap();
 }
 
-#[wasm_split::wasm_split(frontend)]
+#[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(frontend))]
 async fn frontend_main() {
     let anonymize = {
         #[cfg(feature = "direct")]

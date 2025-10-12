@@ -28,10 +28,7 @@ pub fn Vorlesungsverzeichnisse(data: ReadSignal<Option<MlsStart>>) -> Element {
 }
 
 #[component]
-pub fn NavbarLoggedIn(
-    current_session: LoginResponse,
-    data: Option<MlsStart>,
-) -> Element {
+pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) -> Element {
     // seems like this breaks updating in release with wasm splitting?
     let disabled = if data.is_none() {
         "disabled"
@@ -561,6 +558,11 @@ pub fn NavbarLoggedIn(
                     Link { to: Route::ExportDatabase {}, class: "dropdown-item bg-success",
                         "data-bs-target": "#navbarSupportedContent",
                         "data-bs-hide": "collapse", "Datenbankexport" }
+                }
+                li {
+                    Link { to: Route::ImportDatabase {}, class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse", "Datenbankimport" }
                 }
             }
         }

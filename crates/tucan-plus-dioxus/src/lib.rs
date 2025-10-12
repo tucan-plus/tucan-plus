@@ -3,8 +3,8 @@ pub mod api_server;
 pub mod common;
 pub mod course_details;
 pub mod course_results;
+pub mod database_management;
 pub mod exam_results;
-pub mod export_database;
 pub mod export_semester;
 pub mod gradeoverview;
 pub mod login_component;
@@ -29,11 +29,11 @@ use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
 use dioxus::prelude::*;
-use tokio::io::AsyncWriteExt as _;
 use std::ops::Deref;
 use std::sync::Arc;
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
+use tokio::io::AsyncWriteExt as _;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{
@@ -112,22 +112,22 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
 #[cfg(feature = "direct")]
 pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     let session_id = web_extensions::cookies::get(web_extensions::cookies::CookieDetails {
-            name: "id".to_owned(),
-            partition_key: None,
-            store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
-        })
-        .await?
-        .value;
+        name: "id".to_owned(),
+        partition_key: None,
+        store_id: None,
+        url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
+    })
+    .await?
+    .value;
 
     let cnsc = web_extensions::cookies::get(web_extensions::cookies::CookieDetails {
-            name: "cnsc".to_owned(),
-            url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
-            partition_key: None,
-            store_id: None,
-        })
-        .await?
-        .value;
+        name: "cnsc".to_owned(),
+        url: "https://www.tucan.tu-darmstadt.de/scripts".to_owned(),
+        partition_key: None,
+        store_id: None,
+    })
+    .await?
+    .value;
 
     Some(tucan_types::LoginResponse {
         id: session_id.parse().unwrap(),
@@ -167,8 +167,9 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
 }
 use crate::course_details::CourseDetails;
 use crate::course_results::CourseResults;
+use crate::database_management::ExportDatabase;
+use crate::database_management::ImportDatabase;
 use crate::exam_results::ExamResults;
-use crate::export_database::ExportDatabase;
 use crate::gradeoverview::GradeOverview;
 use crate::module_details::ModuleDetails;
 use crate::my_courses::MyCourses;
@@ -221,6 +222,8 @@ pub enum Route {
     Planning { course_of_study: String },
     #[route("/export-database")]
     ExportDatabase {},
+    #[route("/import-database")]
+    ImportDatabase {},
 }
 
 #[component]
@@ -306,7 +309,6 @@ impl<T: ?Sized> Deref for MyRc<T> {
 
 pub type RcTucanType = MyRc<DynTucan<'static>>;
 
-
 #[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
@@ -332,12 +334,12 @@ pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
         async_compression::Level::Best,
     );
     // https://github.com/DioxusLabs/dioxus/blob/09c1de7574abb36b11a2c8c825ac30d7398de948/packages/core/src/tasks.rs#L288
-    info!("file chunks: {}", in_data.len()/10/1024);
-    for chunk in in_data.chunks(10*1024).enumerate() {
+    info!("file chunks: {}", in_data.len() / 10 / 1024);
+    for chunk in in_data.chunks(10 * 1024).enumerate() {
         encoder.write_all(chunk.1).await?; // hangs, move to worker?
         #[cfg(target_arch = "wasm32")]
         sleep(Duration::from_millis(0)).await;
-        info!("{}/{}", chunk.0, in_data.len()/10/1024);
+        info!("{}/{}", chunk.0, in_data.len() / 10 / 1024);
     }
     encoder.shutdown().await?;
     Ok(encoder.into_inner())
