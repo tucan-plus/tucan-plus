@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 
 use crate::{coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest};
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq, Hash)]
 pub struct AnmeldungRequest(String);
 
 impl FromStr for AnmeldungRequest {

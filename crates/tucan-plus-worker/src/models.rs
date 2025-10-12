@@ -1,3 +1,5 @@
+use std::ffi::os_str::Display;
+
 use crate::schema::*;
 use diesel::{
     backend::Backend,
@@ -9,6 +11,7 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use tucan_types::registration::AnmeldungRequest;
 
 #[derive(
     Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash, Serialize, Deserialize,
@@ -17,6 +20,15 @@ use time::OffsetDateTime;
 pub enum Semester {
     Sommersemester,
     Wintersemester,
+}
+
+impl std::fmt::Display for Semester {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Semester::Sommersemester => write!(f, "Sommersemester"),
+            Semester::Wintersemester => write!(f, "Wintersemester"),
+        }
+    }
 }
 
 impl ToSql<Text, diesel::sqlite::Sqlite> for Semester {
@@ -43,13 +55,15 @@ where
     }
 }
 
-#[derive(Insertable, Queryable, Selectable, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(
+    Insertable, Queryable, Selectable, Clone, Debug, Serialize, Deserialize, PartialEq, Eq,
+)]
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(treat_none_as_default_value = false)]
 pub struct Anmeldung {
     pub course_of_study: String,
-    pub url: String,
+    pub url: String, // AnmeldungRequest
     pub name: String,
     pub parent: Option<String>,
     pub min_cp: i32,
@@ -98,6 +112,7 @@ where
     Selectable,
     Clone,
     PartialEq,
+    Eq,
     Debug,
     AsChangeset,
     Identifiable,

@@ -1,4 +1,4 @@
-
+use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
@@ -8,8 +8,9 @@ use diesel::{prelude::*, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
+use itertools::Itertools as _;
 #[cfg(target_arch = "wasm32")]
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
+use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
@@ -22,6 +23,7 @@ use crate::{
 use tucan_types::{
     Semesterauswahl,
     courseresults::ModuleResult,
+    registration::AnmeldungRequest,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 
@@ -31,8 +33,10 @@ pub mod schema;
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!("migrations");
 
 #[cfg(target_arch = "wasm32")]
-pub trait RequestResponse: Serialize + Sized where
-    RequestResponseEnum: From<Self>, {
+pub trait RequestResponse: Serialize + Sized
+where
+    RequestResponseEnum: From<Self>,
+{
     type Response: DeserializeOwned;
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response;
 }
@@ -121,6 +125,96 @@ impl RequestResponse for AnmeldungChildrenRequest {
         .select(Anmeldung::as_select())
         .load(connection)
         .unwrap()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct RecursiveAnmeldungenRequest {
+    pub course_of_study: String,
+    pub expanded: HashSet<AnmeldungRequest>,
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct RecursiveAnmeldungenResponse {
+    pub has_contents: bool,
+    pub has_rules: bool,
+    pub credits: i32,
+    pub modules: usize,
+    pub anmeldung: Anmeldung,
+    pub results: Vec<Anmeldung>,
+    pub entries: Vec<AnmeldungEntry>,
+    pub inner: Vec<RecursiveAnmeldungenResponse>,
+}
+
+fn prep_planning(
+    connection: &mut SqliteConnection,
+    course_of_study: &str,
+    expanded: &HashSet<AnmeldungRequest>,
+    anmeldung: Anmeldung, // ahh this needs to be a signal?
+) -> RecursiveAnmeldungenResponse {
+    let results = AnmeldungChildrenRequest {
+        course_of_study: course_of_study.to_owned(),
+        anmeldung: anmeldung.clone(),
+    }
+    .execute(connection);
+    let entries = AnmeldungEntriesRequest {
+        course_of_study: course_of_study.to_owned(),
+        anmeldung: anmeldung.clone(),
+    }
+    .execute(connection);
+    let inner: Vec<RecursiveAnmeldungenResponse> = results
+        .iter()
+        .map(|result| prep_planning(connection, course_of_study, expanded, result.clone()))
+        .collect();
+    let has_rules = anmeldung.min_cp != 0
+        || anmeldung.max_cp.is_some()
+        || anmeldung.min_modules != 0
+        || anmeldung.max_modules.is_some();
+    let has_contents = expanded.contains(&AnmeldungRequest::parse(&anmeldung.url))
+        || has_rules
+        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || inner.iter().any(|v| v.has_contents);
+    let cp: i32 = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .map(|entry| entry.credits)
+        .sum::<i32>()
+        + inner.iter().map(|inner| inner.credits).sum::<i32>();
+    let credits = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
+    let modules: usize = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .count()
+        + inner.iter().map(|inner| inner.modules).sum::<usize>();
+    RecursiveAnmeldungenResponse {
+        anmeldung,
+        results,
+        entries,
+        inner,
+        has_contents,
+        has_rules,
+        modules,
+        credits,
+    }
+}
+
+impl RequestResponse for RecursiveAnmeldungenRequest {
+    type Response = RecursiveAnmeldungenResponse;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        let root = AnmeldungenRootRequest {
+            course_of_study: self.course_of_study.clone(),
+        }
+        .execute(connection);
+        assert_eq!(root.len(), 1);
+        prep_planning(
+            connection,
+            &self.course_of_study,
+            &self.expanded,
+            root[0].clone(),
+        )
     }
 }
 
@@ -271,7 +365,7 @@ impl RequestResponse for UpdateModule {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
-    pub entry: AnmeldungEntry
+    pub entry: AnmeldungEntry,
 }
 
 impl RequestResponse for UpdateAnmeldungEntry {
@@ -297,19 +391,49 @@ impl RequestResponse for AnmeldungenEntriesInSemester {
     type Response = Vec<AnmeldungEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-       QueryDsl::filter(
-        anmeldungen_entries::table,
-        anmeldungen_entries::course_of_study
-            .eq(&self.course_of_study)
-            .and(
-                anmeldungen_entries::semester
-                    .eq(self.semester)
-                    .and(anmeldungen_entries::year.eq(self.year))
-            ),
-    )
-    .select(AnmeldungEntry::as_select())
-    .load(connection)
-    .unwrap()
+        QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(
+                    anmeldungen_entries::semester
+                        .eq(self.semester)
+                        .and(anmeldungen_entries::year.eq(self.year)),
+                ),
+        )
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct AnmeldungenEntriesPerSemester {
+    pub course_of_study: String,
+}
+
+impl RequestResponse for AnmeldungenEntriesPerSemester {
+    type Response = Vec<((i32, Semester), Vec<AnmeldungEntry>)>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        let result = QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_entries::year.is_not_null())
+                .and(anmeldungen_entries::semester.is_not_null()),
+        )
+        .order_by((anmeldungen_entries::year, anmeldungen_entries::semester))
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap();
+        result
+            .into_iter()
+            .chunk_by(|elem| (elem.year.unwrap(), elem.semester.unwrap()))
+            .into_iter()
+            .map(|(elem, value)| (elem, value.collect_vec()))
+            .collect_vec()
     }
 }
 
@@ -388,92 +512,73 @@ impl RequestResponse for ExportDatabaseRequest {
     }
 }
 
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct ImportDatabaseRequest {
+    pub data: Vec<u8>,
+}
+
+impl RequestResponse for ImportDatabaseRequest {
+    type Response = ();
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        panic!("should be special cased at caller")
+    }
+}
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct PingRequest {
-}
+pub struct PingRequest {}
 
 impl RequestResponse for PingRequest {
     type Response = ();
 
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
         ()
     }
 }
 
-#[cfg(target_arch = "wasm32")]
-#[derive(Serialize, Deserialize, Debug, derive_more::From)]
-pub enum RequestResponseEnum {
-    AnmeldungenRequest(AnmeldungenRootRequest),
-    AnmeldungenRequest2(AnmeldungChildrenRequest),
-    Fewe(AnmeldungEntriesRequest),
-    FEwefweewf(InsertOrUpdateAnmeldungenRequest),
-    Wlewifhewefwef(UpdateAnmeldungEntryRequest),
-    ChildUrl(ChildUrl),
-    UpdateModule(UpdateModule),
-    SetStateAndCredits(SetStateAndCredits),
-    SetCpAndModuleCount(SetCpAndModuleCount),
-    CacheRequest(CacheRequest),
-    StoreCacheRequest(StoreCacheRequest),
-    ExportDatabaseRequest(ExportDatabaseRequest),
-    UpdateAnmeldungEntry(UpdateAnmeldungEntry),
-    AnmeldungenEntriesInSemester(AnmeldungenEntriesInSemester),
-    PingRequest(PingRequest)
-}
+macro_rules! request_response_enum {
+    ($($struct: ident)*) => {
+        #[cfg(target_arch = "wasm32")]
+        #[derive(Serialize, Deserialize, Debug, derive_more::From)]
+        pub enum RequestResponseEnum {
+            $($struct($struct)),*
+        }
 
-#[cfg(target_arch = "wasm32")]
-impl RequestResponseEnum {
-    pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
-        match self {
-            RequestResponseEnum::AnmeldungenRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::AnmeldungenRequest2(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::Fewe(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::FEwefweewf(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::Wlewifhewefwef(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::ChildUrl(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::UpdateModule(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::SetStateAndCredits(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::SetCpAndModuleCount(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::CacheRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::StoreCacheRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::ExportDatabaseRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::UpdateAnmeldungEntry(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::AnmeldungenEntriesInSemester(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
-            }
-            RequestResponseEnum::PingRequest(value) => {
-                serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+        #[cfg(target_arch = "wasm32")]
+        impl RequestResponseEnum {
+            pub fn execute(&self, connection: &mut SqliteConnection) -> JsValue {
+                match self {
+                    $(RequestResponseEnum::$struct(value) => {
+                        serde_wasm_bindgen::to_value(&value.execute(connection)).unwrap()
+                    })*
+                }
             }
         }
-    }
+    };
 }
+
+request_response_enum!(
+    AnmeldungenRootRequest
+    AnmeldungChildrenRequest
+    AnmeldungEntriesRequest
+    InsertOrUpdateAnmeldungenRequest
+    UpdateAnmeldungEntryRequest
+    ChildUrl
+    UpdateModule
+    SetStateAndCredits
+    SetCpAndModuleCount
+    CacheRequest
+    StoreCacheRequest
+    ExportDatabaseRequest
+    UpdateAnmeldungEntry
+    AnmeldungenEntriesInSemester
+    PingRequest
+    ImportDatabaseRequest
+    RecursiveAnmeldungenRequest
+    AnmeldungenEntriesPerSemester
+);
 
 #[cfg(target_arch = "wasm32")]
 #[derive(Serialize, Deserialize)]
@@ -521,9 +626,9 @@ impl MyDatabase {
                 .await
                 .unwrap();
 
-            "sqlite:///data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
+            "file:/data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
         } else {
-            "sqlite://tucan-plus.db?mode=rwc"
+            "file:tucan-plus.db?mode=rwc"
         };
 
         let pool = Pool::builder()
@@ -547,6 +652,14 @@ impl MyDatabase {
     ) -> R::Response {
         value.execute(&mut self.0.get().unwrap())
     }
+
+    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: std::time::Duration,
+    ) -> Result<R::Response, ()> {
+        Ok(self.send_message(message).await)
+    }
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -558,7 +671,8 @@ pub struct MyDatabase {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
-    // Getters can only be declared on classes, so we need a fake type to declare it on.
+    // Getters can only be declared on classes, so we need a fake type to declare it
+    // on.
     #[wasm_bindgen]
     type meta;
 
@@ -592,9 +706,7 @@ impl MyDatabase {
                         Closure::new(move |event: web_sys::Event| {
                             use log::info;
 
-                            info!(
-                                "error at client {event:?}",
-                            );
+                            info!("error at client {event:?}",);
 
                             reject.call1(&JsValue::undefined(), &event).unwrap();
                         });
@@ -611,7 +723,8 @@ impl MyDatabase {
                 return js_sys::Promise::new(&mut cb);
             })
         };
-        let _intentional = lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional =
+            lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
@@ -620,7 +733,11 @@ impl MyDatabase {
 
         let this = Self { broadcast_channel };
 
-        while this.send_message_with_timeout(PingRequest {}, Duration::from_millis(100)).await.is_err() {
+        while this
+            .send_message_with_timeout(PingRequest {}, Duration::from_millis(100))
+            .await
+            .is_err()
+        {
             use log::info;
 
             info!("retry ping");
@@ -638,13 +755,15 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.send_message_with_timeout(message, Duration::from_secs(10)).await.unwrap()
+        self.send_message_with_timeout(message, Duration::from_secs(10))
+            .await
+            .expect("timed out")
     }
 
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
-        timeout: Duration
+        timeout: Duration,
     ) -> Result<R::Response, ()>
     where
         RequestResponseEnum: std::convert::From<R>,
@@ -665,7 +784,8 @@ impl MyDatabase {
                     resolve.call1(&JsValue::undefined(), &event.data()).unwrap();
                 })
             };
-            temporary_broadcast_channel.get()
+            temporary_broadcast_channel
+                .get()
                 .add_event_listener_with_callback(
                     "message",
                     temporary_message_closure.as_ref().unchecked_ref(),
@@ -674,12 +794,12 @@ impl MyDatabase {
             temporary_message_closure.forget();
 
             web_sys::window()
-            .unwrap()
-            .set_timeout_with_callback_and_timeout_and_arguments_0(
-                &reject,
-                timeout.as_millis().try_into().unwrap(),
-            )
-            .unwrap();
+                .unwrap()
+                .set_timeout_with_callback_and_timeout_and_arguments_0(
+                    &reject,
+                    timeout.as_millis().try_into().unwrap(),
+                )
+                .unwrap();
         };
 
         let promise = js_sys::Promise::new(&mut cb);
@@ -698,8 +818,9 @@ impl MyDatabase {
             info!("send a message to worker");
         }
 
-        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise)).await.map_err(|_| ());
-        Ok(serde_wasm_bindgen::from_value(result?)
-            .unwrap())
+        let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
+            .await
+            .map_err(|_| ());
+        Ok(serde_wasm_bindgen::from_value(result?).unwrap())
     }
 }

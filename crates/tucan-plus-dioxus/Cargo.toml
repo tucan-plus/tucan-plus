@@ -8,7 +8,7 @@ rust-version = "1.86"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router", "wasm-split" ] }
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router" ] }
 dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", optional = true }
 dioxus-router = { git = "https://github.com/mohe2015/dioxus.git", branch = "my" }
 tucan-types = { path = "../tucan-types" }
@@ -59,6 +59,7 @@ console_log = { version = "1", features = ["color"] }
 # dev: target wasm and feature api
 
 [features]
+wasm-split = ["dioxus/wasm-split", "dioxus-router/wasm-split"]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions", "dep:web-extensions-sys" ]
 api = ["web", "dep:fragile"]
 default = ["web"]

@@ -60,16 +60,33 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```bash
 cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 
-Note that the router will call `.suspend()` so you should add a SuspenseBoundary above the Outlet to prevent suspending the entire page.
-
 cd crates/tucan-plus-dioxus/
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose --wasm-split --features "dioxus-router?/wasm-split"
+dx serve --web --features api --verbose
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
 dx bundle --web --features direct --release --wasm-split --features "dioxus-router?/wasm-split"
 ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
+
+# in second tab
+cargo install --locked bacon
+cd crates/tucan-plus-api/
+bacon run
+
+cargo install diesel_cli --no-default-features --features sqlite
+DATABASE_URL=file:$(mktemp) diesel database reset
+
+# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
+# Event handlers must be registered synchronously
+cd crates/tucan-plus-service-worker/
+cargo build --target wasm32-unknown-unknown
+wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
+echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
+cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
+
+# http://localhost:8080/#/
+
 
 # 8.7 MB original size
 # 4.8 MB seems absolute minimum
@@ -83,33 +100,8 @@ llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/deb
 
 cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
 
-cargo install wasm-bindgen-cli@0.2.104
-
 # https://github.com/DioxusLabs/dioxus/issues/4237
 wasm2wat /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm | grep --color '"env"'
-
-cd crates/tucan-plus-worker/
-dx serve --bundle web --target wasm32-unknown-unknown --base-path assets # --hot-patch this lets everything explode with "env" imports and sqlite import stuff broken
-cp -r ../../target/dx/tucan-plus-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
-
-# in second tab
-cargo install --locked bacon
-cd crates/tucan-plus-api/
-bacon run
-
-cargo install diesel_cli --no-default-features --features sqlite
-DATABASE_URL=sqlite://$(mktemp) diesel database reset
-
-# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
-# Event handlers must be registered synchronously
-cd crates/tucan-plus-service-worker/
-cargo build --target wasm32-unknown-unknown
-wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
-echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
-cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
-
-# http://localhost:8080/#/
-
 
 wasm-tools addr2line ./target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 0xc3d99e 0xb4c65d 0x86d66e 0xbcf4cf 0x8bd9d
 

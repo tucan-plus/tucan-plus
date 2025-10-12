@@ -1,4 +1,5 @@
 {
+    "editor.formatOnSave": true,
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": ["api"]
 }
