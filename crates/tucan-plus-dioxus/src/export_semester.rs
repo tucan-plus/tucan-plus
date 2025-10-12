@@ -331,7 +331,7 @@ pub fn MigrateV0ToV1() -> Element {
                             let session = session.clone();
                             let future = async move {
                                 let change =
-                                    BigRational::new(BigInt::from(1), BigInt::from(modules_len));
+                                    BigRational::new(BigInt::from(2), BigInt::from(modules_len));
                                 let module = tucan
                                     .0
                                     .module_details(
