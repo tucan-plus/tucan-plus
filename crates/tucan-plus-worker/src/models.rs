@@ -9,6 +9,7 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
+use tucan_types::registration::AnmeldungRequest;
 
 #[derive(
     Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash, Serialize, Deserialize,
@@ -51,7 +52,7 @@ where
 #[diesel(treat_none_as_default_value = false)]
 pub struct Anmeldung {
     pub course_of_study: String,
-    pub url: String,
+    pub url: String, // AnmeldungRequest
     pub name: String,
     pub parent: Option<String>,
     pub min_cp: i32,

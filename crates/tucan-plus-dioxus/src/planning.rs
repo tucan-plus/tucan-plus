@@ -74,7 +74,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 worker
                     .send_message(RecursiveAnmeldungenRequest {
                         course_of_study: course_of_study.clone(),
-                        traverse_into: HashSet::new(),
+                        expanded: HashSet::new(),
                     })
                     .await
             }
@@ -288,13 +288,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     }
 }
 
-pub struct PrepPlanningReturn {
-    has_contents: bool,
-    credits: i32,
-    modules: usize,
-    element: Element,
-}
-
 pub struct YearAndSemester(pub u32, pub Semester);
 
 pub enum PlanningState {
@@ -471,138 +464,117 @@ fn AnmeldungenEntries(
     }
 }
 
+pub struct PrepPlanningReturn {}
+
 #[component]
-fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> PrepPlanningReturn {
+fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> Element {
     let anmeldung = value.anmeldung;
     let entries = value.entries;
-    let inner = value.entries;
-    let has_rules = anmeldung.min_cp != 0
-        || anmeldung.max_cp.is_some()
-        || anmeldung.min_modules != 0
-        || anmeldung.max_modules.is_some();
-    let mut expanded = use_signal(|| false);
-    let has_contents = expanded()
-        || has_rules
-        || entries.iter().any(|entry| entry.state != State::NotPlanned)
-        || inner.iter().any(|v| v.has_contents);
-    let cp: i32 = entries
-        .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
-        .map(|entry| entry.credits)
-        .sum::<i32>()
-        + inner.iter().map(|inner| inner.credits).sum::<i32>();
-    let used_cp = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
-    let modules: usize = entries
-        .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
-        .count()
-        + inner.iter().map(|inner| inner.modules).sum::<usize>();
-    PrepPlanningReturn {
-        has_contents: has_contents,
-        credits: used_cp,
-        modules,
-        element: rsx! {
-            div {
-                class: "h3",
-                { anmeldung.name.clone() }
-                " "
-                button {
-                    type: "button",
-                    class: "btn btn-secondary",
-                    onclick: move |_| {
-                        expanded.toggle();
-                    },
-                    { if expanded() { "-" } else { "+" } }
+    let inner = value.inner;
+    let cp = value.credits;
+    let modules = value.modules;
+    let expanded = use_signal(|| true);
+    rsx! {
+        div {
+            class: "h3",
+            { anmeldung.name.clone() }
+            " "
+            button {
+                type: "button",
+                class: "btn btn-secondary",
+                onclick: move |_| {
+                    expanded.toggle();
+                },
+                { if expanded() { "-" } else { "+" } }
+            }
+        }
+        div {
+            class: "ms-2 ps-2",
+            style: "border-left: 1px solid #ccc;",
+            if (!entries.is_empty() && expanded())
+                || entries.iter().any(|entry| entry.state != State::NotPlanned) {
+                AnmeldungenEntries {
+                    future: use_resource(|| async { Vec::new() }),
+                    entries: ReadSignal::new(use_signal(|| Some(entries
+                        .iter()
+                        .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                        .cloned()
+                        .collect::<Vec<_>>()))),
                 }
             }
-            div {
-                class: "ms-2 ps-2",
-                style: "border-left: 1px solid #ccc;",
-                if (!entries.is_empty() && expanded())
-                    || entries.iter().any(|entry| entry.state != State::NotPlanned) {
-                    AnmeldungenEntries {
-                        future: use_resource(|| async { Vec::new() }),
-                        entries: ReadSignal::new(use_signal(|| Some(entries
-                            .iter()
-                            .filter(|entry| expanded() || entry.state != State::NotPlanned)
-                            .cloned()
-                            .collect::<Vec<_>>()))),
+            if expanded() || inner.iter().any(|v| v.has_contents) {
+                for (key, value) in value.results
+                    .iter()
+                    .zip(inner.into_iter())
+                    .filter(|(_, value)| expanded() || value.has_contents)
+                    .map(|(key, value)| (&key.url, value)) {
+                    div {
+                        key: "{key}",
+                        RegistrationTreeNode { value }
                     }
                 }
-                if expanded() || inner.iter().any(|v| v.has_contents) {
-                    for (key, value) in results
-                        .iter()
-                        .zip(inner.into_iter())
-                        .filter(|(_, value)| expanded() || value.has_contents)
-                        .map(|(key, value)| (&key.url, value)) {
-                        div {
-                            key: "{key}",
-                            { value.element }
-                        }
+            }
+            if value.has_rules {
+                p {
+                    { "Summe ".to_owned() + &anmeldung.name + ":" }
+                    br {
                     }
-                }
-                if has_rules {
-                    p {
-                        { "Summe ".to_owned() + &anmeldung.name + ":" }
-                        br {
-                        }
-                        if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
-                            span {
-                                class: if anmeldung.min_cp <= cp
-                                    && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
-                                {
-                                    "bg-success"
-                                } else {
-                                    if anmeldung.min_cp <= cp {
-                                        "bg-warning"
-                                    } else {
-                                        "bg-danger"
-                                    }
-                                },
-                                "CP: "
-                                { cp.to_string() }
-                                " / "
-                                { anmeldung.min_cp.to_string() }
-                                " - "
-                                {
-                                    anmeldung
-                                        .max_cp
-                                        .map(|v| v.to_string())
-                                        .unwrap_or("*".to_string())
-                                }
-                            }
-                        }
-                        if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
-                            && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
-                            br {
-                            }
-                        }
-                        if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
-                            span {
-                                class: if anmeldung.min_modules <= modules.try_into().unwrap()
-                                    && anmeldung
-                                        .max_modules
-                                        .map(|max| modules <= max.try_into().unwrap())
-                                        .unwrap_or(true)
-                                {
-                                    "bg-success"
+                    if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
+                        span {
+                            class: if anmeldung.min_cp <= cp
+                                && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
+                            {
+                                "bg-success"
+                            } else {
+                                if anmeldung.min_cp <= cp {
+                                    "bg-warning"
                                 } else {
                                     "bg-danger"
-                                },
-                                "Module: "
-                                { modules.to_string() }
-                                " / "
-                                { anmeldung.min_modules.to_string() }
-                                {
-                                    anmeldung.max_modules.map(|max_modules| {
-                                        " - ".to_string() + &max_modules.to_string()
-                                    })
                                 }
+                            },
+                            "CP: "
+                            { cp.to_string() }
+                            " / "
+                            { anmeldung.min_cp.to_string() }
+                            " - "
+                            {
+                                anmeldung
+                                    .max_cp
+                                    .map(|v| v.to_string())
+                                    .unwrap_or("*".to_string())
+                            }
+                        }
+                    }
+                    if (anmeldung.min_cp != 0 || anmeldung.max_cp.is_some())
+                        && (anmeldung.min_modules != 0 || anmeldung.max_modules.is_some()) {
+                        br {
+                        }
+                    }
+                    if anmeldung.min_modules != 0 || anmeldung.max_modules.is_some() {
+                        span {
+                            class: if anmeldung.min_modules <= modules.try_into().unwrap()
+                                && anmeldung
+                                    .max_modules
+                                    .map(|max| modules <= max.try_into().unwrap())
+                                    .unwrap_or(true)
+                            {
+                                "bg-success"
+                            } else {
+                                "bg-danger"
+                            },
+                            "Module: "
+                            { modules.to_string() }
+                            " / "
+                            { anmeldung.min_modules.to_string() }
+                            {
+                                anmeldung.max_modules.map(|max_modules| {
+                                    " - ".to_string() + &max_modules.to_string()
+                                })
                             }
                         }
                     }
                 }
             }
-        },
+        }
     }
 }

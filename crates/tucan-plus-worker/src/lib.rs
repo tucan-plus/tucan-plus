@@ -131,12 +131,16 @@ impl RequestResponse for AnmeldungChildrenRequest {
 #[derive(Debug)]
 pub struct RecursiveAnmeldungenRequest {
     pub course_of_study: String,
-    pub traverse_into: HashSet<AnmeldungRequest>,
+    pub expanded: HashSet<AnmeldungRequest>,
 }
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecursiveAnmeldungenResponse {
+    pub has_contents: bool,
+    pub has_rules: bool,
+    pub credits: i32,
+    pub modules: usize,
     pub anmeldung: Anmeldung,
     pub results: Vec<Anmeldung>,
     pub entries: Vec<AnmeldungEntry>,
@@ -146,6 +150,7 @@ pub struct RecursiveAnmeldungenResponse {
 fn prep_planning(
     connection: &mut SqliteConnection,
     course_of_study: &str,
+    expanded: &HashSet<AnmeldungRequest>,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> RecursiveAnmeldungenResponse {
     let results = AnmeldungChildrenRequest {
@@ -160,13 +165,37 @@ fn prep_planning(
     .execute(connection);
     let inner: Vec<RecursiveAnmeldungenResponse> = results
         .iter()
-        .map(|result| prep_planning(connection, course_of_study, result.clone()))
+        .map(|result| prep_planning(connection, course_of_study, expanded, result.clone()))
         .collect();
+    let has_rules = anmeldung.min_cp != 0
+        || anmeldung.max_cp.is_some()
+        || anmeldung.min_modules != 0
+        || anmeldung.max_modules.is_some();
+    let has_contents = expanded.contains(&AnmeldungRequest::parse(&anmeldung.url))
+        || has_rules
+        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || inner.iter().any(|v| v.has_contents);
+    let cp: i32 = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .map(|entry| entry.credits)
+        .sum::<i32>()
+        + inner.iter().map(|inner| inner.credits).sum::<i32>();
+    let credits = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
+    let modules: usize = entries
+        .iter()
+        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .count()
+        + inner.iter().map(|inner| inner.modules).sum::<usize>();
     RecursiveAnmeldungenResponse {
         anmeldung,
         results,
         entries,
         inner,
+        has_contents,
+        has_rules,
+        modules,
+        credits,
     }
 }
 
@@ -179,7 +208,12 @@ impl RequestResponse for RecursiveAnmeldungenRequest {
         }
         .execute(connection);
         assert_eq!(root.len(), 1);
-        prep_planning(connection, &self.course_of_study, root[0].clone())
+        prep_planning(
+            connection,
+            &self.course_of_study,
+            &self.expanded,
+            root[0].clone(),
+        )
     }
 }
 
