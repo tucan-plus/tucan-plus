@@ -246,6 +246,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
             if let Some(value) = future.value()() {
                 RegistrationTreeNode {
+                    future,
                     value
                 }
             }
@@ -467,13 +468,16 @@ fn AnmeldungenEntries(
 pub struct PrepPlanningReturn {}
 
 #[component]
-fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> Element {
+fn RegistrationTreeNode(
+    future: Resource<RecursiveAnmeldungenResponse>,
+    value: RecursiveAnmeldungenResponse,
+) -> Element {
     let anmeldung = value.anmeldung;
     let entries = value.entries;
     let inner = value.inner;
     let cp = value.credits;
     let modules = value.modules;
-    let expanded = use_signal(|| true);
+    let mut expanded = use_signal(|| true); // TODO FIXME
     rsx! {
         div {
             class: "h3",
@@ -494,7 +498,7 @@ fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> Element {
             if (!entries.is_empty() && expanded())
                 || entries.iter().any(|entry| entry.state != State::NotPlanned) {
                 AnmeldungenEntries {
-                    future: use_resource(|| async { Vec::new() }),
+                    future,
                     entries: ReadSignal::new(use_signal(|| Some(entries
                         .iter()
                         .filter(|entry| expanded() || entry.state != State::NotPlanned)
@@ -510,7 +514,7 @@ fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> Element {
                     .map(|(key, value)| (&key.url, value)) {
                     div {
                         key: "{key}",
-                        RegistrationTreeNode { value }
+                        RegistrationTreeNode { future, value }
                     }
                 }
             }
