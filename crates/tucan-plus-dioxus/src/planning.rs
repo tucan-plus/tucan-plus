@@ -6,11 +6,12 @@ use dioxus::prelude::*;
 use futures::StreamExt;
 use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
-use tucan_plus_worker::{AnmeldungenEntriesInSemester, AnmeldungenRootRequest, AnmeldungChildrenRequest, AnmeldungEntriesRequest, MyDatabase, UpdateAnmeldungEntry};
-use tucan_types::student_result::StudentResultResponse;
-use tucan_types::{
-    LoginResponse, RevalidationStrategy, Tucan,
+use tucan_plus_worker::{
+    AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
+    AnmeldungenRootRequest, MyDatabase, UpdateAnmeldungEntry,
 };
+use tucan_types::student_result::StudentResultResponse;
+use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
 
 use crate::planning::load_leistungsspiegel::load_leistungsspiegel;
 use crate::planning::load_semesters::handle_semester;
@@ -24,7 +25,7 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         let value = tucan.clone();
         async move {
             // TODO FIXME don't unwrap here
-            
+
             value
                 .student_result(
                     &current_session_handle().unwrap(),
@@ -76,7 +77,9 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .await;
                 futures::stream::iter(result.into_iter())
                     .then(async |anmeldung| {
-                        prep_planning(&course_of_study, anmeldung).await.element
+                        prep_planning(&worker, &course_of_study, anmeldung)
+                            .await
+                            .element
                     })
                     .collect::<Vec<Element>>()
                     .await
@@ -87,17 +90,25 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         let tucan = tucan.clone();
         let student_result = student_result.clone();
         let course_of_study = course_of_study.clone();
+        let worker = worker.clone();
         move |_event: dioxus::prelude::Event<MouseData>| {
             let current_session_handle = current_session_handle;
             let tucan = tucan.clone();
             let student_result = student_result.clone();
             let course_of_study = course_of_study.clone();
+            let worker = worker.clone();
             async move {
                 loading.set(true);
 
                 let current_session = current_session_handle().unwrap();
-                load_leistungsspiegel(current_session, tucan, student_result, course_of_study)
-                    .await;
+                load_leistungsspiegel(
+                    worker,
+                    current_session,
+                    tucan,
+                    student_result,
+                    course_of_study,
+                )
+                .await;
 
                 info!("updated");
                 loading.set(false);
@@ -109,13 +120,16 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan = tucan.clone();
     let onsubmit = {
         let course_of_study = course_of_study.clone();
+        let worker = worker.clone();
         move |evt: Event<FormData>| {
             let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
+            let worker = worker.clone();
             evt.prevent_default();
             async move {
                 loading.set(true);
                 handle_semester(
+                    &worker,
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
@@ -124,6 +138,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 )
                 .await;
                 handle_semester(
+                    &worker,
                     &course_of_study,
                     tucan.clone(),
                     &current_session_handle().unwrap(),
@@ -296,7 +311,10 @@ pub enum PlanningState {
 }
 
 #[component]
-fn AnmeldungenEntries(future: Resource<Vec<Element>>, entries: ReadSignal<Option<Vec<AnmeldungEntry>>>) -> Element {
+fn AnmeldungenEntries(
+    future: Resource<Vec<Element>>,
+    entries: ReadSignal<Option<Vec<AnmeldungEntry>>>,
+) -> Element {
     let worker: MyDatabase = use_context();
     rsx! {
         table {
@@ -460,10 +478,10 @@ fn AnmeldungenEntries(future: Resource<Vec<Element>>, entries: ReadSignal<Option
 }
 
 async fn prep_planning(
+    worker: &MyDatabase,
     course_of_study: &str,
     anmeldung: Anmeldung, // ahh this needs to be a signal?
 ) -> PrepPlanningReturn {
-    let worker: MyDatabase = use_context();
     let results = worker
         .send_message(AnmeldungChildrenRequest {
             course_of_study: course_of_study.to_owned(),
@@ -477,7 +495,7 @@ async fn prep_planning(
         })
         .await;
     let inner: Vec<PrepPlanningReturn> = futures::stream::iter(results.iter())
-        .then(async |result| Box::pin(prep_planning(course_of_study, result.clone())).await)
+        .then(async |result| Box::pin(prep_planning(worker, course_of_study, result.clone())).await)
         .collect()
         .await;
     let has_rules = anmeldung.min_cp != 0

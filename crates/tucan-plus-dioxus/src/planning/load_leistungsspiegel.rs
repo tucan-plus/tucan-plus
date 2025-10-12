@@ -71,13 +71,12 @@ pub async fn recursive_update(
 }
 
 pub async fn load_leistungsspiegel(
+    worker: MyDatabase,
     current_session: LoginResponse,
     tucan: RcTucanType,
     student_result: StudentResultResponse,
     course_of_study: String,
 ) {
-    let worker: MyDatabase = use_context();
-
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
 
