@@ -214,7 +214,7 @@
           fileset-worker
         ];
 
-        nativeArgs = {
+        nativeArgs = rec {
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
           preBuild = ''
@@ -230,13 +230,18 @@
           };
           nativeBuildInputs = [
             pkgs.pkg-config
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '') # TODO we probably need to remove this from the deps derivation.
           ];
           buildInputs = [
             pkgs.sqlite
           ];
+          notBuildDepsOnly = {
+            nativeBuildInputs = nativeBuildInputs ++ [
+              # don't rebuild deps if version changes
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
+          };
         };
 
         nativeLinuxArgs = nativeArgs // {
@@ -449,14 +454,19 @@
             pkgs.which
             wasm-bindgen
             pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-service-worker;
+          };
+          notBuildDepsOnly = {
+            nativeBuildInputs = [
+              # don't rebuild deps if version changes
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
           };
         };
 
@@ -485,7 +495,7 @@
           }
         );
 
-        client-args = {
+        client-args = rec {
           dioxusExtraArgs = "--features direct --web";
           # TODO FIXME dioxus creates duplicate .wasm files in wasm and assets folder
           dioxusMainArgs = "--out-dir $out --wasm-split --features wasm-split";
@@ -520,8 +530,13 @@
             postBuild = ''
               #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
             '';
+            nativeBuildInputs = nativeBuildInputs ++ [
+              # don't rebuild deps if version changes
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
           };
-          
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -538,9 +553,6 @@
             pkgs.emscripten
             wasm-bindgen
             pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
         };
