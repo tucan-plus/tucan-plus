@@ -288,7 +288,11 @@ pub fn MigrateV0ToV1() -> Element {
         let tucan = tucan.clone();
         async move {
             loading.set(true);
-            let semester = if true { "sose" } else { "wise" };
+            let semester = if file()[0].name().starts_with("SoSe") {
+                "sose"
+            } else {
+                "wise"
+            };
             let decompressed = decompress(&file()[0].read_bytes().await.unwrap())
                 .await
                 .unwrap();
@@ -408,17 +412,17 @@ pub fn MigrateV0ToV1() -> Element {
             }
             form {
                 class: "mb-3",
-        div {
+                div {
                     class: "mb-3",
                     label {
                         for: "database-file",
                         class: "form-label",
-                        "Datenbank importieren"
+                        "Datenbank migrieren"
                     }
                     input {
                         type: "file",
                         class: "form-control",
-                        accept: ".db",
+                        accept: ".json.br",
                         id: "database-file",
                         required: true,
                         onchange: move |event| {
@@ -426,12 +430,7 @@ pub fn MigrateV0ToV1() -> Element {
                         },
                     }
                 }
-                button {
-                    disabled: loading(),
-                    type: "submit",
-                    class: "btn btn-primary",
-                    "Datenbank importieren"
-                }
+
             }
             button {
                 onclick,
