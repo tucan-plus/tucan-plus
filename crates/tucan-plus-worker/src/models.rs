@@ -1,3 +1,5 @@
+use std::ffi::os_str::Display;
+
 use crate::schema::*;
 use diesel::{
     backend::Backend,
@@ -18,6 +20,15 @@ use tucan_types::registration::AnmeldungRequest;
 pub enum Semester {
     Sommersemester,
     Wintersemester,
+}
+
+impl std::fmt::Display for Semester {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Semester::Sommersemester => write!(f, "Sommersemester"),
+            Semester::Wintersemester => write!(f, "Wintersemester"),
+        }
+    }
 }
 
 impl ToSql<Text, diesel::sqlite::Sqlite> for Semester {

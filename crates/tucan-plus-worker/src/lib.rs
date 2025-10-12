@@ -8,6 +8,7 @@ use diesel::{prelude::*, upsert::excluded};
 use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
+use itertools::Itertools as _;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
@@ -408,6 +409,36 @@ impl RequestResponse for AnmeldungenEntriesInSemester {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
+pub struct AnmeldungenEntriesPerSemester {
+    pub course_of_study: String,
+}
+
+impl RequestResponse for AnmeldungenEntriesPerSemester {
+    type Response = Vec<((i32, Semester), Vec<AnmeldungEntry>)>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        let result = QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_entries::year.is_not_null())
+                .and(anmeldungen_entries::semester.is_not_null()),
+        )
+        .order_by((anmeldungen_entries::year, anmeldungen_entries::semester))
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap();
+        result
+            .into_iter()
+            .chunk_by(|elem| (elem.year.unwrap(), elem.semester.unwrap()))
+            .into_iter()
+            .map(|(elem, value)| (elem, value.collect_vec()))
+            .collect_vec()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct SetStateAndCredits {
     pub inserts: Vec<AnmeldungEntry>,
 }
@@ -546,6 +577,7 @@ request_response_enum!(
     PingRequest
     ImportDatabaseRequest
     RecursiveAnmeldungenRequest
+    AnmeldungenEntriesPerSemester
 );
 
 #[cfg(target_arch = "wasm32")]

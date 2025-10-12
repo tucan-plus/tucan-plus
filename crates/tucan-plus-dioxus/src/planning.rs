@@ -10,8 +10,8 @@ use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
     AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse,
-    UpdateAnmeldungEntry,
+    AnmeldungenEntriesPerSemester, AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest,
+    RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
@@ -48,6 +48,11 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
     }
 }
 
+pub type MyResource = Resource<(
+    RecursiveAnmeldungenResponse,
+    Vec<((i32, Semester), Vec<AnmeldungEntry>)>,
+)>;
+
 #[component]
 pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let worker: MyDatabase = use_context();
@@ -71,12 +76,18 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             let course_of_study = course_of_study.clone();
             let worker = worker.clone();
             async move {
-                worker
+                let recursive = worker
                     .send_message(RecursiveAnmeldungenRequest {
                         course_of_study: course_of_study.clone(),
                         expanded: HashSet::new(),
                     })
-                    .await
+                    .await;
+                let per_semester = worker
+                    .send_message(AnmeldungenEntriesPerSemester {
+                        course_of_study: course_of_study.clone(),
+                    })
+                    .await;
+                (recursive, per_semester)
             }
         })
     };
@@ -247,41 +258,18 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             if let Some(value) = future.value()() {
                 RegistrationTreeNode {
                     future,
-                    value
+                    value: value.0
                 }
-            }
-            for i in 2020..2030 {
-                Fragment {
-                    key: "{i}",
-                    h2 {
-                        "Sommersemester {i}"
-                    }
-                    AnmeldungenEntries {
-                        future,
-                        entries: {
-                        let worker = worker.clone();
-                        let course_of_study = course_of_study.clone();
-                            use_resource(move || {
-                        let worker = worker.clone();
-                        let course_of_study = course_of_study.clone();
-                        async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Sommersemester }).await}
-                        }).value()
-                    },
-                    }
-                    h2 {
-                        "Wintersemester {i}"
-                    }
-                    AnmeldungenEntries {
-                        future,
-                        entries: {
-                        let worker = worker.clone();
-                        let course_of_study = course_of_study.clone();
-                            use_resource(move || {
-                        let worker = worker.clone();
-                        let course_of_study = course_of_study.clone();
-                        async move {worker.send_message(AnmeldungenEntriesInSemester { course_of_study, year: i, semester: Semester::Wintersemester }).await}
-                        }).value()
-                    },
+                for ((i, semester), value) in value.1 {
+                    Fragment {
+                        key: "{i}{semester}",
+                        h2 {
+                            "{semester} {i}"
+                        }
+                        AnmeldungenEntries {
+                            future,
+                            entries: value
+                        }
                     }
                 }
             }
@@ -300,7 +288,7 @@ pub enum PlanningState {
 
 #[component]
 fn AnmeldungenEntries(
-    future: Resource<RecursiveAnmeldungenResponse>,
+    future: MyResource,
     entries: ReadSignal<Option<Vec<AnmeldungEntry>>>,
 ) -> Element {
     let worker: MyDatabase = use_context();
@@ -468,10 +456,7 @@ fn AnmeldungenEntries(
 pub struct PrepPlanningReturn {}
 
 #[component]
-fn RegistrationTreeNode(
-    future: Resource<RecursiveAnmeldungenResponse>,
-    value: RecursiveAnmeldungenResponse,
-) -> Element {
+fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse) -> Element {
     let anmeldung = value.anmeldung;
     let entries = value.entries;
     let inner = value.inner;

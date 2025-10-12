@@ -6043,6 +6043,7 @@ dependencies = [
  "fragile",
  "futures",
  "getrandom 0.3.3",
+ "itertools",
  "js-sys",
  "libsqlite3-sys",
  "log",
