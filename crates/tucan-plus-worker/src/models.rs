@@ -43,7 +43,9 @@ where
     }
 }
 
-#[derive(Insertable, Queryable, Selectable, Clone, PartialEq, Debug, Serialize, Deserialize)]
+#[derive(
+    Insertable, Queryable, Selectable, Clone, Debug, Serialize, Deserialize, PartialEq, Eq,
+)]
 #[diesel(table_name = anmeldungen_plan)]
 #[diesel(check_for_backend(diesel::sqlite::Sqlite))]
 #[diesel(treat_none_as_default_value = false)]
@@ -98,6 +100,7 @@ where
     Selectable,
     Clone,
     PartialEq,
+    Eq,
     Debug,
     AsChangeset,
     Identifiable,

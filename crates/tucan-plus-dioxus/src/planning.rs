@@ -10,7 +10,8 @@ use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
     AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest, UpdateAnmeldungEntry,
+    AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse,
+    UpdateAnmeldungEntry,
 };
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan};
@@ -243,9 +244,9 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 class: "btn btn-primary mb-3",
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
-            if let Some(value) = future() {
-                for entry in value {
-                    { entry }
+            if let Some(value) = future.value()() {
+                RegistrationTreeNode {
+                    value
                 }
             }
         }
@@ -305,7 +306,7 @@ pub enum PlanningState {
 
 #[component]
 fn AnmeldungenEntries(
-    future: Resource<Vec<Element>>,
+    future: Resource<RecursiveAnmeldungenResponse>,
     entries: ReadSignal<Option<Vec<AnmeldungEntry>>>,
 ) -> Element {
     let worker: MyDatabase = use_context();
@@ -470,17 +471,17 @@ fn AnmeldungenEntries(
     }
 }
 
-fn prep_planning_render(
-    worker: &MyDatabase,
-    course_of_study: &str,
-    anmeldung: Anmeldung, // ahh this needs to be a signal?
-) -> PrepPlanningReturn {
+#[component]
+fn RegistrationTreeNode(value: RecursiveAnmeldungenResponse) -> PrepPlanningReturn {
+    let anmeldung = value.anmeldung;
+    let entries = value.entries;
+    let inner = value.entries;
     let has_rules = anmeldung.min_cp != 0
         || anmeldung.max_cp.is_some()
         || anmeldung.min_modules != 0
         || anmeldung.max_modules.is_some();
     let mut expanded = use_signal(|| false);
-    let interesting = expanded()
+    let has_contents = expanded()
         || has_rules
         || entries.iter().any(|entry| entry.state != State::NotPlanned)
         || inner.iter().any(|v| v.has_contents);
@@ -497,7 +498,7 @@ fn prep_planning_render(
         .count()
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
     PrepPlanningReturn {
-        has_contents: interesting,
+        has_contents: has_contents,
         credits: used_cp,
         modules,
         element: rsx! {

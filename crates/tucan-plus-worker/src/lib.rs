@@ -135,11 +135,12 @@ pub struct RecursiveAnmeldungenRequest {
 }
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecursiveAnmeldungenResponse {
-    results: Vec<Anmeldung>,
-    entries: Vec<AnmeldungEntry>,
-    inner: Vec<RecursiveAnmeldungenResponse>,
+    pub anmeldung: Anmeldung,
+    pub results: Vec<Anmeldung>,
+    pub entries: Vec<AnmeldungEntry>,
+    pub inner: Vec<RecursiveAnmeldungenResponse>,
 }
 
 fn prep_planning(
@@ -162,6 +163,7 @@ fn prep_planning(
         .map(|result| prep_planning(connection, course_of_study, result.clone()))
         .collect();
     RecursiveAnmeldungenResponse {
+        anmeldung,
         results,
         entries,
         inner,
