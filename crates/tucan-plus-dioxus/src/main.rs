@@ -3,7 +3,7 @@ use std::panic;
 use dioxus::prelude::*;
 use tracing::Level;
 use tucan_plus_dioxus::{Anonymize, BOOTSTRAP_JS, BOOTSTRAP_PATCH_JS, Route};
-use tucan_plus_worker::{MyDatabase, RequestResponseEnum};
+use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
@@ -56,13 +56,18 @@ pub async fn main() {
     tracing::info!("tracing works");
     log::info!("logging works");
 
+    #[cfg(target_arch = "wasm32")]
     if web_sys::window().is_some() {
         frontend_main().await
     } else {
         worker_main().await
     }
+
+    #[cfg(not(target_arch = "wasm32"))]
+    frontend_main().await
 }
 
+#[cfg(target_arch = "wasm32")]
 #[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(worker))]
 async fn worker_main() {
     use std::cell::RefCell;
@@ -98,7 +103,9 @@ async fn worker_main() {
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
 
-        let result = if let RequestResponseEnum::ImportDatabaseRequest(import) = value.message {
+        let result = if let tucan_plus_worker::RequestResponseEnum::ImportDatabaseRequest(import) =
+            value.message
+        {
             let old_connection =
                 connection.replace(SqliteConnection::establish(":memory:").unwrap());
             drop(old_connection);
