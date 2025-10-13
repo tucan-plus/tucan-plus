@@ -63,13 +63,22 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
-dx build --web --features api --verbose --release
-cd target/dx/tucan-plus-dioxus/release/web/public
+dx build --web --features api --verbose --release --wasm-split --features wasm-split
+cd ../../target/dx/tucan-plus-dioxus/release/web/public
 sed -i 's/importMeta.url/import.meta.url/g' assets/tucan-plus-dioxus-*.js
 npx http-server -p 8081 # need one that caches wasm
 adb reverse tcp:8081 tcp:8081
 
 browser.cache.disk.max_entry_size needs to be increased
+devtools.debugger.features.wasm disable on desktop?
+devtools.source-map.client-service.enabled
+desktop caches now but android still does not...
+
+now it' suddenly marked as cached?
+
+my current suspicion is that web extension don't use this wasm cache as their requests also don't appear in the network tab
+
+nix run github:nix-community/flake-firefox-nightly#firefox-nightly-bin
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
