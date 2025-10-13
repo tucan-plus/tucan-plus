@@ -102,6 +102,10 @@ profiler also contains logs
 
 RUST_LOG="debug"
 
+https://github.com/mozilla-firefox/firefox/commit/8d39059edb1a3086f57499e4328cd7a9fa1059d7
+
+FUCKING HELL this works
+
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
