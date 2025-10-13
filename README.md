@@ -78,7 +78,29 @@ now it' suddenly marked as cached?
 
 my current suspicion is that web extension don't use this wasm cache as their requests also don't appear in the network tab
 
-nix run github:nix-community/flake-firefox-nightly#firefox-nightly-bin
+nix shell github:nix-community/flake-firefox-nightly#firefox-nightly-bin
+
+about:cache?storage=disk
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=1753924
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=1749986
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=1429953
+
+https://bugzilla.mozilla.org/show_bug.cgi?id=1590305
+
+javascript.options.wasm_verbose
+
+firefox-nightly
+
+about:logging
+
+https://firefox-source-docs.mozilla.org/xpcom/logging.html
+
+profiler also contains logs
+
+RUST_LOG="debug"
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
