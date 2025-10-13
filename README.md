@@ -63,6 +63,14 @@ cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
+dx build --web --features api --verbose --release
+cd target/dx/tucan-plus-dioxus/release/web/public
+sed -i 's/importMeta.url/import.meta.url/g' assets/tucan-plus-dioxus-*.js
+npx http-server -p 8081 # need one that caches wasm
+adb reverse tcp:8081 tcp:8081
+
+browser.cache.disk.max_entry_size needs to be increased
+
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
