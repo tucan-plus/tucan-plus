@@ -5,6 +5,7 @@ members = [
 edition = "2024"
 resolver = "3"
 version = "0.1.0"
+rust-version = "1.87"
 
 [profile.wasm-release]
 inherits = "release"
