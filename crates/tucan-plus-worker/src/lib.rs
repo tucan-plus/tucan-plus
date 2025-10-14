@@ -142,7 +142,8 @@ pub struct RecursiveAnmeldungenRequest {
 pub struct RecursiveAnmeldungenResponse {
     pub has_contents: bool,
     pub has_rules: bool,
-    pub credits: i32,
+    pub actual_credits: i32,
+    pub propagated_credits: i32,
     pub modules: usize,
     pub anmeldung: Anmeldung,
     pub results: Vec<Anmeldung>,
@@ -178,13 +179,17 @@ fn prep_planning(
         || has_rules
         || entries.iter().any(|entry| entry.state != State::NotPlanned)
         || inner.iter().any(|v| v.has_contents);
-    let cp: i32 = entries
+    let actual_credits: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .map(|entry| entry.credits)
         .sum::<i32>()
-        + inner.iter().map(|inner| inner.credits).sum::<i32>();
-    let credits = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
+        + inner
+            .iter()
+            .map(|inner| inner.propagated_credits)
+            .sum::<i32>();
+    let propagated_credits =
+        std::cmp::min(actual_credits, anmeldung.max_cp.unwrap_or(actual_credits));
     let modules: usize = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -198,7 +203,8 @@ fn prep_planning(
         has_contents,
         has_rules,
         modules,
-        credits,
+        actual_credits,
+        propagated_credits,
     }
 }
 
@@ -763,8 +769,6 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        // TODO FIXME add wait for worker to be aliv
-
         let this = Self {
             broadcast_channel,
             pinged: OnceCell::new(),
@@ -875,7 +879,7 @@ impl MyDatabase {
 
             self.broadcast_channel.get().post_message(&value).unwrap();
 
-            info!("send a message to worker");
+            info!("sent a message to worker");
         }
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))

@@ -462,7 +462,7 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
     let anmeldung = value.anmeldung;
     let entries = value.entries;
     let inner = value.inner;
-    let cp = value.credits;
+    let actual_credits = value.actual_credits;
     let modules = value.modules;
     let mut expanded = use_signal(|| false); // TODO FIXME
     rsx! {
@@ -512,19 +512,19 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
                     }
                     if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
                         span {
-                            class: if anmeldung.min_cp <= cp
-                                && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
+                            class: if anmeldung.min_cp <= actual_credits
+                                && anmeldung.max_cp.map(|max| actual_credits <= max).unwrap_or(true)
                             {
                                 "bg-success"
                             } else {
-                                if anmeldung.min_cp <= cp {
+                                if anmeldung.min_cp <= actual_credits {
                                     "bg-warning"
                                 } else {
                                     "bg-danger"
                                 }
                             },
                             "CP: "
-                            { cp.to_string() }
+                            { actual_credits.to_string() }
                             " / "
                             { anmeldung.min_cp.to_string() }
                             " - "

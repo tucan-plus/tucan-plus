@@ -480,9 +480,9 @@ async fn worker_main() {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
 
-        info!("Sent result at worker {:?}", result);
-
         temporary_broadcast_channel.post_message(&result).unwrap();
+
+        info!("Sent result at worker {:?}", result);
     });
     broadcast_channel
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
