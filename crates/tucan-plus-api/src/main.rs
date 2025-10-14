@@ -556,11 +556,14 @@ pub(crate) mod everything {
     #[tokio::main]
     pub async fn main() {
         env_logger::init();
+        #[cfg(feature = "hotpatch")]
         dioxus_devtools::serve_subsecond(router_main).await;
+        #[cfg(not(feature = "hotpatch"))]
+        router_main().await;
     }
 
     async fn router_main() {
-        println!("tefwwefwfefeewfwefwefwfst");
+        println!("Starting server at 0.0.0.0:3000");
 
         // our router
         let (router, api) = router().split_for_parts();
