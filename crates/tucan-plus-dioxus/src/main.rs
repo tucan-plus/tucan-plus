@@ -519,10 +519,6 @@ async fn frontend_main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let worker = MyDatabase::wait_for_worker().await;
-
-    let launcher = launcher.with_context(worker.clone());
-
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
@@ -564,6 +560,7 @@ fn App() -> Element {
     let login_response: Option<LoginResponse> = use_context();
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
+    provide_context(MyDatabase::wait_for_worker());
     rsx! {
         Router::<Route> {
         }

@@ -22,7 +22,7 @@ mod main {
         let cors = CorsLayer::very_permissive();
 
         let router = router.with_state(
-            TucanConnector::new(MyDatabase::wait_for_worker().await)
+            TucanConnector::new(MyDatabase::wait_for_worker())
                 .await
                 .unwrap(),
         );

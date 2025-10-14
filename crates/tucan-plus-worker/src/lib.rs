@@ -653,7 +653,7 @@ impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
 
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
-    pub async fn wait_for_worker() -> Self {
+    pub fn wait_for_worker() -> Self {
         use diesel::{
             connection::SimpleConnection as _,
             r2d2::{ConnectionManager, Pool},
@@ -661,9 +661,7 @@ impl MyDatabase {
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
-            tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucanplus/files")
-                .await
-                .unwrap();
+            std::fs::create_dir_all("/data/data/de.selfmade4u.tucanplus/files").unwrap();
 
             "file:/data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
         } else {
@@ -728,7 +726,7 @@ pub fn shim_url() -> String {
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    pub async fn wait_for_worker() -> Self {
+    pub fn wait_for_worker() -> Self {
         use js_sys::Promise;
         use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
@@ -817,7 +815,7 @@ impl MyDatabase {
                 if i == 100 {
                     panic!("failed to connect to worker in time")
                 }
-                info!("got pongf");
+                info!("got ponffgf");
             })
             .await;
 
