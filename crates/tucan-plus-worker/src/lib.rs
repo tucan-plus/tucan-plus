@@ -305,41 +305,6 @@ impl RequestResponse for UpdateAnmeldungEntryRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct ChildUrl {
-    pub course_of_study: String,
-    pub url: String,
-    pub name: String,
-    pub child: StudentResultLevel,
-}
-
-impl RequestResponse for ChildUrl {
-    type Response = String;
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::update(QueryDsl::filter(
-            anmeldungen_plan::table,
-            anmeldungen_plan::course_of_study
-                .eq(&self.course_of_study)
-                .and(
-                    anmeldungen_plan::parent
-                        .eq(&self.url)
-                        .and(anmeldungen_plan::name.eq(&self.name)),
-                ),
-        ))
-        .set((
-            anmeldungen_plan::min_cp.eq(self.child.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(self.child.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(self.child.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(self.child.rules.max_modules.map(|v| v as i32)),
-        ))
-        .returning(anmeldungen_plan::url)
-        .get_result(connection)
-        .unwrap()
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
 pub struct UpdateModuleYearAndSemester {
     pub course_of_study: String,
     pub semester: Semesterauswahl,
@@ -509,8 +474,9 @@ impl RequestResponse for SetStateAndCredits {
 #[derive(Debug)]
 pub struct SetCpAndModuleCount {
     pub course_of_study: String,
+    pub url: Option<String>,
     pub name: String,
-    pub student_result: StudentResultResponse,
+    pub child: StudentResultLevel,
 }
 
 impl RequestResponse for SetCpAndModuleCount {
@@ -521,18 +487,17 @@ impl RequestResponse for SetCpAndModuleCount {
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
                 .eq(&self.course_of_study)
-                .and(anmeldungen_plan::name.eq(&self.name)),
+                .and(
+                    anmeldungen_plan::parent
+                        .eq(&self.url)
+                        .and(anmeldungen_plan::name.eq(&self.name)),
+                ),
         ))
         .set((
-            anmeldungen_plan::min_cp.eq(self.student_result.level0.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(self.student_result.level0.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(self.student_result.level0.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(self
-                .student_result
-                .level0
-                .rules
-                .max_modules
-                .map(|v| v as i32)),
+            anmeldungen_plan::min_cp.eq(self.child.rules.min_cp as i32),
+            anmeldungen_plan::max_cp.eq(self.child.rules.max_cp.map(|v| v as i32)),
+            anmeldungen_plan::min_modules.eq(self.child.rules.min_modules as i32),
+            anmeldungen_plan::max_modules.eq(self.child.rules.max_modules.map(|v| v as i32)),
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
@@ -603,7 +568,6 @@ request_response_enum!(
     AnmeldungEntriesRequest
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
-    ChildUrl
     UpdateModuleYearAndSemester
     SetStateAndCredits
     SetCpAndModuleCount

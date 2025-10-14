@@ -153,7 +153,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         }
     };
 
-    let tucan = tucan.clone();
     let onsubmit = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();

@@ -1,17 +1,32 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,
+    MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
     mymodules::Module,
-    student_result::{StudentResultLevel, StudentResultResponse},
+    student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
 
 use crate::RcTucanType;
+
+static PATCHES: LazyLock<StudentResultLevel> = LazyLock::new(|| StudentResultLevel {
+    name: Some("Vertiefungen, Wahlbereiche und Studium Generale".to_string()),
+    entries: Vec::new(),
+    sum_cp: None,
+    sum_used_cp: None,
+    state: None,
+    rules: StudentResultRules {
+        min_cp: 90,
+        max_cp: Some(90),
+        min_modules: 0,
+        max_modules: None,
+    },
+    children: vec![],
+});
 
 pub async fn recursive_update(
     worker: MyDatabase,
@@ -23,9 +38,9 @@ pub async fn recursive_update(
     for child in level.children {
         let name = child.name.as_ref().unwrap();
         let child_url = worker
-            .send_message(ChildUrl {
+            .send_message(SetCpAndModuleCount {
                 course_of_study: course_of_study.to_string(),
-                url: url.clone(),
+                url: Some(url.clone()),
                 name: name.clone(),
                 child: child.clone(),
             })
@@ -99,7 +114,8 @@ pub async fn load_leistungsspiegel(
         .send_message(SetCpAndModuleCount {
             course_of_study: course_of_study.clone(),
             name,
-            student_result: student_result.clone(),
+            url: None,
+            child: student_result.level0.clone(),
         })
         .await;
 
