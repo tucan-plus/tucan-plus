@@ -423,7 +423,7 @@ fn AnmeldungenEntries(
                                     }
                                 },
                                 option {
-                                    key: "",
+                                    key: "none",
                                     value: serde_json::to_string(&(None::<i32>, None::<Semester>)).unwrap(),
                                     selected: entry.semester.is_none() && entry.year.is_none(),
                                     "Choose semester"
