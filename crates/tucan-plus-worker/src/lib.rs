@@ -476,7 +476,6 @@ impl RequestResponse for SetStateAndCredits {
 pub struct SetCpAndModuleCount {
     pub course_of_study: String,
     pub url: Option<String>,
-    pub name: String,
     pub child: StudentResultLevel,
 }
 
@@ -492,7 +491,7 @@ impl RequestResponse for SetCpAndModuleCount {
                 .and(
                     anmeldungen_plan::parent
                         .eq(&self.url)
-                        .and(anmeldungen_plan::name.eq(&self.name)),
+                        .and(anmeldungen_plan::name.eq(&self.child.name.clone().unwrap())),
                 ),
         ))
         .set((

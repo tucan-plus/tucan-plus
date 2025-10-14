@@ -126,7 +126,6 @@ pub async fn recursive_update(
         .send_message(SetCpAndModuleCount {
             course_of_study: course_of_study.to_string(),
             url: url.clone(),
-            name: level.name.clone().unwrap(),
             child: level.clone(),
         })
         .await;
@@ -182,7 +181,7 @@ pub async fn load_leistungsspiegel(
     worker: MyDatabase,
     current_session: LoginResponse,
     tucan: RcTucanType,
-    student_result: StudentResultResponse,
+    mut student_result: StudentResultResponse,
     course_of_study: String,
 ) {
     // top level anmeldung has name "M.Sc. Informatik (2023)"
@@ -195,6 +194,8 @@ pub async fn load_leistungsspiegel(
         .unwrap()
         .name
         .to_owned();
+
+    student_result.level0.name = Some(name.clone());
 
     // load all modules
     let my_modules = tucan
@@ -218,7 +219,6 @@ pub async fn load_leistungsspiegel(
             .send_message(SetCpAndModuleCount {
                 course_of_study: course_of_study.to_string(),
                 url: None,
-                name: student_result.level0.name.clone().unwrap(),
                 child: student_result.level0.clone(),
             })
             .await;
@@ -230,6 +230,7 @@ pub async fn load_leistungsspiegel(
             patch.clone(),
         )
         .await;
+        info!("loaded patches");
     }
 
     // load leistungsspiegel hierarchy
