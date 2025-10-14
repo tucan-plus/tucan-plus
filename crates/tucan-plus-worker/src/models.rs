@@ -76,6 +76,7 @@ pub struct Anmeldung {
 #[diesel(sql_type = Text)]
 pub enum State {
     NotPlanned,
+    MaybePlanned,
     Planned,
     Done,
 }
@@ -84,6 +85,7 @@ impl ToSql<Text, diesel::sqlite::Sqlite> for State {
     fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, diesel::sqlite::Sqlite>) -> serialize::Result {
         out.set_value(match self {
             Self::NotPlanned => "not_planned",
+            Self::MaybePlanned => "maybe_planned",
             Self::Planned => "planned",
             Self::Done => "done",
         });
@@ -99,6 +101,7 @@ where
     fn from_sql(bytes: DB::RawValue<'_>) -> deserialize::Result<Self> {
         match String::from_sql(bytes)?.as_str() {
             "not_planned" => Ok(Self::NotPlanned),
+            "maybe_planned" => Ok(Self::MaybePlanned),
             "planned" => Ok(Self::Planned),
             "done" => Ok(Self::Done),
             x => Err(format!("Unrecognized variant {}", x).into()),

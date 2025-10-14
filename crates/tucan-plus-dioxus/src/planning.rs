@@ -387,6 +387,7 @@ fn AnmeldungenEntries(
                                 },
                                 class: match entry.state {
                                     State::NotPlanned => "form-select bg-secondary",
+                                    State::MaybePlanned => "form-select bg-info",
                                     State::Planned => "form-select bg-primary",
                                     State::Done => "form-select bg-success",
                                 },
@@ -394,6 +395,11 @@ fn AnmeldungenEntries(
                                     value: serde_json::to_string(&State::NotPlanned).unwrap(),
                                     selected: entry.state == State::NotPlanned,
                                     { format!("{:?}", State::NotPlanned) }
+                                }
+                                option {
+                                    value: serde_json::to_string(&State::MaybePlanned).unwrap(),
+                                    selected: entry.state == State::MaybePlanned,
+                                    { format!("{:?}", State::MaybePlanned) }
                                 }
                                 option {
                                     value: serde_json::to_string(&State::Planned).unwrap(),
