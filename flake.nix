@@ -498,8 +498,8 @@
 
         client-args = rec {
           dioxusExtraArgs = "--features direct --web";
-          CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
-          dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
+          #CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
+          dioxusMainArgs = "--out-dir $out --wasm-split --features wasm-split";
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
@@ -530,7 +530,7 @@
             postBuild = ''
               rm $out/public/wasm/chunk_*.wasm || true
               rm $out/public/wasm/module_*.wasm || true
-              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url" || true
             '';
             nativeBuildInputs = nativeBuildInputs ++ [
               # don't rebuild deps if version changes, maybe later patch this in post-build?
