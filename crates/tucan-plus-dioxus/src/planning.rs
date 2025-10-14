@@ -298,7 +298,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     Fragment {
                         key: "{i}{semester}",
                         h2 {
-                            "{semester} {i}"
+                            "{semester} {i} "
+                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().map(|elem| elem.credits).sum::<i32>())} }
                         }
                         AnmeldungenEntries {
                             future,
