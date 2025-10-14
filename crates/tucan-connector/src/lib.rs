@@ -115,7 +115,9 @@ pub async fn sleep(duration: Duration) {
 
     let p = js_sys::Promise::new(&mut cb);
 
-    Fragile::new(wasm_bindgen_futures::JsFuture::from(p)).await.unwrap();
+    Fragile::new(wasm_bindgen_futures::JsFuture::from(p))
+        .await
+        .unwrap();
 }
 
 #[cfg(not(target_arch = "wasm32"))]
@@ -265,9 +267,9 @@ impl Tucan for TucanConnector {
         let date = datetime.date();
         let key = format!("unparsed_mlsstart.{}.{}", date, login_response.id);
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,",
-        login_response.id
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N{},-N000019,",
+            login_response.id
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -322,16 +324,16 @@ impl Tucan for TucanConnector {
     ) -> Result<MyCoursesResponse, TucanError> {
         let key = format!("unparsed_mycourses.{}", semester.inner());
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}",
-        login_response.id,
-        if semester == SemesterId::current() {
-            "-N1337".to_owned() // DO NOT ASK
-        } else if semester == SemesterId::all() {
-            "-N999".to_owned()
-        } else {
-            format!("-N{}", semester.inner())
-        }
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=PROFCOURSES&ARGUMENTS=-N{:015},-N000274,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                "-N1337".to_owned() // DO NOT ASK
+            } else if semester == SemesterId::all() {
+                "-N999".to_owned()
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -352,16 +354,16 @@ impl Tucan for TucanConnector {
     ) -> Result<MyExamsResponse, TucanError> {
         let key = format!("unparsed_myexams.{}", semester.inner());
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,{}",
-        login_response.id,
-        if semester == SemesterId::current() {
-            String::new()
-        } else if semester == SemesterId::all() {
-            "-N999".to_owned()
-        } else {
-            format!("-N{}", semester.inner())
-        }
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MYEXAMS&ARGUMENTS=-N{:015},-N000318,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                String::new()
+            } else if semester == SemesterId::all() {
+                "-N999".to_owned()
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -383,16 +385,16 @@ impl Tucan for TucanConnector {
         let key = format!("unparsed_examresults.{}", semester.inner());
 
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,{}",
-        login_response.id,
-        if semester == SemesterId::current() {
-            String::new()
-        } else if semester == SemesterId::all() {
-            "-N999".to_owned()
-        } else {
-            format!("-N{}", semester.inner())
-        }
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMRESULTS&ARGUMENTS=-N{:015},-N000325,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                String::new()
+            } else if semester == SemesterId::all() {
+                "-N999".to_owned()
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -413,16 +415,16 @@ impl Tucan for TucanConnector {
     ) -> Result<ModuleResultsResponse, TucanError> {
         let key = format!("unparsed_courseresults.{}", semester.inner());
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}",
-        login_response.id,
-        if semester == SemesterId::current() {
-            String::new()
-        } else if semester == SemesterId::all() {
-            panic!("not supported")
-        } else {
-            format!("-N{}", semester.inner())
-        }
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=COURSERESULTS&ARGUMENTS=-N{:015},-N000324,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                String::new()
+            } else if semester == SemesterId::all() {
+                panic!("not supported")
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -442,9 +444,9 @@ impl Tucan for TucanConnector {
     ) -> Result<MyDocumentsResponse, TucanError> {
         let key = "unparsed_mydocuments".to_string();
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,",
-        login_response.id
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CREATEDOCUMENT&ARGUMENTS=-N{:015},-N000557,",
+            login_response.id
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -473,10 +475,10 @@ impl Tucan for TucanConnector {
             request.inner()
         );
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}",
-        login_response.id,
-        request.inner()
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=REGISTRATION&ARGUMENTS=-N{:015},-N000311,{}",
+            login_response.id,
+            request.inner()
+        );
         /* let keys: Vec<String> = result
             .entries
             .iter()
@@ -513,10 +515,10 @@ impl Tucan for TucanConnector {
     ) -> Result<tucan_types::moduledetails::ModuleDetailsResponse, TucanError> {
         let key = format!("unparsed_module_details.{}", request.inner());
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
-        login_response.id,
-        request.inner()
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MODULEDETAILS&ARGUMENTS=-N{:015},-N000311,{}",
+            login_response.id,
+            request.inner()
+        );
 
         fetch_with_cache(
             self,
@@ -566,9 +568,9 @@ impl Tucan for TucanConnector {
         let request =
             format!("-N0,-N000000000000000,-N000000000000000,-N{request},-N0,-N000000000000000");
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}",
-        login_response.id, request
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STUDENT_RESULT&ARGUMENTS=-N{:015},-N000316,{}",
+            login_response.id, request
+        );
         fetch_with_cache(
             self,
             login_response,
@@ -589,9 +591,9 @@ impl Tucan for TucanConnector {
     ) -> Result<GradeOverviewResponse, TucanError> {
         let key = format!("unparsed_gradeoverview.{request}");
         let url = format!(
-        "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
-        login_response.id
-    );
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=GRADEOVERVIEW&ARGUMENTS=-N{},-N000325,{request}",
+            login_response.id
+        );
         fetch_with_cache(
             self,
             login_response,

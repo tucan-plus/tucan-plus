@@ -1,4 +1,3 @@
-
 use crate::schema::*;
 use diesel::{
     backend::Backend,
