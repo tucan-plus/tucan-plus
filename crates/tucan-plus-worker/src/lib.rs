@@ -804,7 +804,9 @@ impl MyDatabase {
                             Duration::from_millis(100),
                         )
                         .await;
-                    info!("{value:?}");
+                    if value.is_err() {
+                        info!("{value:?}");
+                    }
                     value.is_err()
                 } {
                     info!("retry ping");
@@ -813,7 +815,7 @@ impl MyDatabase {
                 if i == 100 {
                     panic!("failed to connect to worker in time")
                 }
-                info!("got ponffgf");
+                info!("got pong");
             })
             .await;
 
@@ -856,8 +858,6 @@ impl MyDatabase {
                 .unwrap();
             temporary_message_closure.forget();
 
-            info!("timeout out after {}", timeout.as_millis());
-
             web_sys::window()
                 .unwrap()
                 .set_timeout_with_callback_and_timeout_and_arguments_0(
@@ -879,8 +879,6 @@ impl MyDatabase {
             .unwrap();
 
             self.broadcast_channel.get().post_message(&value).unwrap();
-
-            info!("sent a message to worker");
         }
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
