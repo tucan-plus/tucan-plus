@@ -498,8 +498,8 @@
 
         client-args = rec {
           dioxusExtraArgs = "--features direct --web";
-          #CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
-          dioxusMainArgs = "--out-dir $out --wasm-split --features wasm-split";
+          CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
+          dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
