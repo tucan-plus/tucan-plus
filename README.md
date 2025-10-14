@@ -48,6 +48,14 @@ Recommended: VSCodium with rust-analyzer extension
 
 Just open the project in VSCodium.
 
+### Run on Android
+
+```
+nix build -L .#extension-unpacked
+cd result
+npx web-ext run --target firefox-android --android-device A209KFXV0201
+```
+
 ### Running all tests
 
 ```

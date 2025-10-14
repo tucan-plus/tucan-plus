@@ -154,29 +154,31 @@ async function disableMobileDesign() {
     }
 }
 
-chrome.omnibox.onInputStarted.addListener(function () {
-    chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN Plus"
-    });
-});
-
-chrome.omnibox.onInputChanged.addListener(() => {
-    chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN Plus"
+if (chrome.omnibox) {
+    chrome.omnibox.onInputStarted.addListener(function () {
+        chrome.omnibox.setDefaultSuggestion({
+            description: "TUCaN Plus"
+        });
     });
 
-    /** @type {chrome.omnibox.SuggestResult[]} */
-    let results = [{
-        content: "https://www.tucan.tu-darmstadt.de",
-        description: "TUCaN Plus"
-    }]
-    return results
-})
+    chrome.omnibox.onInputChanged.addListener(() => {
+        chrome.omnibox.setDefaultSuggestion({
+            description: "TUCaN Plus"
+        });
 
-chrome.omnibox.onInputEntered.addListener(() => {
-    asyncClosure(async () => {
-        await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+        /** @type {chrome.omnibox.SuggestResult[]} */
+        let results = [{
+            content: "https://www.tucan.tu-darmstadt.de",
+            description: "TUCaN Plus"
+        }]
+        return results
     })
-})
+
+    chrome.omnibox.onInputEntered.addListener(() => {
+        asyncClosure(async () => {
+            await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+        })
+    })
+}
 
 export { }
