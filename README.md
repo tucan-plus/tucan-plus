@@ -69,43 +69,6 @@ sed -i 's/importMeta.url/import.meta.url/g' assets/tucan-plus-dioxus-*.js
 npx http-server -p 8081 # need one that caches wasm
 adb reverse tcp:8081 tcp:8081
 
-browser.cache.disk.max_entry_size needs to be increased
-devtools.debugger.features.wasm disable on desktop?
-devtools.source-map.client-service.enabled
-desktop caches now but android still does not...
-
-now it' suddenly marked as cached?
-
-my current suspicion is that web extension don't use this wasm cache as their requests also don't appear in the network tab
-
-nix shell github:nix-community/flake-firefox-nightly#firefox-nightly-bin
-
-about:cache?storage=disk
-
-https://bugzilla.mozilla.org/show_bug.cgi?id=1753924
-
-https://bugzilla.mozilla.org/show_bug.cgi?id=1749986
-
-https://bugzilla.mozilla.org/show_bug.cgi?id=1429953
-
-https://bugzilla.mozilla.org/show_bug.cgi?id=1590305
-
-javascript.options.wasm_verbose
-
-firefox-nightly
-
-about:logging
-
-https://firefox-source-docs.mozilla.org/xpcom/logging.html
-
-profiler also contains logs
-
-RUST_LOG="debug"
-
-https://github.com/mozilla-firefox/firefox/commit/8d39059edb1a3086f57499e4328cd7a9fa1059d7
-
-FUCKING HELL this works
-
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
