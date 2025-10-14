@@ -72,7 +72,7 @@ pub async fn handle_semester(
                             course_of_study: course_of_study.to_owned(),
                             available_semester: semester,
                             anmeldung: anmeldung.path.last().unwrap().1.inner().to_owned(),
-                            module_url: entry.module.as_ref().unwrap().url.inner().to_owned(),
+                            module_url: Some(entry.module.as_ref().unwrap().url.inner().to_owned()),
                             id: entry.module.as_ref().unwrap().id.clone(),
                             name: entry.module.as_ref().unwrap().name.clone(),
                             credits: credits.try_into().unwrap(),

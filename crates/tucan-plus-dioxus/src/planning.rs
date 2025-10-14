@@ -353,10 +353,14 @@ fn AnmeldungenEntries(
                             { entry.id.clone() }
                         }
                         td {
-                            Link {
-                                to: Route::ModuleDetails {
-                                    module: ModuleDetailsRequest::parse(&entry.module_url),
-                                },
+                            if let Some(module_url) = &entry.module_url {
+                                Link {
+                                    to: Route::ModuleDetails {
+                                        module: ModuleDetailsRequest::parse(&module_url),
+                                    },
+                                    { entry.name.clone() }
+                                }
+                            } else {
                                 { entry.name.clone() }
                             }
                         }

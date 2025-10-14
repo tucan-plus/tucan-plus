@@ -128,7 +128,7 @@ pub struct AnmeldungEntry {
     pub course_of_study: String,
     pub available_semester: Semester,
     pub anmeldung: String,
-    pub module_url: String,
+    pub module_url: Option<String>,
     pub id: String,
     pub name: String,
     pub credits: i32,

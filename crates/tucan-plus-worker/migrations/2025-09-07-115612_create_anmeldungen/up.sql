@@ -20,7 +20,7 @@ CREATE TABLE anmeldungen_entries (
     course_of_study TEXT NOT NULL,
     available_semester TEXT NOT NULL, -- s or w or b
     anmeldung TEXT,
-    module_url TEXT NOT NULL,
+    module_url TEXT, -- thesis, anerkannt etc can be null
     id TEXT NOT NULL,
     name TEXT NOT NULL,
     credits INT NOT NULL,

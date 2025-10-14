@@ -1,11 +1,14 @@
+use std::collections::HashMap;
+
 use dioxus::hooks::use_context;
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModule,
+    ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
+    mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse},
 };
 
@@ -14,6 +17,7 @@ use crate::RcTucanType;
 pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
+    modules: &HashMap<String, Module>,
     url: String,
     level: StudentResultLevel,
 ) {
@@ -31,6 +35,7 @@ pub async fn recursive_update(
         Box::pin(recursive_update(
             worker.clone(),
             course_of_study,
+            modules,
             child_url,
             child,
         ))
@@ -43,9 +48,13 @@ pub async fn recursive_update(
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
             anmeldung: url.clone(),
-            module_url: "TODO".to_owned(), // TODO FIXME
+            module_url: entry
+                .id
+                .as_ref()
+                .and_then(|nr| modules.get(nr))
+                .map(|module| module.url.inner().to_owned()),
             id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
-                                            * and both as primary key */
+                                                                      * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
                 if level.name.as_deref() == Some("Masterarbeit") {
                     30
@@ -95,14 +104,32 @@ pub async fn load_leistungsspiegel(
         })
         .await;
 
+    // load all modules
+    let my_modules = tucan
+        .my_modules(
+            &current_session,
+            RevalidationStrategy::cache(),
+            SemesterId::all(),
+        )
+        .await
+        .unwrap()
+        .modules;
+    let my_modules: HashMap<_, _> = my_modules
+        .into_iter()
+        .map(|module| (module.nr.clone(), module))
+        .collect();
+
+    // load leistungsspiegel hierarchy
     recursive_update(
         worker.clone(),
         &course_of_study,
+        &my_modules,
         the_url,
         student_result.level0,
     )
     .await;
 
+    // move modules into correct semester
     let semesters = tucan
         .course_results(
             &current_session,
@@ -122,7 +149,7 @@ pub async fn load_leistungsspiegel(
             .unwrap();
         for module in result.results {
             worker
-                .send_message(UpdateModule {
+                .send_message(UpdateModuleYearAndSemester {
                     course_of_study: course_of_study.clone(),
                     semester: semester.clone(),
                     module,

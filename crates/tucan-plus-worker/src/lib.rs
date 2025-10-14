@@ -332,13 +332,13 @@ impl RequestResponse for ChildUrl {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct UpdateModule {
+pub struct UpdateModuleYearAndSemester {
     pub course_of_study: String,
     pub semester: Semesterauswahl,
     pub module: ModuleResult,
 }
 
-impl RequestResponse for UpdateModule {
+impl RequestResponse for UpdateModuleYearAndSemester {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -598,7 +598,7 @@ request_response_enum!(
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
     ChildUrl
-    UpdateModule
+    UpdateModuleYearAndSemester
     SetStateAndCredits
     SetCpAndModuleCount
     CacheRequest
@@ -796,15 +796,21 @@ impl MyDatabase {
         self.pinged
             .get_or_init(|| async {
                 use log::info;
-                while self
-                    .send_message_with_timeout_internal::<PingRequest>(
-                        PingRequest {},
-                        Duration::from_millis(100),
-                    )
-                    .await
-                    .is_err()
+                let mut i = 0;
+                while i < 100
+                    && self
+                        .send_message_with_timeout_internal::<PingRequest>(
+                            PingRequest {},
+                            Duration::from_millis(100),
+                        )
+                        .await
+                        .is_err()
                 {
                     info!("retry ping");
+                    i += 1;
+                }
+                if i == 100 {
+                    panic!("failed to connect to worker in time")
                 }
                 info!("got pong");
             })
