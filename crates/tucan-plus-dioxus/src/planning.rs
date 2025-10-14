@@ -10,8 +10,8 @@ use log::info;
 use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
     AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenEntriesPerSemester, AnmeldungenRootRequest, MyDatabase, RecursiveAnmeldungenRequest,
-    RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
+    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, AnmeldungenRootRequest,
+    MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
@@ -77,6 +77,7 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
 pub type MyResource = Resource<(
     Option<RecursiveAnmeldungenResponse>,
     Vec<((i32, Semester), Vec<AnmeldungEntry>)>,
+    Vec<AnmeldungEntry>,
 )>;
 
 #[component]
@@ -95,7 +96,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
-    let mut future = {
+    let mut future: MyResource = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
         use_resource(move || {
@@ -113,7 +114,12 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         course_of_study: course_of_study.clone(),
                     })
                     .await;
-                (recursive, per_semester)
+                let no_semester = worker
+                    .send_message(AnmeldungenEntriesNoSemester {
+                        course_of_study: course_of_study.clone(),
+                    })
+                    .await;
+                (recursive, per_semester, no_semester)
             }
         })
     };
@@ -298,6 +304,16 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                             future,
                             entries: value
                         }
+                    }
+                }
+                Fragment {
+                    key: "no-semester",
+                    h2 {
+                        "Nicht zugeordnet"
+                    }
+                    AnmeldungenEntries {
+                        future,
+                        entries: value.2
                     }
                 }
             }

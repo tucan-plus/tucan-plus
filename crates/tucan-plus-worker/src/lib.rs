@@ -444,6 +444,33 @@ impl RequestResponse for AnmeldungenEntriesPerSemester {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
+pub struct AnmeldungenEntriesNoSemester {
+    pub course_of_study: String,
+}
+
+impl RequestResponse for AnmeldungenEntriesNoSemester {
+    type Response = Vec<AnmeldungEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_entries::state.ne(State::NotPlanned))
+                .and(
+                    anmeldungen_entries::year
+                        .is_null()
+                        .or(anmeldungen_entries::semester.is_null()),
+                ),
+        )
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
 pub struct SetStateAndCredits {
     pub inserts: Vec<AnmeldungEntry>,
 }
@@ -583,6 +610,7 @@ request_response_enum!(
     ImportDatabaseRequest
     RecursiveAnmeldungenRequest
     AnmeldungenEntriesPerSemester
+    AnmeldungenEntriesNoSemester
 );
 
 #[cfg(target_arch = "wasm32")]
