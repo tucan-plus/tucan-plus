@@ -572,7 +572,7 @@ impl RequestResponse for PingRequest {
     type Response = ();
 
     fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
-        ()
+        
     }
 }
 

@@ -1,4 +1,3 @@
-use std::ffi::os_str::Display;
 
 use crate::schema::*;
 use diesel::{
@@ -11,7 +10,6 @@ use diesel::{
 };
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
-use tucan_types::registration::AnmeldungRequest;
 
 #[derive(
     Debug, PartialEq, FromSqlRow, AsExpression, Eq, Copy, Clone, Hash, Serialize, Deserialize,

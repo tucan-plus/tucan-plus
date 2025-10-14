@@ -7,11 +7,10 @@ use dioxus::html::FileData;
 use dioxus::prelude::*;
 use futures::StreamExt;
 use log::info;
-use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
+use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
-    AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, AnmeldungenRootRequest,
-    MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
+    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, MyDatabase,
+    RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::moduledetails::ModuleDetailsRequest;
 use tucan_types::student_result::StudentResultResponse;
@@ -30,13 +29,13 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         use_resource(move || {
             let value = tucan.clone();
             async move {
-                Ok(value
+                value
                     .student_result(
                         &current_session_handle().ok_or(TucanError::LoginRequired)?,
                         RevalidationStrategy::cache(),
                         course_of_study().parse().unwrap_or(0),
                     )
-                    .await?)
+                    .await
             }
         });
     rsx! {
@@ -92,8 +91,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
-    let mut wintersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut sommersemester: Signal<Vec<FileData>> = use_signal(Vec::new);
+    let mut wintersemester: Signal<Vec<FileData>> = use_signal(Vec::new);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -169,8 +168,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 handle_semester(
                     &worker,
                     &course_of_study,
-                    tucan.clone(),
-                    &current_session_handle().unwrap(),
                     Semester::Sommersemester,
                     sommersemester,
                 )
@@ -178,8 +175,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 handle_semester(
                     &worker,
                     &course_of_study,
-                    tucan.clone(),
-                    &current_session_handle().unwrap(),
                     Semester::Wintersemester,
                     wintersemester,
                 )
@@ -356,7 +351,7 @@ fn AnmeldungenEntries(
                             if let Some(module_url) = &entry.module_url {
                                 Link {
                                     to: Route::ModuleDetails {
-                                        module: ModuleDetailsRequest::parse(&module_url),
+                                        module: ModuleDetailsRequest::parse(module_url),
                                     },
                                     { entry.name.clone() }
                                 }

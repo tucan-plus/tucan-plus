@@ -1,6 +1,6 @@
 use std::panic;
 
-use dioxus::{prelude::*, subsecond};
+use dioxus::prelude::*;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
@@ -38,7 +38,6 @@ use crate::export_semester::MigrateV0ToV1;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
-use dioxus::prelude::*;
 use std::ops::Deref;
 use std::sync::Arc;
 #[cfg(target_arch = "wasm32")]

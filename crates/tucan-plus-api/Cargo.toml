@@ -3,7 +3,7 @@ name = "tucan-plus-api"
 license = "AGPL-3.0-or-later"
 edition = "2024"
 version = "0.1.2"
-rust-version = "1.86"
+rust-version = "1.87"
 
 [dependencies]
 
