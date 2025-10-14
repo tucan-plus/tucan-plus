@@ -12,6 +12,8 @@ use itertools::Itertools as _;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
+use tokio::sync::OnceCell;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
@@ -669,6 +671,7 @@ impl MyDatabase {
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: Fragile<BroadcastChannel>,
+    pinged: OnceCell<()>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -734,17 +737,10 @@ impl MyDatabase {
 
         // TODO FIXME add wait for worker to be aliv
 
-        let this = Self { broadcast_channel };
-
-        while this
-            .send_message_with_timeout(PingRequest {}, Duration::from_millis(100))
-            .await
-            .is_err()
-        {
-            use log::info;
-
-            info!("retry ping");
-        }
+        let this = Self {
+            broadcast_channel,
+            pinged: OnceCell::new(),
+        };
 
         info!("got pong");
 
@@ -764,6 +760,35 @@ impl MyDatabase {
     }
 
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: Duration,
+    ) -> Result<R::Response, ()>
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        self.pinged
+            .get_or_init(|| async {
+                while self
+                    .send_message_with_timeout_internal::<PingRequest>(
+                        PingRequest {},
+                        Duration::from_millis(100),
+                    )
+                    .await
+                    .is_err()
+                {
+                    use log::info;
+
+                    info!("retry ping");
+                }
+            })
+            .await;
+
+        self.send_message_with_timeout_internal(message, timeout)
+            .await
+    }
+
+    async fn send_message_with_timeout_internal<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,
