@@ -142,7 +142,8 @@ pub struct RecursiveAnmeldungenRequest {
 pub struct RecursiveAnmeldungenResponse {
     pub has_contents: bool,
     pub has_rules: bool,
-    pub credits: i32,
+    pub actual_credits: i32,
+    pub propagated_credits: i32,
     pub modules: usize,
     pub anmeldung: Anmeldung,
     pub results: Vec<Anmeldung>,
@@ -178,13 +179,17 @@ fn prep_planning(
         || has_rules
         || entries.iter().any(|entry| entry.state != State::NotPlanned)
         || inner.iter().any(|v| v.has_contents);
-    let cp: i32 = entries
+    let actual_credits: i32 = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
         .map(|entry| entry.credits)
         .sum::<i32>()
-        + inner.iter().map(|inner| inner.credits).sum::<i32>();
-    let credits = std::cmp::min(cp, anmeldung.max_cp.unwrap_or(cp));
+        + inner
+            .iter()
+            .map(|inner| inner.propagated_credits)
+            .sum::<i32>();
+    let propagated_credits =
+        std::cmp::min(actual_credits, anmeldung.max_cp.unwrap_or(actual_credits));
     let modules: usize = entries
         .iter()
         .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
@@ -198,7 +203,8 @@ fn prep_planning(
         has_contents,
         has_rules,
         modules,
-        credits,
+        actual_credits,
+        propagated_credits,
     }
 }
 
@@ -553,7 +559,7 @@ pub struct ImportDatabaseRequest {
 impl RequestResponse for ImportDatabaseRequest {
     type Response = ();
 
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
         panic!("should be special cased at caller")
     }
 }
@@ -565,9 +571,7 @@ pub struct PingRequest {}
 impl RequestResponse for PingRequest {
     type Response = ();
 
-    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
-        ()
-    }
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {}
 }
 
 macro_rules! request_response_enum {
@@ -647,7 +651,7 @@ impl<C: diesel::connection::SimpleConnection, E> CustomizeConnection<C, E>
 
 #[cfg(not(target_arch = "wasm32"))]
 impl MyDatabase {
-    pub async fn wait_for_worker() -> Self {
+    pub fn wait_for_worker() -> Self {
         use diesel::{
             connection::SimpleConnection as _,
             r2d2::{ConnectionManager, Pool},
@@ -655,9 +659,7 @@ impl MyDatabase {
         use diesel_migrations::MigrationHarness as _;
 
         let url = if cfg!(target_os = "android") {
-            tokio::fs::create_dir_all("/data/data/de.selfmade4u.tucanplus/files")
-                .await
-                .unwrap();
+            std::fs::create_dir_all("/data/data/de.selfmade4u.tucanplus/files").unwrap();
 
             "file:/data/data/de.selfmade4u.tucanplus/files/data.db?mode=rwc"
         } else {
@@ -689,7 +691,7 @@ impl MyDatabase {
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
-        timeout: std::time::Duration,
+        _timeout: std::time::Duration,
     ) -> Result<R::Response, ()> {
         Ok(self.send_message(message).await)
     }
@@ -722,7 +724,7 @@ pub fn shim_url() -> String {
 
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
-    pub async fn wait_for_worker() -> Self {
+    pub fn wait_for_worker() -> Self {
         use js_sys::Promise;
         use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
@@ -763,8 +765,6 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        // TODO FIXME add wait for worker to be aliv
-
         let this = Self {
             broadcast_channel,
             pinged: OnceCell::new(),
@@ -797,34 +797,36 @@ impl MyDatabase {
             .get_or_init(|| async {
                 use log::info;
                 let mut i = 0;
-                while i < 100
-                    && self
+                while i < 100 && {
+                    let value = self
                         .send_message_with_timeout_internal::<PingRequest>(
                             PingRequest {},
                             Duration::from_millis(100),
                         )
-                        .await
-                        .is_err()
-                {
+                        .await;
+                    info!("{value:?}");
+                    value.is_err()
+                } {
                     info!("retry ping");
                     i += 1;
                 }
                 if i == 100 {
                     panic!("failed to connect to worker in time")
                 }
-                info!("got pong");
+                info!("got ponffgf");
             })
             .await;
 
         self.send_message_with_timeout_internal(message, timeout)
             .await
+            .map_err(|_| ())
     }
 
     async fn send_message_with_timeout_internal<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,
-    ) -> Result<R::Response, ()>
+    ) -> Result<R::Response, String>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -837,6 +839,7 @@ impl MyDatabase {
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            use log::info;
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -852,6 +855,8 @@ impl MyDatabase {
                 )
                 .unwrap();
             temporary_message_closure.forget();
+
+            info!("timeout out after {}", timeout.as_millis());
 
             web_sys::window()
                 .unwrap()
@@ -875,12 +880,12 @@ impl MyDatabase {
 
             self.broadcast_channel.get().post_message(&value).unwrap();
 
-            info!("send a message to worker");
+            info!("sent a message to worker");
         }
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
             .await
-            .map_err(|_| ());
+            .map_err(|error| format!("{error:?}"));
         Ok(serde_wasm_bindgen::from_value(result?).unwrap())
     }
 }

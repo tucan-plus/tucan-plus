@@ -45,7 +45,7 @@ pub fn ImportDatabase() -> Element {
     let mut loading = use_signal(|| false);
     let mut success = use_signal(|| false);
     let worker: MyDatabase = use_context();
-    let mut file: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut file: Signal<Vec<FileData>> = use_signal(Vec::new);
     let onsubmit = {
         move |evt: Event<FormData>| {
             evt.prevent_default();

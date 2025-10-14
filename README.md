@@ -18,7 +18,7 @@ TUCaN URLs are automatically fixed so you can open URLs shared by others.
 
 ## Installation
 
-## Firefox (with autoupdates)
+### Firefox (with autoupdates)
 
 1. Download .xpi file from https://github.com/tucan-plus/tucan-plus/releases/latest
 
@@ -32,7 +32,7 @@ On Android continue with the following steps:
     1. Go to chrome://geckoview/content/config.xhtml
     2. Set javascript.options.wasm_optimizingjit to false
 
-## Chromium (with autoupdates)
+### Chromium (with autoupdates)
 
 1. Go to https://github.com/tucan-plus/tucan-plus/releases/latest
 2. Right click on the .crx file and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.

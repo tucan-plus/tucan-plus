@@ -1299,6 +1299,8 @@ dependencies = [
  "dioxus-core",
  "dioxus-devtools-types",
  "dioxus-signals",
+ "futures-channel",
+ "futures-util",
  "serde",
  "serde_json",
  "subsecond",
@@ -5943,6 +5945,7 @@ version = "0.1.2"
 dependencies = [
  "axum",
  "axum-extra",
+ "dioxus-devtools",
  "env_logger",
  "serde",
  "serde_json",

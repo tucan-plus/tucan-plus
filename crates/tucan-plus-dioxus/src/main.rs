@@ -1,6 +1,6 @@
 use std::panic;
 
-use dioxus::{prelude::*, subsecond};
+use dioxus::prelude::*;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
@@ -38,7 +38,6 @@ use crate::export_semester::MigrateV0ToV1;
 use crate::navbar::Navbar;
 use crate::overview::Overview;
 use crate::planning::Planning;
-use dioxus::prelude::*;
 use std::ops::Deref;
 use std::sync::Arc;
 #[cfg(target_arch = "wasm32")]
@@ -480,9 +479,9 @@ async fn worker_main() {
 
         let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
 
-        info!("Sent result at worker {:?}", result);
-
         temporary_broadcast_channel.post_message(&result).unwrap();
+
+        info!("Sent result at worker {:?}", result);
     });
     broadcast_channel
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
@@ -496,6 +495,8 @@ async fn worker_main() {
 
 #[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(frontend))]
 async fn frontend_main() {
+    let worker = MyDatabase::wait_for_worker(); // maybe move this before the wasm-split point?
+
     let anonymize = {
         #[cfg(feature = "direct")]
         {
@@ -518,8 +519,6 @@ async fn frontend_main() {
     // SERVICE_WORKER_JS.to_string());
 
     let launcher = dioxus::LaunchBuilder::new();
-
-    let worker = MyDatabase::wait_for_worker().await;
 
     let launcher = launcher.with_context(worker.clone());
 

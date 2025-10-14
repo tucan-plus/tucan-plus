@@ -6,9 +6,7 @@
 // unregister again
 use crate::head::{html_head, logged_in_head, logged_out_head};
 use html_handler::{Root, parse_document};
-use tucan_types::{
-    LoginResponse, TucanError,
-};
+use tucan_types::{LoginResponse, TucanError};
 /*
     assert_eq!(request.r#type, CoursePrepType::Course);
     let key = format!(

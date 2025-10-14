@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 
-use dioxus::hooks::use_context;
 use log::info;
 use tucan_plus_worker::{
     ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,

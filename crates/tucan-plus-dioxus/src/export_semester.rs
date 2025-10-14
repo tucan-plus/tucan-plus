@@ -1,20 +1,13 @@
+use std::collections::{HashMap, HashSet};
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
-use std::{
-    collections::{HashMap, HashSet},
-    ops::Add,
-    pin::pin,
-    rc::Rc,
-    sync::atomic::{AtomicUsize, Ordering},
-};
 
-use crate::{RcTucanType, compress, decompress};
+use crate::{RcTucanType, decompress};
 use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
 };
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
-use itertools::Itertools as _;
 use num::ToPrimitive;
 use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
@@ -26,7 +19,6 @@ use tucan_types::{
     registration::{AnmeldungRequest, AnmeldungResponse},
 };
 
-#[expect(clippy::manual_async_fn)]
 pub fn recursive_anmeldung<'a, 'b: 'a>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
@@ -61,7 +53,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                 async move { element.clone() }
             })
             .chain(
-                futures::stream::iter(element.submenus.clone().into_iter()).flat_map_unordered(
+                futures::stream::iter(element.submenus.clone()).flat_map_unordered(
                     None,
                     move |entry| {
                         recursive_anmeldung(
@@ -88,7 +80,7 @@ pub struct SemesterExportV1 {
 
 #[component]
 pub fn FetchAnmeldung() -> Element {
-    let mut result: Signal<Vec<(String, Vec<u8>)>> = use_signal(Vec::new);
+    let result: Signal<Vec<(String, Vec<u8>)>> = use_signal(Vec::new);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -115,16 +107,16 @@ pub fn FetchAnmeldung() -> Element {
             for course_of_study in anmeldung_response.studiumsauswahl {
                 log::info!("start");
                 let session = current_session_handle().unwrap();
-                let atomic_current = use_signal_sync(|| BigRational::zero());
-                let atomic_total = use_signal_sync(|| BigRational::one());
+                let atomic_current = use_signal_sync(BigRational::zero);
+                let atomic_total = use_signal_sync(BigRational::one);
                 spawn({
-                    let mut result = result.clone();
+                    let mut result = result;
                     let tucan = tucan.clone();
-                    let atomic_current = atomic_current.clone();
-                    let atomic_total = atomic_total.clone();
+                    let atomic_current = atomic_current;
+                    let atomic_total = atomic_total;
                     async move {
-                        let mut atomic_current = atomic_current.clone();
-                        let atomic_total = atomic_total.clone();
+                        let mut atomic_current = atomic_current;
+                        let atomic_total = atomic_total;
                         let response = recursive_anmeldung(
                             &tucan.0,
                             &session,
@@ -277,12 +269,12 @@ pub fn FetchAnmeldung() -> Element {
 
 #[component]
 pub fn MigrateV0ToV1() -> Element {
-    let mut result: Signal<Vec<(String, Vec<u8>)>> = use_signal(Vec::new);
+    let result: Signal<Vec<(String, Vec<u8>)>> = use_signal(Vec::new);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
     let mut progresses = use_signal(Vec::<(SyncSignal<BigRational>, SyncSignal<BigRational>)>::new);
-    let mut file: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut file: Signal<Vec<FileData>> = use_signal(Vec::new);
 
     let onclick = move |_event| {
         let tucan = tucan.clone();
@@ -296,7 +288,7 @@ pub fn MigrateV0ToV1() -> Element {
             let decompressed = decompress(&file()[0].read_bytes().await.unwrap())
                 .await
                 .unwrap();
-            let mut anmeldung_response: Vec<AnmeldungResponse> =
+            let anmeldung_response: Vec<AnmeldungResponse> =
                 serde_json::from_reader(decompressed.as_slice()).unwrap();
             let some_anmeldung = anmeldung_response[0].clone();
             let course_of_study = some_anmeldung
@@ -307,16 +299,14 @@ pub fn MigrateV0ToV1() -> Element {
                 .clone();
             log::info!("start");
             let session = current_session_handle().unwrap();
-            let atomic_current = use_signal_sync(|| BigRational::zero());
-            let atomic_total = use_signal_sync(|| BigRational::one());
+            let atomic_current = use_signal_sync(BigRational::zero);
+            let atomic_total = use_signal_sync(BigRational::one);
             spawn({
-                let mut result = result.clone();
+                let mut result = result;
                 let tucan = tucan.clone();
-                let atomic_current = atomic_current.clone();
-                let atomic_total = atomic_total.clone();
+                let atomic_current = atomic_current;
                 async move {
-                    let mut atomic_current = atomic_current.clone();
-                    let atomic_total = atomic_total.clone();
+                    let mut atomic_current = atomic_current;
 
                     let modules: HashSet<_> = anmeldung_response
                         .iter()

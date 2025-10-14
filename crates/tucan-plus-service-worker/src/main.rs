@@ -1,4 +1,3 @@
-
 use log::info;
 use wasm_bindgen::prelude::*;
 use web_sys::ExtendableMessageEvent;
@@ -36,10 +35,11 @@ pub async fn main() {
     log::warn!("service worker");
 
     let global = js_sys::global().unchecked_into::<web_sys::ServiceWorkerGlobalScope>();
-    
-    let closure: Closure<dyn Fn(ExtendableMessageEvent)> = Closure::new(move |event: ExtendableMessageEvent| {
-        info!("Got message at service worker {:?}", event.data());
-    });
+
+    let closure: Closure<dyn Fn(ExtendableMessageEvent)> =
+        Closure::new(move |event: ExtendableMessageEvent| {
+            info!("Got message at service worker {:?}", event.data());
+        });
     global
         .add_event_listener_with_callback("message", closure.as_ref().unchecked_ref())
         .unwrap();

@@ -5,13 +5,11 @@ use std::collections::HashSet;
 
 use dioxus::html::FileData;
 use dioxus::prelude::*;
-use futures::StreamExt;
 use log::info;
-use tucan_plus_worker::models::{Anmeldung, AnmeldungEntry, Semester, State};
+use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
-    AnmeldungChildrenRequest, AnmeldungEntriesRequest, AnmeldungenEntriesInSemester,
-    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, AnmeldungenRootRequest,
-    MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
+    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, MyDatabase,
+    RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::moduledetails::ModuleDetailsRequest;
 use tucan_types::student_result::StudentResultResponse;
@@ -30,13 +28,13 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
         use_resource(move || {
             let value = tucan.clone();
             async move {
-                Ok(value
+                value
                     .student_result(
                         &current_session_handle().ok_or(TucanError::LoginRequired)?,
                         RevalidationStrategy::cache(),
                         course_of_study().parse().unwrap_or(0),
                     )
-                    .await?)
+                    .await
             }
         });
     rsx! {
@@ -92,8 +90,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         .value
         .to_string();
     let navigator = use_navigator();
-    let mut sommersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
-    let mut wintersemester: Signal<Vec<FileData>> = use_signal(|| Vec::new());
+    let mut sommersemester: Signal<Vec<FileData>> = use_signal(Vec::new);
+    let mut wintersemester: Signal<Vec<FileData>> = use_signal(Vec::new);
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
@@ -160,7 +158,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
         move |evt: Event<FormData>| {
-            let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
             let worker = worker.clone();
             evt.prevent_default();
@@ -169,8 +166,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 handle_semester(
                     &worker,
                     &course_of_study,
-                    tucan.clone(),
-                    &current_session_handle().unwrap(),
                     Semester::Sommersemester,
                     sommersemester,
                 )
@@ -178,8 +173,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 handle_semester(
                     &worker,
                     &course_of_study,
-                    tucan.clone(),
-                    &current_session_handle().unwrap(),
                     Semester::Wintersemester,
                     wintersemester,
                 )
@@ -300,7 +293,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         key: "{i}{semester}",
                         h2 {
                             "{semester} {i} "
-                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().map(|elem| elem.credits).sum::<i32>())} }
+                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
                         }
                         AnmeldungenEntries {
                             future,
@@ -312,7 +305,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     key: "no-semester",
                     h2 {
                         "Nicht zugeordnet "
-                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().map(|elem| elem.credits).sum::<i32>())} }
+                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
                     }
                     AnmeldungenEntries {
                         future,
@@ -356,7 +349,7 @@ fn AnmeldungenEntries(
                             if let Some(module_url) = &entry.module_url {
                                 Link {
                                     to: Route::ModuleDetails {
-                                        module: ModuleDetailsRequest::parse(&module_url),
+                                        module: ModuleDetailsRequest::parse(module_url),
                                     },
                                     { entry.name.clone() }
                                 }
@@ -387,6 +380,7 @@ fn AnmeldungenEntries(
                                 },
                                 class: match entry.state {
                                     State::NotPlanned => "form-select bg-secondary",
+                                    State::MaybePlanned => "form-select bg-info",
                                     State::Planned => "form-select bg-primary",
                                     State::Done => "form-select bg-success",
                                 },
@@ -394,6 +388,11 @@ fn AnmeldungenEntries(
                                     value: serde_json::to_string(&State::NotPlanned).unwrap(),
                                     selected: entry.state == State::NotPlanned,
                                     { format!("{:?}", State::NotPlanned) }
+                                }
+                                option {
+                                    value: serde_json::to_string(&State::MaybePlanned).unwrap(),
+                                    selected: entry.state == State::MaybePlanned,
+                                    { format!("{:?}", State::MaybePlanned) }
                                 }
                                 option {
                                     value: serde_json::to_string(&State::Planned).unwrap(),
@@ -462,7 +461,7 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
     let anmeldung = value.anmeldung;
     let entries = value.entries;
     let inner = value.inner;
-    let cp = value.credits;
+    let actual_credits = value.actual_credits;
     let modules = value.modules;
     let mut expanded = use_signal(|| false); // TODO FIXME
     rsx! {
@@ -512,19 +511,19 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
                     }
                     if anmeldung.min_cp != 0 || anmeldung.max_cp.is_some() {
                         span {
-                            class: if anmeldung.min_cp <= cp
-                                && anmeldung.max_cp.map(|max| cp <= max).unwrap_or(true)
+                            class: if anmeldung.min_cp <= actual_credits
+                                && anmeldung.max_cp.map(|max| actual_credits <= max).unwrap_or(true)
                             {
                                 "bg-success"
                             } else {
-                                if anmeldung.min_cp <= cp {
+                                if anmeldung.min_cp <= actual_credits {
                                     "bg-warning"
                                 } else {
                                     "bg-danger"
                                 }
                             },
                             "CP: "
-                            { cp.to_string() }
+                            { actual_credits.to_string() }
                             " / "
                             { anmeldung.min_cp.to_string() }
                             " - "

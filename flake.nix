@@ -103,19 +103,14 @@
           craneLib.mkCargoDerivation (
             {
               buildPhaseCargoCommand = ''
-                ls -R
-                set -x
                 DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
-                set +x
               '';
               cargoArtifacts = craneLib.buildDepsOnly (
                 {
                   # build, don't bundle
                   # TODO make dx home persistent as it's useful
                   buildPhaseCargoCommand = ''
-                    set -x
                     DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
-                    set +x
                   '';
                   doCheck = false;
                   dummySrc = craneLib.mkDummySrc {
@@ -412,6 +407,7 @@
           cargoExtraArgs = "--package=tucan-plus-api";
         };
 
+        # this is currently broken
         schema =
           pkgs.runCommandNoCC "schema.json"
             {
@@ -759,7 +755,6 @@
           };
 
         };
-        packages.schema = schema;
         packages.service-worker = service-worker;
         packages.client = client;
         packages.api-server = api-server;

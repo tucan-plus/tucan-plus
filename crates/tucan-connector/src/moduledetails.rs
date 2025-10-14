@@ -1,13 +1,10 @@
 use itertools::Itertools;
 use scraper::CaseSensitivity::CaseSensitive;
+use tucan_types::InstructorImage;
 use tucan_types::moduledetails::{
     Anmeldefristen, Kurs, KursKategorie, Leistung, Pruefung, Pruefungstermin,
 };
-use tucan_types::InstructorImage;
-use tucan_types::{
-    LoginResponse,
-    moduledetails::ModuleDetailsResponse,
-};
+use tucan_types::{LoginResponse, moduledetails::ModuleDetailsResponse};
 
 use crate::{
     TucanError,

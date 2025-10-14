@@ -37,19 +37,19 @@ pub fn LoginComponent() -> Element {
                 Ok(response) => {
                     #[cfg(feature = "direct")]
                     web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
-                            name: Some("id".to_owned()),
-                            partition_key: None,
-                            store_id: None,
-                            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                            domain: None,
-                            path: Some("/scripts".to_owned()),
-                            value: Some(response.id.to_string()),
-                            expiration_date: None,
-                            http_only: None,
-                            secure: Some(true),
-                            same_site: None,
-                        })
-                        .await;
+                        name: Some("id".to_owned()),
+                        partition_key: None,
+                        store_id: None,
+                        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                        domain: None,
+                        path: Some("/scripts".to_owned()),
+                        value: Some(response.id.to_string()),
+                        expiration_date: None,
+                        http_only: None,
+                        secure: Some(true),
+                        same_site: None,
+                    })
+                    .await;
 
                     #[cfg(any(feature = "desktop", feature = "mobile"))]
                     keyring_core::Entry::new("tucan-plus", "session")
@@ -75,35 +75,35 @@ pub fn LoginComponent() -> Element {
             // TODO deduplicate
             #[cfg(feature = "direct")]
             web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
-                    name: Some("id".to_owned()),
-                    partition_key: None,
-                    store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                    domain: None,
-                    path: Some("/scripts".to_owned()),
-                    value: Some("544780631865356".to_owned()),
-                    expiration_date: None,
-                    http_only: None,
-                    secure: Some(true),
-                    same_site: None,
-                })
-                .await;
+                name: Some("id".to_owned()),
+                partition_key: None,
+                store_id: None,
+                url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                domain: None,
+                path: Some("/scripts".to_owned()),
+                value: Some("544780631865356".to_owned()),
+                expiration_date: None,
+                http_only: None,
+                secure: Some(true),
+                same_site: None,
+            })
+            .await;
 
             #[cfg(feature = "direct")]
             web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
-                    name: Some("cnsc".to_owned()),
-                    partition_key: None,
-                    store_id: None,
-                    url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-                    domain: None,
-                    path: Some("/scripts".to_owned()),
-                    value: Some("84BC747762F472B5A7507EB9F5CE2330".to_owned()),
-                    expiration_date: None,
-                    http_only: None,
-                    secure: Some(true),
-                    same_site: None,
-                })
-                .await;
+                name: Some("cnsc".to_owned()),
+                partition_key: None,
+                store_id: None,
+                url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+                domain: None,
+                path: Some("/scripts".to_owned()),
+                value: Some("84BC747762F472B5A7507EB9F5CE2330".to_owned()),
+                expiration_date: None,
+                http_only: None,
+                secure: Some(true),
+                same_site: None,
+            })
+            .await;
 
             #[cfg(target_arch = "wasm32")]
             {

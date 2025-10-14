@@ -1,4 +1,8 @@
 #[cfg(not(target_arch = "wasm32"))]
+use futures_util::stream::FuturesUnordered;
+#[cfg(not(target_arch = "wasm32"))]
+use futures_util::{FutureExt, StreamExt};
+#[cfg(not(target_arch = "wasm32"))]
 use std::future::Future;
 #[cfg(not(target_arch = "wasm32"))]
 use std::panic::AssertUnwindSafe;
@@ -6,10 +10,6 @@ use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 #[cfg(not(target_arch = "wasm32"))]
 use std::sync::atomic::{AtomicU64, Ordering};
-#[cfg(not(target_arch = "wasm32"))]
-use futures_util::stream::FuturesUnordered;
-#[cfg(not(target_arch = "wasm32"))]
-use futures_util::{FutureExt, StreamExt};
 #[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
 #[cfg(not(target_arch = "wasm32"))]
@@ -39,7 +39,7 @@ fn main() -> Result<(), TucanError> {
 
 #[cfg(not(target_arch = "wasm32"))]
 async fn async_main() -> Result<(), TucanError> {
-    let tucan = TucanConnector::new(MyDatabase::wait_for_worker().await).await?;
+    let tucan = TucanConnector::new(MyDatabase::wait_for_worker()).await?;
 
     /*let login_response = LoginResponse {
         id: std::env::var("SESSION_ID").unwrap().parse().unwrap(),

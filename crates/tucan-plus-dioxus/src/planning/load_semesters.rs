@@ -1,25 +1,17 @@
-use std::collections::HashMap;
-
-use dioxus::{hooks::use_context, html::FileData, signals::Signal};
+use dioxus::{html::FileData, signals::Signal};
 use futures::StreamExt as _;
 use log::warn;
 use tucan_plus_worker::{
     InsertOrUpdateAnmeldungenRequest, MyDatabase, UpdateAnmeldungEntryRequest,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
-use tucan_types::{
-    CONCURRENCY, LoginResponse, RevalidationStrategy, Tucan as _,
-    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
-    registration::AnmeldungResponse,
-};
+use tucan_types::CONCURRENCY;
 
-use crate::{RcTucanType, decompress, export_semester::SemesterExportV1};
+use crate::{decompress, export_semester::SemesterExportV1};
 
 pub async fn handle_semester(
     worker: &MyDatabase,
     course_of_study: &str,
-    tucan: RcTucanType,
-    login_response: &LoginResponse,
     semester: Semester,
     file_names: Signal<Vec<FileData>>,
 ) {

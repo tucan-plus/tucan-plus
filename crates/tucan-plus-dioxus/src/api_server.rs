@@ -2,7 +2,20 @@ use fragile::Fragile;
 use reqwest::Client;
 use tokio::sync::Semaphore;
 use tucan_types::{
-    CONCURRENCY, LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError, coursedetails::{CourseDetailsRequest, CourseDetailsResponse}, courseresults::ModuleResultsResponse, examresults::ExamResultsResponse, gradeoverview::{GradeOverviewRequest, GradeOverviewResponse}, mlsstart::MlsStart, moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse}, mycourses::MyCoursesResponse, mydocuments::MyDocumentsResponse, myexams::MyExamsResponse, mymodules::MyModulesResponse, registration::AnmeldungRequest, student_result::StudentResultResponse, vv::{ActionRequest, Vorlesungsverzeichnis}
+    CONCURRENCY, LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
+    coursedetails::{CourseDetailsRequest, CourseDetailsResponse},
+    courseresults::ModuleResultsResponse,
+    examresults::ExamResultsResponse,
+    gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    mlsstart::MlsStart,
+    moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
+    mycourses::MyCoursesResponse,
+    mydocuments::MyDocumentsResponse,
+    myexams::MyExamsResponse,
+    mymodules::MyModulesResponse,
+    registration::AnmeldungRequest,
+    student_result::StudentResultResponse,
+    vv::{ActionRequest, Vorlesungsverzeichnis},
 };
 use url::Url;
 
@@ -27,7 +40,7 @@ impl ApiServerTucan {
                 )
                 .build()
                 .unwrap(),
-            semaphore: Semaphore::new(CONCURRENCY)
+            semaphore: Semaphore::new(CONCURRENCY),
         }
     }
 }
@@ -53,7 +66,8 @@ impl Tucan for ApiServerTucan {
         _login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         request: AnmeldungRequest,
-    ) -> impl Future<Output = Result<tucan_types::registration::AnmeldungResponse, TucanError>> + Send {
+    ) -> impl Future<Output = Result<tucan_types::registration::AnmeldungResponse, TucanError>> + Send
+    {
         Fragile::new(async move {
             let _permit = self.semaphore.acquire().await.unwrap();
             let mut url = Url::parse("http://127.0.0.1:8080/api/v1/registration").unwrap();
