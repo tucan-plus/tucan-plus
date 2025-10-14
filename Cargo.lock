@@ -5943,6 +5943,7 @@ version = "0.1.2"
 dependencies = [
  "axum",
  "axum-extra",
+ "dioxus-devtools",
  "env_logger",
  "serde",
  "serde_json",
