@@ -5,9 +5,9 @@ use tucan_plus_worker::{
     InsertOrUpdateAnmeldungenRequest, MyDatabase, UpdateAnmeldungEntryRequest,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
-use tucan_types::{CONCURRENCY, LoginResponse};
+use tucan_types::CONCURRENCY;
 
-use crate::{RcTucanType, decompress, export_semester::SemesterExportV1};
+use crate::{decompress, export_semester::SemesterExportV1};
 
 pub async fn handle_semester(
     worker: &MyDatabase,
