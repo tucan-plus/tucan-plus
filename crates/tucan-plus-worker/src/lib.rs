@@ -742,8 +742,6 @@ impl MyDatabase {
             pinged: OnceCell::new(),
         };
 
-        info!("got pong");
-
         this
     }
 
@@ -769,6 +767,7 @@ impl MyDatabase {
     {
         self.pinged
             .get_or_init(|| async {
+                use log::info;
                 while self
                     .send_message_with_timeout_internal::<PingRequest>(
                         PingRequest {},
@@ -777,10 +776,9 @@ impl MyDatabase {
                     .await
                     .is_err()
                 {
-                    use log::info;
-
                     info!("retry ping");
                 }
+                info!("got pong");
             })
             .await;
 

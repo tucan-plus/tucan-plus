@@ -556,10 +556,6 @@ async fn frontend_main() {
     )));
 
     let launcher = launcher.with_context(Anonymize(anonymize));
-    launch(launcher);
-}
-
-fn launch(launcher: LaunchBuilder) {
     launcher.launch(App);
 }
 
