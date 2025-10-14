@@ -275,29 +275,31 @@ impl RequestResponse for InsertOrUpdateAnmeldungenRequest {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntryRequest {
-    pub insert: AnmeldungEntry,
+    pub inserts: Vec<AnmeldungEntry>,
 }
 
 impl RequestResponse for UpdateAnmeldungEntryRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::insert_into(anmeldungen_entries::table)
-            .values(&self.insert)
-            .on_conflict((
-                anmeldungen_entries::course_of_study,
-                anmeldungen_entries::anmeldung,
-                anmeldungen_entries::available_semester,
-                anmeldungen_entries::id,
-            ))
-            .do_update()
-            .set((
-                // TODO FIXME I think updating does not work
-                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-            ))
-            .execute(connection)
-            .unwrap();
+        for insert in &self.inserts {
+            diesel::insert_into(anmeldungen_entries::table)
+                .values(insert)
+                .on_conflict((
+                    anmeldungen_entries::course_of_study,
+                    anmeldungen_entries::anmeldung,
+                    anmeldungen_entries::available_semester,
+                    anmeldungen_entries::id,
+                ))
+                .do_update()
+                .set((
+                    // TODO FIXME I think updating does not work
+                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                ))
+                .execute(connection)
+                .unwrap();
+        }
     }
 }
 

@@ -78,11 +78,8 @@ pub async fn handle_semester(
             .buffer_unordered(CONCURRENCY)
             .collect()
             .await;
-        // prevent too many variable error, TODO maybe batching
-        for insert in inserts {
-            worker
-                .send_message(UpdateAnmeldungEntryRequest { insert })
-                .await;
-        }
+        worker
+            .send_message(UpdateAnmeldungEntryRequest { inserts })
+            .await;
     }
 }
