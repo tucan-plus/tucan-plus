@@ -66,8 +66,8 @@ dx serve --web --features api --verbose
 dx build --web --features api --verbose --release --wasm-split --features wasm-split
 cd ../../target/dx/tucan-plus-dioxus/release/web/public
 sed -i 's/importMeta.url/import.meta.url/g' assets/tucan-plus-dioxus-*.js
-npx http-server -p 8081 # need one that caches wasm
-adb reverse tcp:8081 tcp:8081
+npx http-server -p 8080 # need one that caches wasm
+adb reverse tcp:8080 tcp:8080
 
 rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
 

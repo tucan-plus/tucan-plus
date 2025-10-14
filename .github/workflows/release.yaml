@@ -88,6 +88,9 @@ jobs:
         3. press the logo five times, it should say that the debug menu got activated
         4. go back
         5. Click on Install extension from file and select the downloaded .xpi file
+        6. If you have a Linux kernel version older than 4.16:
+          1. Go to chrome://geckoview/content/config.xhtml
+          2. Set javascript.options.wasm_optimizingjit to false
 
         ## Chromium (with autoupdates)
 
