@@ -9,6 +9,7 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 use itertools::Itertools as _;
+use log::info;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
@@ -483,6 +484,7 @@ impl RequestResponse for SetCpAndModuleCount {
     type Response = String;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        info!("{:?}", self);
         diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study

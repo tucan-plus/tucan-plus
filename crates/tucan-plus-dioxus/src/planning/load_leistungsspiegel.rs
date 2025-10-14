@@ -114,25 +114,23 @@ pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
     modules: &HashMap<String, Module>,
-    url: String,
+    url: Option<String>,
     level: StudentResultLevel,
 ) {
+    let this_url = worker
+        .send_message(SetCpAndModuleCount {
+            course_of_study: course_of_study.to_string(),
+            url: url.clone(),
+            name: level.name.clone().unwrap(),
+            child: level.clone(),
+        })
+        .await;
     for child in level.children {
-        let name = child.name.as_ref().unwrap();
-        let child_url = worker
-            .send_message(SetCpAndModuleCount {
-                course_of_study: course_of_study.to_string(),
-                url: Some(url.clone()),
-                name: name.clone(),
-                child: child.clone(),
-            })
-            .await;
-        info!("updated");
         Box::pin(recursive_update(
             worker.clone(),
             course_of_study,
             modules,
-            child_url,
+            Some(this_url.clone()),
             child,
         ))
         .await;
@@ -143,7 +141,7 @@ pub async fn recursive_update(
         .map(|entry| AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: url.clone(),
+            anmeldung: url.clone().unwrap(),
             module_url: entry
                 .id
                 .as_ref()
@@ -192,14 +190,6 @@ pub async fn load_leistungsspiegel(
         .unwrap()
         .name
         .to_owned();
-    let the_url = worker
-        .send_message(SetCpAndModuleCount {
-            course_of_study: course_of_study.clone(),
-            name,
-            url: None,
-            child: student_result.level0.clone(),
-        })
-        .await;
 
     // load all modules
     let my_modules = tucan
@@ -216,12 +206,22 @@ pub async fn load_leistungsspiegel(
         .map(|module| (module.nr.clone(), module))
         .collect();
 
+    // load patches
+    recursive_update(
+        worker.clone(),
+        &course_of_study,
+        &my_modules,
+        None,
+        PATCHES.clone(),
+    )
+    .await;
+
     // load leistungsspiegel hierarchy
     recursive_update(
         worker.clone(),
         &course_of_study,
         &my_modules,
-        the_url,
+        None,
         student_result.level0,
     )
     .await;
