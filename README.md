@@ -53,7 +53,7 @@ Just open the project in VSCodium.
 ```
 nix build -L .#extension-unpacked
 cd result
-npx web-ext run --target firefox-android --android-device A209KFXV0201
+npx web-ext run --target firefox-android --android-device A209KFXV0201 # TODO make this build run a flake command
 ```
 
 ### Running all tests
