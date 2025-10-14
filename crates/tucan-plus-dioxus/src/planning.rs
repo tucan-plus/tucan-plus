@@ -318,62 +318,36 @@ fn AnmeldungenEntries(
                         }
                         td {
                             select {
+                                onchange: {
+                                    let entry = entry.clone();
+                                    let worker = worker.clone();
+                                    move |event| {
+                                        let mut entry = entry.clone();
+                                        let worker = worker.clone();
+                                        async move {
+                                            entry.state = serde_json::from_str(&event.value()).unwrap();
+                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            future.restart();
+                                        }
+                                    }
+                                },
                                 class: match entry.state {
                                     State::NotPlanned => "form-select bg-secondary",
                                     State::Planned => "form-select bg-primary",
                                     State::Done => "form-select bg-success",
                                 },
                                 option {
-                                    onclick: {
-                                        let entry = entry.clone();
-                                        let worker = worker.clone();
-                                        move |event| {
-                                            let mut entry = entry.clone();
-                                            let worker = worker.clone();
-                                            async move {
-                                                event.prevent_default();
-                                                entry.state = State::NotPlanned;
-                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                future.restart();
-                                            }
-                                        }
-                                    },
+                                    value: serde_json::to_string(&State::NotPlanned).unwrap(),
                                     selected: entry.state == State::NotPlanned,
                                     { format!("{:?}", State::NotPlanned) }
                                 }
                                 option {
-                                    onclick: {
-                                        let entry = entry.clone();
-                                        let worker = worker.clone();
-                                        move |event| {
-                                            let mut entry = entry.clone();
-                                            let worker = worker.clone();
-                                            async move {
-                                                event.prevent_default();
-                                                entry.state = State::Planned;
-                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                future.restart();
-                                            }
-                                        }
-                                    },
+                                    value: serde_json::to_string(&State::Planned).unwrap(),
                                     selected: entry.state == State::Planned,
                                     { format!("{:?}", State::Planned) }
                                 }
                                 option {
-                                    onclick: {
-                                        let entry = entry.clone();
-                                        let worker = worker.clone();
-                                        move |event| {
-                                            let mut entry = entry.clone();
-                                            let worker = worker.clone();
-                                            async move {
-                                                event.prevent_default();
-                                                entry.state = State::Done;
-                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                future.restart();
-                                            }
-                                        }
-                                    },
+                                    value: serde_json::to_string(&State::Done).unwrap(),
                                     selected: entry.state == State::Done,
                                     { format!("{:?}", State::Done) }
                                 }
@@ -381,66 +355,38 @@ fn AnmeldungenEntries(
                             select {
                                 class: "form-select",
                                 style: "min-width: 15em",
+                                onchange: {
+                                    let entry = entry.clone();
+                                    let worker = worker.clone();
+                                    move |event| {
+                                        let mut entry = entry.clone();
+                                        let worker = worker.clone();
+                                        async move {
+                                            let (year, semester) = serde_json::from_str(&event.value()).unwrap();
+                                            entry.year = year;
+                                            entry.semester = semester;
+                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            future.restart();
+                                        }
+                                    }
+                                },
                                 option {
                                     key: "",
-                                    value: "",
-                                    onclick: {
-                                        let entry = entry.clone();
-                                        let worker = worker.clone();
-                                        move |event| {
-                                            let mut entry = entry.clone();
-                                            let worker = worker.clone();
-                                            async move {
-                                                event.prevent_default();
-                                                entry.semester = None;
-                                                entry.year = None;
-                                                worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                future.restart();
-                                            }
-                                        }
-                                    },
+                                    value: serde_json::to_string(&(None::<i32>, None::<Semester>)).unwrap(),
                                     selected: entry.semester.is_none() && entry.year.is_none(),
                                     "Choose semester"
                                 }
                                 for i in 2020..2030 {
                                     option {
                                         key: "sose{i}",
-                                        onclick: {
-                                            let entry = entry.clone();
-                                            let worker = worker.clone();
-                                            move |event| {
-                                                let mut entry = entry.clone();
-                                                let worker = worker.clone();
-                                                async move {
-                                                    event.prevent_default();
-                                                    entry.semester = Some(Semester::Sommersemester);
-                                                    entry.year = Some(i);
-                                                    worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                    future.restart();
-                                                }
-                                            }
-                                        },
+                                        value: serde_json::to_string(&(Some(i), Semester::Sommersemester)).unwrap(),
                                         selected: entry.semester == Some(Semester::Sommersemester)
                                             && entry.year == Some(i),
                                         "Sommersemester {i}"
                                     }
                                     option {
                                         key: "wise{i}",
-                                        onclick: {
-                                            let entry = entry.clone();
-                                            let worker = worker.clone();
-                                            move |event| {
-                                                let mut entry = entry.clone();
-                                                let worker = worker.clone();
-                                                async move {
-                                                    event.prevent_default();
-                                                    entry.semester = Some(Semester::Wintersemester);
-                                                    entry.year = Some(i);
-                                                    worker.send_message(UpdateAnmeldungEntry { entry }).await;
-                                                    future.restart();
-                                                }
-                                            }
-                                        },
+                                        value: serde_json::to_string(&(Some(i), Semester::Wintersemester)).unwrap(),
                                         selected: entry.semester == Some(Semester::Wintersemester)
                                             && entry.year == Some(i),
                                         "Wintersemester {i}"
