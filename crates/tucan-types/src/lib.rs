@@ -92,6 +92,8 @@ pub enum TucanError {
     InvalidCredentials,
     #[error("Not cached")]
     NotCached,
+    #[error("Login required")]
+    LoginRequired,
 }
 
 impl IntoResponse for TucanError {
@@ -109,6 +111,7 @@ impl IntoResponse for TucanError {
                 (StatusCode::UNAUTHORIZED, "invalid credentials").into_response()
             }
             Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
+            Self::LoginRequired => (StatusCode::UNAUTHORIZED, "login required").into_response(),
         }
     }
 }
