@@ -490,7 +490,7 @@ impl RequestResponse for SetCpAndModuleCount {
                 .eq(&self.course_of_study)
                 .and(
                     anmeldungen_plan::parent
-                        .eq(&self.url)
+                        .is(&self.url)
                         .and(anmeldungen_plan::name.eq(&self.child.name.clone().unwrap())),
                 ),
         ))
