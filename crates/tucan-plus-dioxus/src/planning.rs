@@ -300,7 +300,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         key: "{i}{semester}",
                         h2 {
                             "{semester} {i} "
-                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().map(|elem| elem.credits).sum::<i32>())} }
+                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
                         }
                         AnmeldungenEntries {
                             future,
@@ -312,7 +312,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     key: "no-semester",
                     h2 {
                         "Nicht zugeordnet "
-                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().map(|elem| elem.credits).sum::<i32>())} }
+                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
                     }
                     AnmeldungenEntries {
                         future,

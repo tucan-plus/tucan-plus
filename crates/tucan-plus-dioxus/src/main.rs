@@ -521,7 +521,7 @@ async fn frontend_main() {
 
     let launcher = dioxus::LaunchBuilder::new();
 
-    let launcher = launcher.with_context(worker);
+    let launcher = launcher.with_context(worker.clone());
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
