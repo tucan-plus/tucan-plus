@@ -801,34 +801,36 @@ impl MyDatabase {
             .get_or_init(|| async {
                 use log::info;
                 let mut i = 0;
-                while i < 100
-                    && self
+                while i < 100 && {
+                    let value = self
                         .send_message_with_timeout_internal::<PingRequest>(
                             PingRequest {},
                             Duration::from_millis(100),
                         )
-                        .await
-                        .is_err()
-                {
+                        .await;
+                    info!("{value:?}");
+                    value.is_err()
+                } {
                     info!("retry ping");
                     i += 1;
                 }
                 if i == 100 {
                     panic!("failed to connect to worker in time")
                 }
-                info!("got pong");
+                info!("got pongf");
             })
             .await;
 
         self.send_message_with_timeout_internal(message, timeout)
             .await
+            .map_err(|_| ())
     }
 
     async fn send_message_with_timeout_internal<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,
-    ) -> Result<R::Response, ()>
+    ) -> Result<R::Response, String>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -841,6 +843,7 @@ impl MyDatabase {
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
+            use log::info;
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -856,6 +859,8 @@ impl MyDatabase {
                 )
                 .unwrap();
             temporary_message_closure.forget();
+
+            info!("timeout out after {}", timeout.as_millis());
 
             web_sys::window()
                 .unwrap()
@@ -884,7 +889,7 @@ impl MyDatabase {
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
             .await
-            .map_err(|_| ());
+            .map_err(|error| format!("{error:?}"));
         Ok(serde_wasm_bindgen::from_value(result?).unwrap())
     }
 }
