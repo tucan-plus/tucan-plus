@@ -73,32 +73,6 @@ jobs:
         mkdir pages
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
-        cat << EOF > pages/README.md
-        For a description of the features see [https://github.com/tucan-plus/tucan-plus/blob/main/README.md](https://github.com/tucan-plus/tucan-plus/blob/main/README.md)
-
-        # Installation
-
-        ## Firefox (with autoupdates)
-
-        1. [Download extension for Firefox](tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi)
-
-        On Android continue with the following steps:
-        1. Go to Settings
-        2. Scroll all the way down and click on About Firefox
-        3. press the logo five times, it should say that the debug menu got activated
-        4. go back
-        5. Click on Install extension from file and select the downloaded .xpi file
-        6. If you have a Linux kernel version older than 4.16:
-          1. Go to chrome://geckoview/content/config.xhtml
-          2. Set javascript.options.wasm_optimizingjit to false
-
-        ## Chromium (with autoupdates)
-
-        1. Right click on [Download extension for Chromium](tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx) and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
-        2. In the Chromium Menu, go to Extensions -> Manage Extensions
-        3. Enable developer mode in the top right corner
-        4. Drag and drop the downloaded file into this area
-        EOF
         cat << EOF > pages/updates.xml
         <?xml version='1.0' encoding='UTF-8'?>
         <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>

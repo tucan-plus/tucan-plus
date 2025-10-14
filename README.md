@@ -18,8 +18,28 @@ TUCaN URLs are automatically fixed so you can open URLs shared by others.
 
 ## Installation
 
-Go to https://tucan-plus.github.io/tucan-plus/ and follow the instructions.
+## Firefox (with autoupdates)
 
+1. Download .xpi file from https://github.com/tucan-plus/tucan-plus/releases/latest
+
+On Android continue with the following steps:
+1. Go to Settings
+2. Scroll all the way down and click on About Firefox
+3. press the logo five times, it should say that the debug menu got activated
+4. go back
+5. Click on Install extension from file and select the downloaded .xpi file
+6. If you have a Linux kernel version older than 4.16 follow the following steps to avoid extremely slow extension loads. Note that this can make other websites slow.
+    1. Go to chrome://geckoview/content/config.xhtml
+    2. Set javascript.options.wasm_optimizingjit to false
+
+## Chromium (with autoupdates)
+
+1. Go to https://github.com/tucan-plus/tucan-plus/releases/latest
+2. Right click on the .crx file and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
+2. In the Chromium Menu, go to Extensions -> Manage Extensions
+3. Enable developer mode in the top right corner
+4. Drag and drop the downloaded file into this area
+        
 ## Development
 
 Requirements: [Rustup](https://www.rust-lang.org/tools/install)
