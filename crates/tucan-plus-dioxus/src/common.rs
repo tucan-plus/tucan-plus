@@ -75,35 +75,35 @@ async fn handle_timeout<O: Clone + 'static>(
     // for debugging getting a timed out session would be useful
     #[cfg(feature = "direct")]
     web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
-            name: Some("id".to_owned()),
-            partition_key: None,
-            store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-            domain: None,
-            path: Some("/scripts".to_owned()),
-            value: None,
-            expiration_date: Some(0),
-            http_only: None,
-            secure: Some(true),
-            same_site: None,
-        })
-        .await;
+        name: Some("id".to_owned()),
+        partition_key: None,
+        store_id: None,
+        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+        domain: None,
+        path: Some("/scripts".to_owned()),
+        value: None,
+        expiration_date: Some(0),
+        http_only: None,
+        secure: Some(true),
+        same_site: None,
+    })
+    .await;
 
     #[cfg(feature = "direct")]
     web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
-            name: Some("cnsc".to_owned()),
-            partition_key: None,
-            store_id: None,
-            url: "https://www.tucan.tu-darmstadt.de".to_owned(),
-            domain: None,
-            path: Some("/scripts".to_owned()),
-            value: None,
-            expiration_date: Some(0),
-            http_only: None,
-            secure: Some(true),
-            same_site: None,
-        })
-        .await;
+        name: Some("cnsc".to_owned()),
+        partition_key: None,
+        store_id: None,
+        url: "https://www.tucan.tu-darmstadt.de".to_owned(),
+        domain: None,
+        path: Some("/scripts".to_owned()),
+        value: None,
+        expiration_date: Some(0),
+        http_only: None,
+        secure: Some(true),
+        same_site: None,
+    })
+    .await;
 
     if logout && current_session_handle().is_some() {
         current_session_handle.set(None);
@@ -163,7 +163,8 @@ fn use_data_loader<I: Clone + PartialEq + std::fmt::Debug + 'static, O: Clone + 
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     {
         let tucan = tucan.clone();
-        let _ = use_resource(move || {
+        // TODO replace loading by resource state
+        let _resource = use_resource(move || {
             let request = request;
             let mut data = data;
             let tucan = tucan.clone();

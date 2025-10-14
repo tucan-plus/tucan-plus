@@ -559,7 +559,7 @@ pub struct ImportDatabaseRequest {
 impl RequestResponse for ImportDatabaseRequest {
     type Response = ();
 
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
         panic!("should be special cased at caller")
     }
 }
@@ -571,9 +571,7 @@ pub struct PingRequest {}
 impl RequestResponse for PingRequest {
     type Response = ();
 
-    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {
-        
-    }
+    fn execute(&self, _connection: &mut SqliteConnection) -> Self::Response {}
 }
 
 macro_rules! request_response_enum {
@@ -693,7 +691,7 @@ impl MyDatabase {
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
-        timeout: std::time::Duration,
+        _timeout: std::time::Duration,
     ) -> Result<R::Response, ()> {
         Ok(self.send_message(message).await)
     }

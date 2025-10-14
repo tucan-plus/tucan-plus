@@ -5,7 +5,6 @@ use std::collections::HashSet;
 
 use dioxus::html::FileData;
 use dioxus::prelude::*;
-use futures::StreamExt;
 use log::info;
 use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
@@ -159,7 +158,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
         move |evt: Event<FormData>| {
-            let tucan = tucan.clone();
             let course_of_study = course_of_study.clone();
             let worker = worker.clone();
             evt.prevent_default();

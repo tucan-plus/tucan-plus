@@ -1,6 +1,6 @@
+use std::collections::{HashMap, HashSet};
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
-use std::collections::{HashMap, HashSet};
 
 use crate::{RcTucanType, decompress};
 use dioxus::{
@@ -8,7 +8,6 @@ use dioxus::{
     prelude::*,
 };
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
-use itertools::Itertools as _;
 use num::ToPrimitive;
 use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
@@ -20,7 +19,6 @@ use tucan_types::{
     registration::{AnmeldungRequest, AnmeldungResponse},
 };
 
-#[expect(clippy::manual_async_fn)]
 pub fn recursive_anmeldung<'a, 'b: 'a>(
     tucan: &'a DynTucan<'static>,
     login_response: &'b LoginResponse,
@@ -307,10 +305,8 @@ pub fn MigrateV0ToV1() -> Element {
                 let mut result = result;
                 let tucan = tucan.clone();
                 let atomic_current = atomic_current;
-                let atomic_total = atomic_total;
                 async move {
                     let mut atomic_current = atomic_current;
-                    let atomic_total = atomic_total;
 
                     let modules: HashSet<_> = anmeldung_response
                         .iter()
