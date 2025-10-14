@@ -9,6 +9,7 @@ pub(crate) mod everything {
         response::IntoResponse,
     };
     use axum_extra::extract::{CookieJar, cookie::Cookie};
+    use dioxus_devtools::subsecond;
     use tucan_connector::{TucanConnector, login::login};
     use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,
@@ -554,9 +555,11 @@ pub(crate) mod everything {
 
     #[tokio::main]
     pub async fn main() {
-        env_logger::init();
+        dioxus_devtools::serve_subsecond(router_main).await;
+    }
 
-        dioxus_devtools::connect_subsecond();
+    async fn router_main() {
+        env_logger::init();
 
         println!("tefwfest");
 
