@@ -13,6 +13,7 @@ use tucan_plus_worker::{
     AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, AnmeldungenRootRequest,
     MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
+use tucan_types::moduledetails::ModuleDetailsRequest;
 use tucan_types::student_result::StudentResultResponse;
 use tucan_types::{LoginResponse, RevalidationStrategy, Tucan, TucanError};
 
@@ -310,7 +311,8 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 Fragment {
                     key: "no-semester",
                     h2 {
-                        "Nicht zugeordnet"
+                        "Nicht zugeordnet "
+                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().map(|elem| elem.credits).sum::<i32>())} }
                     }
                     AnmeldungenEntries {
                         future,
@@ -351,7 +353,12 @@ fn AnmeldungenEntries(
                             { entry.id.clone() }
                         }
                         td {
-                            { entry.name.clone() }
+                            Link {
+                                to: Route::ModuleDetails {
+                                    module: ModuleDetailsRequest::parse(&entry.module_url),
+                                },
+                                { entry.name.clone() }
+                            }
                         }
                         td {
                             { format!("{:?}", entry.available_semester) }
