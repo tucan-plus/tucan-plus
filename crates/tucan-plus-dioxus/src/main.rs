@@ -496,6 +496,8 @@ async fn worker_main() {
 
 #[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(frontend))]
 async fn frontend_main() {
+    let worker = MyDatabase::wait_for_worker(); // maybe move this before the wasm-split point?
+
     let anonymize = {
         #[cfg(feature = "direct")]
         {
@@ -518,6 +520,8 @@ async fn frontend_main() {
     // SERVICE_WORKER_JS.to_string());
 
     let launcher = dioxus::LaunchBuilder::new();
+
+    let launcher = launcher.with_context(worker);
 
     #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
@@ -560,7 +564,6 @@ fn App() -> Element {
     let login_response: Option<LoginResponse> = use_context();
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
-    provide_context(MyDatabase::wait_for_worker());
     rsx! {
         Router::<Route> {
         }
