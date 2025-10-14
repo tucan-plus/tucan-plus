@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
-use std::time::Duration;
+use std::{rc::Rc, sync::atomic::AtomicBool, time::Duration};
 
 #[cfg(not(target_arch = "wasm32"))]
 use diesel::r2d2::CustomizeConnection;
@@ -668,7 +668,7 @@ impl MyDatabase {
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: Fragile<BroadcastChannel>,
-    pinged: OnceCell<()>,
+    pinged: Rc<AtomicBool>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -734,7 +734,7 @@ impl MyDatabase {
 
         let this = Self {
             broadcast_channel,
-            pinged: OnceCell::new(),
+            pinged: Rc::new(AtomicBool::new(false)),
         };
 
         this
@@ -760,31 +760,32 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.pinged
-            .get_or_init(|| async {
-                use log::info;
-                let mut i = 0;
-                while i < 100 && {
-                    let value = self
-                        .send_message_with_timeout_internal::<PingRequest>(
-                            PingRequest {},
-                            Duration::from_millis(100),
-                        )
-                        .await;
-                    if value.is_err() {
-                        info!("{value:?}");
-                    }
-                    value.is_err()
-                } {
-                    info!("retry ping");
-                    i += 1;
+        use std::sync::atomic::Ordering;
+
+        if !self.pinged.load(Ordering::Relaxed) {
+            use log::info;
+            let mut i = 0;
+            while i < 100 && {
+                let value = self
+                    .send_message_with_timeout_internal::<PingRequest>(
+                        PingRequest {},
+                        Duration::from_millis(100),
+                    )
+                    .await;
+                if value.is_err() {
+                    info!("{value:?}");
                 }
-                if i == 100 {
-                    panic!("failed to connect to worker in time")
-                }
-                info!("got pong");
-            })
-            .await;
+                value.is_err()
+            } {
+                info!("retry ping");
+                i += 1;
+            }
+            if i == 100 {
+                panic!("failed to connect to worker in time")
+            }
+            info!("got pong");
+            self.pinged.store(true, Ordering::Relaxed);
+        }
 
         self.send_message_with_timeout_internal(message, timeout)
             .await
