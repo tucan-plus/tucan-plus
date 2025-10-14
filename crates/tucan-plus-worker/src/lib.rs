@@ -12,6 +12,8 @@ use itertools::Itertools as _;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
+use tokio::sync::OnceCell;
+#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
@@ -330,13 +332,13 @@ impl RequestResponse for ChildUrl {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct UpdateModule {
+pub struct UpdateModuleYearAndSemester {
     pub course_of_study: String,
     pub semester: Semesterauswahl,
     pub module: ModuleResult,
 }
 
-impl RequestResponse for UpdateModule {
+impl RequestResponse for UpdateModuleYearAndSemester {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
@@ -437,6 +439,33 @@ impl RequestResponse for AnmeldungenEntriesPerSemester {
             .into_iter()
             .map(|(elem, value)| (elem, value.collect_vec()))
             .collect_vec()
+    }
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct AnmeldungenEntriesNoSemester {
+    pub course_of_study: String,
+}
+
+impl RequestResponse for AnmeldungenEntriesNoSemester {
+    type Response = Vec<AnmeldungEntry>;
+
+    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        QueryDsl::filter(
+            anmeldungen_entries::table,
+            anmeldungen_entries::course_of_study
+                .eq(&self.course_of_study)
+                .and(anmeldungen_entries::state.ne(State::NotPlanned))
+                .and(
+                    anmeldungen_entries::year
+                        .is_null()
+                        .or(anmeldungen_entries::semester.is_null()),
+                ),
+        )
+        .select(AnmeldungEntry::as_select())
+        .load(connection)
+        .unwrap()
     }
 }
 
@@ -569,7 +598,7 @@ request_response_enum!(
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
     ChildUrl
-    UpdateModule
+    UpdateModuleYearAndSemester
     SetStateAndCredits
     SetCpAndModuleCount
     CacheRequest
@@ -581,6 +610,7 @@ request_response_enum!(
     ImportDatabaseRequest
     RecursiveAnmeldungenRequest
     AnmeldungenEntriesPerSemester
+    AnmeldungenEntriesNoSemester
 );
 
 #[cfg(target_arch = "wasm32")]
@@ -669,6 +699,7 @@ impl MyDatabase {
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: Fragile<BroadcastChannel>,
+    pinged: OnceCell<()>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -734,19 +765,10 @@ impl MyDatabase {
 
         // TODO FIXME add wait for worker to be aliv
 
-        let this = Self { broadcast_channel };
-
-        while this
-            .send_message_with_timeout(PingRequest {}, Duration::from_millis(100))
-            .await
-            .is_err()
-        {
-            use log::info;
-
-            info!("retry ping");
-        }
-
-        info!("got pong");
+        let this = Self {
+            broadcast_channel,
+            pinged: OnceCell::new(),
+        };
 
         this
     }
@@ -764,6 +786,41 @@ impl MyDatabase {
     }
 
     pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: Duration,
+    ) -> Result<R::Response, ()>
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        self.pinged
+            .get_or_init(|| async {
+                use log::info;
+                let mut i = 0;
+                while i < 100
+                    && self
+                        .send_message_with_timeout_internal::<PingRequest>(
+                            PingRequest {},
+                            Duration::from_millis(100),
+                        )
+                        .await
+                        .is_err()
+                {
+                    info!("retry ping");
+                    i += 1;
+                }
+                if i == 100 {
+                    panic!("failed to connect to worker in time")
+                }
+                info!("got pong");
+            })
+            .await;
+
+        self.send_message_with_timeout_internal(message, timeout)
+            .await
+    }
+
+    async fn send_message_with_timeout_internal<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,

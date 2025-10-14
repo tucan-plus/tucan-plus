@@ -14,6 +14,7 @@
     };
   };
 
+  # TODO use https://github.com/NixOS/nixpkgs/blob/a132f0878179d5c133cd248b35543af15ba4ea13/lib/default.nix#L564C9-L564C38 to clean this mess up
   outputs =
     inputs@{
       self,
@@ -214,7 +215,7 @@
           fileset-worker
         ];
 
-        nativeArgs = {
+        nativeArgs = rec {
           pname = "tucan-plus-native";
           cargoExtraArgs = "--package tucan-plus-dioxus";
           preBuild = ''
@@ -230,13 +231,18 @@
           };
           nativeBuildInputs = [
             pkgs.pkg-config
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '') # TODO we probably need to remove this from the deps derivation.
           ];
           buildInputs = [
             pkgs.sqlite
           ];
+          notBuildDepsOnly = {
+            nativeBuildInputs = nativeBuildInputs ++ [
+              # don't rebuild deps if version changes
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
+          };
         };
 
         nativeLinuxArgs = nativeArgs // {
@@ -449,14 +455,19 @@
             pkgs.which
             wasm-bindgen
             pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-service-worker;
+          };
+          notBuildDepsOnly = {
+            nativeBuildInputs = [
+              # don't rebuild deps if version changes
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
           };
         };
 
@@ -485,10 +496,10 @@
           }
         );
 
-        client-args = {
+        client-args = rec {
           dioxusExtraArgs = "--features direct --web";
-          # TODO FIXME dioxus creates duplicate .wasm files in wasm and assets folder
-          dioxusMainArgs = "--out-dir $out --wasm-split --features wasm-split";
+          CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
+          dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
           buildDepsOnly = {
             preBuild = ''
               export CC=emcc
@@ -513,15 +524,21 @@
             preBuild = ''
               export CC=emcc
               export CXX=emcc
-              mkdir -p assets/
-              rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
+              rm -R ./target/dx/tucan-plus-dioxus/release/web/public/ || true
             '';
             # temporary https://github.com/DioxusLabs/dioxus/issues/4758
             postBuild = ''
-              #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
+              rm $out/public/wasm/chunk_*.wasm || true
+              rm $out/public/wasm/module_*.wasm || true
+              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url" || true
             '';
+            nativeBuildInputs = nativeBuildInputs ++ [
+              # don't rebuild deps if version changes, maybe later patch this in post-build?
+              (pkgs.writeShellScriptBin "git" ''
+                echo ${self.rev or "dirty"}
+              '')
+            ];
           };
-          
           strictDeps = true;
           stdenv = p: p.emscriptenStdenv;
           doCheck = false;
@@ -538,9 +555,6 @@
             pkgs.emscripten
             wasm-bindgen
             pkgs.binaryen
-            (pkgs.writeShellScriptBin "git" ''
-              echo ${self.rev or "dirty"}
-            '')
           ];
           doNotPostBuildInstallCargoBinaries = true;
         };

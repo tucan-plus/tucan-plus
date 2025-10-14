@@ -37,27 +37,29 @@ chrome.runtime.onMessage.addListener((message, sender) => {
     })
 })
 
-chrome.commands.onCommand.addListener((command) => {
-    asyncClosure(async () => {
-        const id = await chrome.cookies.get({
-            url: "https://www.tucan.tu-darmstadt.de/scripts",
-            name: "id",
-        })
-
-        let tab = await getCurrentTab()
-
-        if (!tab.id || !tab.url) {
-            console.log("no tab id or url")
-            return;
-        }
-
-        if (command === "open-in-tucan-page") {
-            await chrome.tabs.update(tab.id, {
-                url: await handleOpenInTucan(id?.value, tab.id, tab.url)
+if (chrome.commands) {
+    chrome.commands.onCommand.addListener((command) => {
+        asyncClosure(async () => {
+            const id = await chrome.cookies.get({
+                url: "https://www.tucan.tu-darmstadt.de/scripts",
+                name: "id",
             })
-        }
-    })
-});
+
+            let tab = await getCurrentTab()
+
+            if (!tab.id || !tab.url) {
+                console.log("no tab id or url")
+                return;
+            }
+
+            if (command === "open-in-tucan-page") {
+                await chrome.tabs.update(tab.id, {
+                    url: await handleOpenInTucan(id?.value, tab.id, tab.url)
+                })
+            }
+        })
+    });
+}
 
 chrome.runtime.onInstalled.addListener(() => {
     asyncClosure(async () => {
@@ -152,29 +154,31 @@ async function disableMobileDesign() {
     }
 }
 
-chrome.omnibox.onInputStarted.addListener(function () {
-    chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN Plus"
-    });
-});
-
-chrome.omnibox.onInputChanged.addListener(() => {
-    chrome.omnibox.setDefaultSuggestion({
-        description: "TUCaN Plus"
+if (chrome.omnibox) {
+    chrome.omnibox.onInputStarted.addListener(function () {
+        chrome.omnibox.setDefaultSuggestion({
+            description: "TUCaN Plus"
+        });
     });
 
-    /** @type {chrome.omnibox.SuggestResult[]} */
-    let results = [{
-        content: "https://www.tucan.tu-darmstadt.de",
-        description: "TUCaN Plus"
-    }]
-    return results
-})
+    chrome.omnibox.onInputChanged.addListener(() => {
+        chrome.omnibox.setDefaultSuggestion({
+            description: "TUCaN Plus"
+        });
 
-chrome.omnibox.onInputEntered.addListener(() => {
-    asyncClosure(async () => {
-        await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+        /** @type {chrome.omnibox.SuggestResult[]} */
+        let results = [{
+            content: "https://www.tucan.tu-darmstadt.de",
+            description: "TUCaN Plus"
+        }]
+        return results
     })
-})
+
+    chrome.omnibox.onInputEntered.addListener(() => {
+        asyncClosure(async () => {
+            await chrome.tabs.update({ url: "https://www.tucan.tu-darmstadt.de" })
+        })
+    })
+}
 
 export { }

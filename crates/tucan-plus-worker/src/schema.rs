@@ -5,7 +5,7 @@ diesel::table! {
         course_of_study -> Text,
         available_semester -> Text,
         anmeldung -> Text,
-        module_url -> Text,
+        module_url -> Nullable<Text>,
         id -> Text,
         name -> Text,
         credits -> Integer,
