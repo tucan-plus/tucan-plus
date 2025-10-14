@@ -747,7 +747,7 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.send_message_with_timeout(message, Duration::from_secs(10))
+        self.send_message_with_timeout(message, Duration::from_secs(60))
             .await
             .expect("timed out")
     }
