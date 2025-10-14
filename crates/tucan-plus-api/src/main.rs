@@ -555,13 +555,12 @@ pub(crate) mod everything {
 
     #[tokio::main]
     pub async fn main() {
+        env_logger::init();
         dioxus_devtools::serve_subsecond(router_main).await;
     }
 
     async fn router_main() {
-        env_logger::init();
-
-        println!("tefwfest");
+        println!("tefwwefwfefeewfwefwefwfst");
 
         // our router
         let (router, api) = router().split_for_parts();
