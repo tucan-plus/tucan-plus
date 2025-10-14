@@ -525,10 +525,12 @@
               export CC=emcc
               export CXX=emcc
               mkdir -p assets/
-              rm -R ./target/dx/tucan-plus-dioxus/release/web/public/assets || true
+              rm -R ./target/dx/tucan-plus-dioxus/release/web/public/ || true
             '';
             # temporary https://github.com/DioxusLabs/dioxus/issues/4758
             postBuild = ''
+              rm $out/public/wasm/chunk_*.wasm
+              rm $out/public/wasm/module_*.wasm
               #substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url"
             '';
             nativeBuildInputs = nativeBuildInputs ++ [
