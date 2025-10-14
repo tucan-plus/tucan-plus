@@ -565,6 +565,8 @@ pub(crate) mod everything {
     async fn router_main() {
         println!("Starting server at 0.0.0.0:3000");
 
+        // router().to_openapi().to_pretty_json().unwrap()
+
         // our router
         let (router, api) = router().split_for_parts();
 

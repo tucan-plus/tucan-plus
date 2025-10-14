@@ -407,6 +407,7 @@
           cargoExtraArgs = "--package=tucan-plus-api";
         };
 
+        # this is currently broken
         schema =
           pkgs.runCommandNoCC "schema.json"
             {
@@ -754,7 +755,6 @@
           };
 
         };
-        packages.schema = schema;
         packages.service-worker = service-worker;
         packages.client = client;
         packages.api-server = api-server;
