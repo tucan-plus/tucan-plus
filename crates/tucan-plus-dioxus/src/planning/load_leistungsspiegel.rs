@@ -13,101 +13,106 @@ use tucan_types::{
 
 use crate::RcTucanType;
 
-static PATCHES: LazyLock<StudentResultLevel> = LazyLock::new(|| StudentResultLevel {
-    name: Some("Vertiefungen, Wahlbereiche und Studium Generale".to_string()),
-    entries: Vec::new(),
-    sum_cp: None,
-    sum_used_cp: None,
-    state: None,
-    rules: StudentResultRules {
-        min_cp: 90,
-        max_cp: Some(90),
-        min_modules: 0,
-        max_modules: None,
-    },
-    children: vec![StudentResultLevel {
-        name: Some("Vertiefungen".to_string()),
-        entries: Vec::new(),
-        sum_cp: None,
-        sum_used_cp: None,
-        state: None,
-        rules: StudentResultRules {
-            min_cp: 66,
-            max_cp: Some(72),
-            min_modules: 0,
-            max_modules: None,
-        },
-        children: vec![StudentResultLevel {
-            name: Some("Individuelle Vertiefung".to_string()),
+static PATCHES: LazyLock<HashMap<&str, StudentResultLevel>> = LazyLock::new(|| {
+    HashMap::from([(
+        "M.Sc. Informatik (2023)",
+        StudentResultLevel {
+            name: Some("Vertiefungen, Wahlbereiche und Studium Generale".to_string()),
             entries: Vec::new(),
             sum_cp: None,
             sum_used_cp: None,
             state: None,
             rules: StudentResultRules {
-                min_cp: 66,
-                max_cp: Some(72),
+                min_cp: 90,
+                max_cp: Some(90),
                 min_modules: 0,
                 max_modules: None,
             },
             children: vec![StudentResultLevel {
-                name: Some("Wahlbereich Studienbegleitende Leistungen".to_string()),
+                name: Some("Vertiefungen".to_string()),
                 entries: Vec::new(),
                 sum_cp: None,
                 sum_used_cp: None,
                 state: None,
                 rules: StudentResultRules {
-                    min_cp: 9,
-                    max_cp: Some(18),
+                    min_cp: 66,
+                    max_cp: Some(72),
                     min_modules: 0,
                     max_modules: None,
                 },
-                children: vec![
-                    StudentResultLevel {
-                        name: Some("Seminare".to_string()),
-                        entries: Vec::new(),
-                        sum_cp: None,
-                        sum_used_cp: None,
-                        state: None,
-                        rules: StudentResultRules {
-                            min_cp: 3,
-                            max_cp: Some(12),
-                            min_modules: 1,
-                            max_modules: None,
-                        },
-                        children: vec![],
+                children: vec![StudentResultLevel {
+                    name: Some("Individuelle Vertiefung".to_string()),
+                    entries: Vec::new(),
+                    sum_cp: None,
+                    sum_used_cp: None,
+                    state: None,
+                    rules: StudentResultRules {
+                        min_cp: 66,
+                        max_cp: Some(72),
+                        min_modules: 0,
+                        max_modules: None,
                     },
-                    StudentResultLevel {
-                        name: Some("Praktikum in der Lehre".to_string()),
+                    children: vec![StudentResultLevel {
+                        name: Some("Wahlbereich Studienbegleitende Leistungen".to_string()),
                         entries: Vec::new(),
                         sum_cp: None,
                         sum_used_cp: None,
                         state: None,
                         rules: StudentResultRules {
-                            min_cp: 0,
-                            max_cp: Some(5),
+                            min_cp: 9,
+                            max_cp: Some(18),
                             min_modules: 0,
-                            max_modules: Some(1),
-                        },
-                        children: vec![],
-                    },
-                    StudentResultLevel {
-                        name: Some("Praktika, Projektpraktika, ähnliche LV".to_string()),
-                        entries: Vec::new(),
-                        sum_cp: None,
-                        sum_used_cp: None,
-                        state: None,
-                        rules: StudentResultRules {
-                            min_cp: 6,
-                            max_cp: Some(15),
-                            min_modules: 1,
                             max_modules: None,
                         },
-                        children: vec![],
-                    },
-                ],
+                        children: vec![
+                            StudentResultLevel {
+                                name: Some("Seminare".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 3,
+                                    max_cp: Some(12),
+                                    min_modules: 1,
+                                    max_modules: None,
+                                },
+                                children: vec![],
+                            },
+                            StudentResultLevel {
+                                name: Some("Praktikum in der Lehre".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 0,
+                                    max_cp: Some(5),
+                                    min_modules: 0,
+                                    max_modules: Some(1),
+                                },
+                                children: vec![],
+                            },
+                            StudentResultLevel {
+                                name: Some("Praktika, Projektpraktika, ähnliche LV".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 6,
+                                    max_cp: Some(15),
+                                    min_modules: 1,
+                                    max_modules: None,
+                                },
+                                children: vec![],
+                            },
+                        ],
+                    }],
+                }],
             }],
-        }],
-    }],
+        },
+    )])
 });
 
 pub async fn recursive_update(
@@ -207,14 +212,25 @@ pub async fn load_leistungsspiegel(
         .collect();
 
     // load patches
-    recursive_update(
-        worker.clone(),
-        &course_of_study,
-        &my_modules,
-        None,
-        PATCHES.clone(),
-    )
-    .await;
+    if let Some(patch) = PATCHES.get(name.as_str()) {
+        info!("loading patches {patch:?}");
+        let this_url = worker
+            .send_message(SetCpAndModuleCount {
+                course_of_study: course_of_study.to_string(),
+                url: None,
+                name: student_result.level0.name.clone().unwrap(),
+                child: student_result.level0.clone(),
+            })
+            .await;
+        recursive_update(
+            worker.clone(),
+            &course_of_study,
+            &my_modules,
+            Some(this_url),
+            patch.clone(),
+        )
+        .await;
+    }
 
     // load leistungsspiegel hierarchy
     recursive_update(
