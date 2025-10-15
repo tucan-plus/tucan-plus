@@ -1,6 +1,9 @@
 use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
-use std::time::Duration;
+use std::{
+    sync::{Arc, atomic::AtomicBool},
+    time::Duration,
+};
 
 #[cfg(not(target_arch = "wasm32"))]
 use diesel::r2d2::CustomizeConnection;
@@ -9,10 +12,9 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 use itertools::Itertools as _;
+use log::info;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-#[cfg(target_arch = "wasm32")]
-use tokio::sync::OnceCell;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
@@ -23,10 +25,8 @@ use crate::{
     schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
 use tucan_types::{
-    Semesterauswahl,
-    courseresults::ModuleResult,
-    registration::AnmeldungRequest,
-    student_result::{StudentResultLevel, StudentResultResponse},
+    Semesterauswahl, courseresults::ModuleResult, registration::AnmeldungRequest,
+    student_result::StudentResultLevel,
 };
 
 pub mod models;
@@ -111,7 +111,7 @@ impl RequestResponse for AnmeldungenRootRequest {
 #[derive(Debug)]
 pub struct AnmeldungChildrenRequest {
     pub course_of_study: String,
-    pub anmeldung: Anmeldung,
+    pub anmeldung: String, // TODO type safety in database and here
 }
 
 impl RequestResponse for AnmeldungChildrenRequest {
@@ -122,7 +122,7 @@ impl RequestResponse for AnmeldungChildrenRequest {
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
                 .eq(&self.course_of_study)
-                .and(anmeldungen_plan::parent.eq(&self.anmeldung.url)),
+                .and(anmeldungen_plan::parent.eq(&self.anmeldung)),
         )
         .select(Anmeldung::as_select())
         .load(connection)
@@ -139,6 +139,13 @@ pub struct RecursiveAnmeldungenRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AnmeldungEntryWithMoveInformation {
+    pub entry: AnmeldungEntry,
+    pub move_targets: Vec<(String, String)>,
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecursiveAnmeldungenResponse {
     pub has_contents: bool,
     pub has_rules: bool,
@@ -147,7 +154,7 @@ pub struct RecursiveAnmeldungenResponse {
     pub modules: usize,
     pub anmeldung: Anmeldung,
     pub results: Vec<Anmeldung>,
-    pub entries: Vec<AnmeldungEntry>,
+    pub entries: Vec<AnmeldungEntryWithMoveInformation>,
     pub inner: Vec<RecursiveAnmeldungenResponse>,
 }
 
@@ -159,7 +166,7 @@ fn prep_planning(
 ) -> RecursiveAnmeldungenResponse {
     let results = AnmeldungChildrenRequest {
         course_of_study: course_of_study.to_owned(),
-        anmeldung: anmeldung.clone(),
+        anmeldung: anmeldung.url.clone(),
     }
     .execute(connection);
     let entries = AnmeldungEntriesRequest {
@@ -177,12 +184,14 @@ fn prep_planning(
         || anmeldung.max_modules.is_some();
     let has_contents = expanded.contains(&AnmeldungRequest::parse(&anmeldung.url))
         || has_rules
-        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || entries
+            .iter()
+            .any(|entry| entry.entry.state != State::NotPlanned)
         || inner.iter().any(|v| v.has_contents);
     let actual_credits: i32 = entries
         .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
-        .map(|entry| entry.credits)
+        .filter(|entry| entry.entry.state == State::Done || entry.entry.state == State::Planned)
+        .map(|entry| entry.entry.credits)
         .sum::<i32>()
         + inner
             .iter()
@@ -192,7 +201,7 @@ fn prep_planning(
         std::cmp::min(actual_credits, anmeldung.max_cp.unwrap_or(actual_credits));
     let modules: usize = entries
         .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .filter(|entry| entry.entry.state == State::Done || entry.entry.state == State::Planned)
         .count()
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
     RecursiveAnmeldungenResponse {
@@ -236,8 +245,51 @@ pub struct AnmeldungEntriesRequest {
     pub anmeldung: Anmeldung,
 }
 
+fn calculate_move_targets(
+    connection: &mut SqliteConnection,
+    entry: AnmeldungEntry,
+) -> AnmeldungEntryWithMoveInformation {
+    let mut move_targets = Vec::new();
+    let current = anmeldungen_plan::table
+        .filter(
+            anmeldungen_plan::course_of_study
+                .eq(&entry.course_of_study)
+                .and(anmeldungen_plan::url.eq(&entry.anmeldung)),
+        )
+        .select(Anmeldung::as_select())
+        .get_result(connection)
+        .unwrap();
+    move_targets.push((current.name.clone(), current.url.clone()));
+    let children = AnmeldungChildrenRequest {
+        course_of_study: entry.course_of_study.clone(),
+        anmeldung: entry.anmeldung.clone(),
+    }
+    .execute(connection);
+    move_targets.extend(
+        children
+            .iter()
+            .map(|elem| (elem.name.clone(), elem.url.clone())),
+    );
+    if let Some(parent) = current.parent {
+        let parent = anmeldungen_plan::table
+            .filter(
+                anmeldungen_plan::course_of_study
+                    .eq(&entry.course_of_study)
+                    .and(anmeldungen_plan::url.eq(&parent)),
+            )
+            .select(Anmeldung::as_select())
+            .get_result(connection)
+            .unwrap();
+        move_targets.push((parent.name.clone(), parent.url.clone()));
+    }
+    AnmeldungEntryWithMoveInformation {
+        entry,
+        move_targets,
+    }
+}
+
 impl RequestResponse for AnmeldungEntriesRequest {
-    type Response = Vec<AnmeldungEntry>;
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
@@ -249,6 +301,9 @@ impl RequestResponse for AnmeldungEntriesRequest {
         .select(AnmeldungEntry::as_select())
         .load(connection)
         .unwrap()
+        .into_iter()
+        .map(|entry| calculate_move_targets(connection, entry))
+        .collect_vec()
     }
 }
 
@@ -275,64 +330,31 @@ impl RequestResponse for InsertOrUpdateAnmeldungenRequest {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntryRequest {
-    pub insert: AnmeldungEntry,
+    pub inserts: Vec<AnmeldungEntry>,
 }
 
 impl RequestResponse for UpdateAnmeldungEntryRequest {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::insert_into(anmeldungen_entries::table)
-            .values(&self.insert)
-            .on_conflict((
-                anmeldungen_entries::course_of_study,
-                anmeldungen_entries::anmeldung,
-                anmeldungen_entries::available_semester,
-                anmeldungen_entries::id,
-            ))
-            .do_update()
-            .set((
-                // TODO FIXME I think updating does not work
-                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-            ))
-            .execute(connection)
-            .unwrap();
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
-pub struct ChildUrl {
-    pub course_of_study: String,
-    pub url: String,
-    pub name: String,
-    pub child: StudentResultLevel,
-}
-
-impl RequestResponse for ChildUrl {
-    type Response = String;
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::update(QueryDsl::filter(
-            anmeldungen_plan::table,
-            anmeldungen_plan::course_of_study
-                .eq(&self.course_of_study)
-                .and(
-                    anmeldungen_plan::parent
-                        .eq(&self.url)
-                        .and(anmeldungen_plan::name.eq(&self.name)),
-                ),
-        ))
-        .set((
-            anmeldungen_plan::min_cp.eq(self.child.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(self.child.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(self.child.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(self.child.rules.max_modules.map(|v| v as i32)),
-        ))
-        .returning(anmeldungen_plan::url)
-        .get_result(connection)
-        .unwrap()
+        for insert in &self.inserts {
+            diesel::insert_into(anmeldungen_entries::table)
+                .values(insert)
+                .on_conflict((
+                    anmeldungen_entries::course_of_study,
+                    anmeldungen_entries::anmeldung,
+                    anmeldungen_entries::available_semester,
+                    anmeldungen_entries::id,
+                ))
+                .do_update()
+                .set((
+                    // TODO FIXME I think updating does not work
+                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                ))
+                .execute(connection)
+                .unwrap();
+        }
     }
 }
 
@@ -377,44 +399,34 @@ impl RequestResponse for UpdateModuleYearAndSemester {
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
     pub entry: AnmeldungEntry,
+    pub new_entry: AnmeldungEntry,
 }
 
 impl RequestResponse for UpdateAnmeldungEntry {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        /*connection.set_instrumentation(
+            move |event: diesel::connection::InstrumentationEvent<'_>| {
+                info!("{event:?}");
+            },
+        );*/
+        // AsChangeset doesn't update primary keys
         diesel::update(&self.entry)
-            .set(&self.entry)
+            .set((
+                anmeldungen_entries::course_of_study.eq(&self.new_entry.course_of_study),
+                anmeldungen_entries::available_semester.eq(&self.new_entry.available_semester),
+                anmeldungen_entries::anmeldung.eq(&self.new_entry.anmeldung),
+                anmeldungen_entries::module_url.eq(&self.new_entry.module_url),
+                anmeldungen_entries::id.eq(&self.new_entry.id),
+                anmeldungen_entries::name.eq(&self.new_entry.name),
+                anmeldungen_entries::credits.eq(&self.new_entry.credits),
+                anmeldungen_entries::state.eq(&self.new_entry.state),
+                anmeldungen_entries::semester.eq(&self.new_entry.semester),
+                anmeldungen_entries::year.eq(&self.new_entry.year),
+            ))
             .execute(connection)
             .unwrap();
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
-pub struct AnmeldungenEntriesInSemester {
-    pub course_of_study: String,
-    pub year: i32,
-    pub semester: Semester,
-}
-
-impl RequestResponse for AnmeldungenEntriesInSemester {
-    type Response = Vec<AnmeldungEntry>;
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        QueryDsl::filter(
-            anmeldungen_entries::table,
-            anmeldungen_entries::course_of_study
-                .eq(&self.course_of_study)
-                .and(
-                    anmeldungen_entries::semester
-                        .eq(self.semester)
-                        .and(anmeldungen_entries::year.eq(self.year)),
-                ),
-        )
-        .select(AnmeldungEntry::as_select())
-        .load(connection)
-        .unwrap()
     }
 }
 
@@ -477,29 +489,82 @@ impl RequestResponse for AnmeldungenEntriesNoSemester {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct SetStateAndCredits {
+pub struct InsertEntrySomewhereBelow {
     pub inserts: Vec<AnmeldungEntry>,
 }
 
-impl RequestResponse for SetStateAndCredits {
-    type Response = ();
+impl RequestResponse for InsertEntrySomewhereBelow {
+    /// failed ones
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::insert_into(anmeldungen_entries::table)
-            .values(&self.inserts)
-            .on_conflict((
-                anmeldungen_entries::course_of_study,
-                anmeldungen_entries::anmeldung,
-                anmeldungen_entries::available_semester,
-                anmeldungen_entries::id,
-            ))
-            .do_update()
-            .set((
-                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-            ))
-            .execute(connection)
+        let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
+        'top_level: for mut entry in self.inserts.clone() {
+            info!("handling {entry:?}");
+            // find where the entry is already
+            let possible_places = QueryDsl::filter(
+                anmeldungen_entries::table,
+                anmeldungen_entries::course_of_study
+                    .eq(&entry.course_of_study)
+                    .and(anmeldungen_entries::id.eq(&entry.id)),
+            )
+            .select(AnmeldungEntry::as_select())
+            .load(connection)
             .unwrap();
+            info!("possible places {possible_places:?}");
+            'all: for possible_place in possible_places {
+                let mut anmeldung = possible_place.anmeldung.clone();
+                while anmeldung != entry.anmeldung {
+                    let parent_anmeldung = anmeldungen_plan::table
+                        .filter(anmeldungen_plan::url.eq(&anmeldung))
+                        .select(Anmeldung::as_select())
+                        .get_result(connection)
+                        .unwrap()
+                        .parent;
+                    if let Some(parent_anmeldung) = parent_anmeldung {
+                        anmeldung = parent_anmeldung;
+                    } else {
+                        continue 'all;
+                    }
+                }
+                info!("found place to insert {possible_place:?}");
+                entry.anmeldung = possible_place.anmeldung;
+                diesel::insert_into(anmeldungen_entries::table)
+                    .values(entry)
+                    .on_conflict((
+                        anmeldungen_entries::course_of_study,
+                        anmeldungen_entries::anmeldung,
+                        anmeldungen_entries::available_semester,
+                        anmeldungen_entries::id,
+                    ))
+                    .do_update()
+                    .set((
+                        anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                        (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                    ))
+                    .execute(connection)
+                    .unwrap();
+                continue 'top_level;
+            }
+            // still insert
+            diesel::insert_into(anmeldungen_entries::table)
+                .values(&entry)
+                .on_conflict((
+                    anmeldungen_entries::course_of_study,
+                    anmeldungen_entries::anmeldung,
+                    anmeldungen_entries::available_semester,
+                    anmeldungen_entries::id,
+                ))
+                .do_update()
+                .set((
+                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                ))
+                .execute(connection)
+                .unwrap();
+            failed.push(calculate_move_targets(connection, entry));
+        }
+        failed
     }
 }
 
@@ -507,30 +572,30 @@ impl RequestResponse for SetStateAndCredits {
 #[derive(Debug)]
 pub struct SetCpAndModuleCount {
     pub course_of_study: String,
-    pub name: String,
-    pub student_result: StudentResultResponse,
+    pub url: Option<String>,
+    pub child: StudentResultLevel,
 }
 
 impl RequestResponse for SetCpAndModuleCount {
     type Response = String;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        info!("{:?}", self);
         diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
                 .eq(&self.course_of_study)
-                .and(anmeldungen_plan::name.eq(&self.name)),
+                .and(
+                    anmeldungen_plan::parent
+                        .is(&self.url)
+                        .and(anmeldungen_plan::name.eq(&self.child.name.clone().unwrap())),
+                ),
         ))
         .set((
-            anmeldungen_plan::min_cp.eq(self.student_result.level0.rules.min_cp as i32),
-            anmeldungen_plan::max_cp.eq(self.student_result.level0.rules.max_cp.map(|v| v as i32)),
-            anmeldungen_plan::min_modules.eq(self.student_result.level0.rules.min_modules as i32),
-            anmeldungen_plan::max_modules.eq(self
-                .student_result
-                .level0
-                .rules
-                .max_modules
-                .map(|v| v as i32)),
+            anmeldungen_plan::min_cp.eq(self.child.rules.min_cp as i32),
+            anmeldungen_plan::max_cp.eq(self.child.rules.max_cp.map(|v| v as i32)),
+            anmeldungen_plan::min_modules.eq(self.child.rules.min_modules as i32),
+            anmeldungen_plan::max_modules.eq(self.child.rules.max_modules.map(|v| v as i32)),
         ))
         .returning(anmeldungen_plan::url)
         .get_result(connection)
@@ -601,15 +666,13 @@ request_response_enum!(
     AnmeldungEntriesRequest
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
-    ChildUrl
     UpdateModuleYearAndSemester
-    SetStateAndCredits
+    InsertEntrySomewhereBelow
     SetCpAndModuleCount
     CacheRequest
     StoreCacheRequest
     ExportDatabaseRequest
     UpdateAnmeldungEntry
-    AnmeldungenEntriesInSemester
     PingRequest
     ImportDatabaseRequest
     RecursiveAnmeldungenRequest
@@ -701,7 +764,7 @@ impl MyDatabase {
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: Fragile<BroadcastChannel>,
-    pinged: OnceCell<()>,
+    pinged: Arc<AtomicBool>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -767,7 +830,7 @@ impl MyDatabase {
 
         let this = Self {
             broadcast_channel,
-            pinged: OnceCell::new(),
+            pinged: Arc::new(AtomicBool::new(false)),
         };
 
         this
@@ -780,7 +843,7 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.send_message_with_timeout(message, Duration::from_secs(10))
+        self.send_message_with_timeout(message, Duration::from_secs(60))
             .await
             .expect("timed out")
     }
@@ -793,29 +856,32 @@ impl MyDatabase {
     where
         RequestResponseEnum: std::convert::From<R>,
     {
-        self.pinged
-            .get_or_init(|| async {
-                use log::info;
-                let mut i = 0;
-                while i < 100 && {
-                    let value = self
-                        .send_message_with_timeout_internal::<PingRequest>(
-                            PingRequest {},
-                            Duration::from_millis(100),
-                        )
-                        .await;
+        use std::sync::atomic::Ordering;
+
+        if !self.pinged.load(Ordering::Relaxed) {
+            use log::info;
+            let mut i = 0;
+            while i < 100 && {
+                let value = self
+                    .send_message_with_timeout_internal::<PingRequest>(
+                        PingRequest {},
+                        Duration::from_millis(100),
+                    )
+                    .await;
+                if value.is_err() {
                     info!("{value:?}");
-                    value.is_err()
-                } {
-                    info!("retry ping");
-                    i += 1;
                 }
-                if i == 100 {
-                    panic!("failed to connect to worker in time")
-                }
-                info!("got ponffgf");
-            })
-            .await;
+                value.is_err()
+            } {
+                info!("retry ping");
+                i += 1;
+            }
+            if i == 100 {
+                panic!("failed to connect to worker in time")
+            }
+            info!("got pong");
+            self.pinged.store(true, Ordering::Relaxed);
+        }
 
         self.send_message_with_timeout_internal(message, timeout)
             .await
@@ -832,14 +898,11 @@ impl MyDatabase {
     {
         use rand::distr::{Alphanumeric, SampleString as _};
 
-        // TODO FIXME add retry
-
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
 
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-            use log::info;
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -856,8 +919,6 @@ impl MyDatabase {
                 .unwrap();
             temporary_message_closure.forget();
 
-            info!("timeout out after {}", timeout.as_millis());
-
             web_sys::window()
                 .unwrap()
                 .set_timeout_with_callback_and_timeout_and_arguments_0(
@@ -870,8 +931,6 @@ impl MyDatabase {
         let promise = js_sys::Promise::new(&mut cb);
 
         {
-            use log::info;
-
             let value = serde_wasm_bindgen::to_value(&MessageWithId {
                 id: id.clone(),
                 message: RequestResponseEnum::from(message),
@@ -879,8 +938,6 @@ impl MyDatabase {
             .unwrap();
 
             self.broadcast_channel.get().post_message(&value).unwrap();
-
-            info!("sent a message to worker");
         }
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))

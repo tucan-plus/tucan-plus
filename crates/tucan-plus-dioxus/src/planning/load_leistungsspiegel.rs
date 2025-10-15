@@ -1,44 +1,148 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::LazyLock};
 
 use log::info;
 use tucan_plus_worker::{
-    ChildUrl, MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,
+    AnmeldungEntryWithMoveInformation, InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount,
+    UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
     mymodules::Module,
-    student_result::{StudentResultLevel, StudentResultResponse},
+    student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
 
 use crate::RcTucanType;
 
+static PATCHES: LazyLock<HashMap<&str, StudentResultLevel>> = LazyLock::new(|| {
+    HashMap::from([(
+        "M.Sc. Informatik (2023)",
+        StudentResultLevel {
+            name: Some("Vertiefungen, Wahlbereiche und Studium Generale".to_string()),
+            entries: Vec::new(),
+            sum_cp: None,
+            sum_used_cp: None,
+            state: None,
+            rules: StudentResultRules {
+                min_cp: 90,
+                max_cp: Some(90),
+                min_modules: 0,
+                max_modules: None,
+            },
+            children: vec![StudentResultLevel {
+                name: Some("Vertiefungen".to_string()),
+                entries: Vec::new(),
+                sum_cp: None,
+                sum_used_cp: None,
+                state: None,
+                rules: StudentResultRules {
+                    min_cp: 66,
+                    max_cp: Some(72),
+                    min_modules: 0,
+                    max_modules: None,
+                },
+                children: vec![StudentResultLevel {
+                    name: Some("Individuelle Vertiefung".to_string()),
+                    entries: Vec::new(),
+                    sum_cp: None,
+                    sum_used_cp: None,
+                    state: None,
+                    rules: StudentResultRules {
+                        min_cp: 66,
+                        max_cp: Some(72),
+                        min_modules: 0,
+                        max_modules: None,
+                    },
+                    children: vec![StudentResultLevel {
+                        name: Some("Wahlbereich Studienbegleitende Leistungen".to_string()),
+                        entries: Vec::new(),
+                        sum_cp: None,
+                        sum_used_cp: None,
+                        state: None,
+                        rules: StudentResultRules {
+                            min_cp: 9,
+                            max_cp: Some(18),
+                            min_modules: 0,
+                            max_modules: None,
+                        },
+                        children: vec![
+                            StudentResultLevel {
+                                name: Some("Seminare".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 3,
+                                    max_cp: Some(12),
+                                    min_modules: 1,
+                                    max_modules: None,
+                                },
+                                children: vec![],
+                            },
+                            StudentResultLevel {
+                                name: Some("Praktikum in der Lehre".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 0,
+                                    max_cp: Some(5),
+                                    min_modules: 0,
+                                    max_modules: Some(1),
+                                },
+                                children: vec![],
+                            },
+                            StudentResultLevel {
+                                name: Some("Praktika, Projektpraktika, ähnliche LV".to_string()),
+                                entries: Vec::new(),
+                                sum_cp: None,
+                                sum_used_cp: None,
+                                state: None,
+                                rules: StudentResultRules {
+                                    min_cp: 6,
+                                    max_cp: Some(15),
+                                    min_modules: 1,
+                                    max_modules: None,
+                                },
+                                children: vec![],
+                            },
+                        ],
+                    }],
+                }],
+            }],
+        },
+    )])
+});
+
+#[must_use]
 pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
     modules: &HashMap<String, Module>,
-    url: String,
+    url: Option<String>,
     level: StudentResultLevel,
-) {
-    for child in level.children {
-        let name = child.name.as_ref().unwrap();
-        let child_url = worker
-            .send_message(ChildUrl {
-                course_of_study: course_of_study.to_string(),
-                url: url.clone(),
-                name: name.clone(),
-                child: child.clone(),
-            })
-            .await;
-        info!("updated");
-        Box::pin(recursive_update(
-            worker.clone(),
-            course_of_study,
-            modules,
-            child_url,
-            child,
-        ))
+) -> Vec<AnmeldungEntryWithMoveInformation> {
+    let mut failed = Vec::new();
+    let this_url = worker
+        .send_message(SetCpAndModuleCount {
+            course_of_study: course_of_study.to_string(),
+            url: url.clone(),
+            child: level.clone(),
+        })
         .await;
+    for child in level.children {
+        failed.extend(
+            Box::pin(recursive_update(
+                worker.clone(),
+                course_of_study,
+                modules,
+                Some(this_url.clone()),
+                child,
+            ))
+            .await,
+        );
     }
     let inserts: Vec<_> = level
         .entries
@@ -46,7 +150,7 @@ pub async fn recursive_update(
         .map(|entry| AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: url.clone(),
+            anmeldung: this_url.clone(),                  // here we need to traverse further
             module_url: entry
                 .id
                 .as_ref()
@@ -75,16 +179,22 @@ pub async fn recursive_update(
             semester: None,
         })
         .collect();
-    worker.send_message(SetStateAndCredits { inserts }).await;
+    failed.extend(
+        worker
+            .send_message(InsertEntrySomewhereBelow { inserts })
+            .await,
+    );
+    failed
 }
 
+#[must_use]
 pub async fn load_leistungsspiegel(
     worker: MyDatabase,
     current_session: LoginResponse,
     tucan: RcTucanType,
-    student_result: StudentResultResponse,
+    mut student_result: StudentResultResponse,
     course_of_study: String,
-) {
+) -> Vec<AnmeldungEntryWithMoveInformation> {
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
 
@@ -95,13 +205,8 @@ pub async fn load_leistungsspiegel(
         .unwrap()
         .name
         .to_owned();
-    let the_url = worker
-        .send_message(SetCpAndModuleCount {
-            course_of_study: course_of_study.clone(),
-            name,
-            student_result: student_result.clone(),
-        })
-        .await;
+
+    student_result.level0.name = Some(name.clone());
 
     // load all modules
     let my_modules = tucan
@@ -118,15 +223,42 @@ pub async fn load_leistungsspiegel(
         .map(|module| (module.nr.clone(), module))
         .collect();
 
+    let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
+
+    // load patches
+    if let Some(patch) = PATCHES.get(name.as_str()) {
+        info!("loading patches {patch:?}");
+        let this_url = worker
+            .send_message(SetCpAndModuleCount {
+                course_of_study: course_of_study.to_string(),
+                url: None,
+                child: student_result.level0.clone(),
+            })
+            .await;
+        failed.extend(
+            recursive_update(
+                worker.clone(),
+                &course_of_study,
+                &my_modules,
+                Some(this_url),
+                patch.clone(),
+            )
+            .await,
+        );
+        info!("loaded patches");
+    }
+
     // load leistungsspiegel hierarchy
-    recursive_update(
-        worker.clone(),
-        &course_of_study,
-        &my_modules,
-        the_url,
-        student_result.level0,
-    )
-    .await;
+    failed.extend(
+        recursive_update(
+            worker.clone(),
+            &course_of_study,
+            &my_modules,
+            None,
+            student_result.level0,
+        )
+        .await,
+    );
 
     // move modules into correct semester
     let semesters = tucan
@@ -156,4 +288,5 @@ pub async fn load_leistungsspiegel(
                 .await;
         }
     }
+    failed
 }

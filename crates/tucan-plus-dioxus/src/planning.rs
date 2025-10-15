@@ -5,11 +5,12 @@ use std::collections::HashSet;
 
 use dioxus::html::FileData;
 use dioxus::prelude::*;
+use itertools::Itertools;
 use log::info;
 use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
-    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, MyDatabase,
-    RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
+    AnmeldungEntryWithMoveInformation, AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester,
+    MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::moduledetails::ModuleDetailsRequest;
 use tucan_types::student_result::StudentResultResponse;
@@ -95,6 +96,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
+    let mut failed: Signal<Vec<AnmeldungEntryWithMoveInformation>> = use_signal(|| Vec::new());
     let mut future: MyResource = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
@@ -137,14 +139,16 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 loading.set(true);
 
                 let current_session = current_session_handle().unwrap();
-                load_leistungsspiegel(
-                    worker,
-                    current_session,
-                    tucan,
-                    student_result,
-                    course_of_study,
-                )
-                .await;
+                failed.set(
+                    load_leistungsspiegel(
+                        worker,
+                        current_session,
+                        tucan,
+                        student_result,
+                        course_of_study,
+                    )
+                    .await,
+                );
 
                 info!("updated");
                 loading.set(false);
@@ -153,7 +157,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
         }
     };
 
-    let tucan = tucan.clone();
     let onsubmit = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
@@ -281,9 +284,19 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 class: "btn btn-primary mb-3",
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
+            if !failed().is_empty() {
+                h2 {
+                    "Nicht automatisch zuordnenbar"
+                }
+                AnmeldungenEntries {
+                    future,
+                    entries: failed()
+                }
+            }
             if let Some(value) = future.value()() {
                 if let Some(value) = value.0 {
-                RegistrationTreeNode {
+                    RegistrationTreeNode {
+                        key: "{value:?}",
                         future,
                         value: value
                     }
@@ -297,7 +310,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         }
                         AnmeldungenEntries {
                             future,
-                            entries: value
+                            entries: value.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
+                                entry,
+                                move_targets: Vec::new()
+                            }).collect_vec()
                         }
                     }
                 }
@@ -309,7 +325,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     }
                     AnmeldungenEntries {
                         future,
-                        entries: value.2
+                        entries: value.2.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
+                            entry,
+                            move_targets: Vec::new()
+                        }).collect_vec()
                     }
                 }
             }
@@ -329,17 +348,20 @@ pub enum PlanningState {
 #[component]
 fn AnmeldungenEntries(
     future: MyResource,
-    entries: ReadSignal<Option<Vec<AnmeldungEntry>>>,
+    entries: ReadSignal<Option<Vec<AnmeldungEntryWithMoveInformation>>>,
 ) -> Element {
     let worker: MyDatabase = use_context();
     rsx! {
         table {
             class: "table",
             tbody {
-                for (key, entry) in entries()
+                for (key, AnmeldungEntryWithMoveInformation {
+                    entry,
+                    move_targets
+                }) in entries()
                     .iter()
                     .flatten()
-                    .map(|entry| (format!("{}{:?}", entry.id, entry.available_semester), entry)) {
+                    .map(|entry| (format!("{}{:?}", entry.entry.id, entry.entry.available_semester), entry)) {
                     tr {
                         key: "{key}",
                         td {
@@ -359,6 +381,32 @@ fn AnmeldungenEntries(
                         }
                         td {
                             { format!("{:?}", entry.available_semester) }
+                            select {
+                                class: "form-select",
+                                onchange: {
+                                    let entry = entry.clone();
+                                    let worker = worker.clone();
+                                    move |event| {
+                                        let mut entry = entry.clone();
+                                        let worker = worker.clone();
+                                        async move {
+                                            let mut new_entry = entry.clone();
+                                            new_entry.anmeldung = event.value();
+                                            info!("sent {:?} {new_entry:?}", entry);
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
+                                            future.restart();
+                                        }
+                                    }
+                                },
+                                for move_target in move_targets {
+                                    option {
+                                        key: "{move_target.1}",
+                                        value: "{move_target.1}",
+                                        selected: false,
+                                        "{move_target.0}"
+                                    }
+                                }
+                            }
                         }
                         td {
                             { entry.credits.to_string() }
@@ -372,8 +420,9 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
-                                            entry.state = serde_json::from_str(&event.value()).unwrap();
-                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            let mut new_entry = entry.clone();
+                                            new_entry.state = serde_json::from_str(&event.value()).unwrap();
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }
                                     }
@@ -415,16 +464,17 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
+                                            let mut new_entry = entry.clone();
                                             let (year, semester) = serde_json::from_str(&event.value()).unwrap();
-                                            entry.year = year;
-                                            entry.semester = semester;
-                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            new_entry.year = year;
+                                            new_entry.semester = semester;
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }
                                     }
                                 },
                                 option {
-                                    key: "",
+                                    key: "none",
                                     value: serde_json::to_string(&(None::<i32>, None::<Semester>)).unwrap(),
                                     selected: entry.semester.is_none() && entry.year.is_none(),
                                     "Choose semester"
@@ -482,25 +532,27 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
             class: "ms-2 ps-2",
             style: "border-left: 1px solid #ccc;",
             if (!entries.is_empty() && expanded())
-                || entries.iter().any(|entry| entry.state != State::NotPlanned) {
+                || entries.iter().any(|entry| entry.entry.state != State::NotPlanned) {
                 AnmeldungenEntries {
                     future,
                     entries: Some(entries
                         .iter()
-                        .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                        .filter(|entry| expanded() || entry.entry.state != State::NotPlanned)
                         .cloned()
                         .collect::<Vec<_>>()),
                 }
             }
             if expanded() || inner.iter().any(|v| v.has_contents) {
-                for (key, value) in value.results
-                    .iter()
-                    .zip(inner.into_iter())
-                    .filter(|(_, value)| expanded() || value.has_contents)
-                    .map(|(key, value)| (&key.url, value)) {
-                    div {
-                        key: "{key}",
-                        RegistrationTreeNode { future, value }
+                div {
+                    for (key, value) in value.results
+                        .iter()
+                        .zip(inner.into_iter())
+                        .filter(|(_, value)| expanded() || value.has_contents)
+                        .map(|(key, value)| (&key.url, value)) {
+                        div {
+                            key: "{key}",
+                            RegistrationTreeNode { future, value }
+                        }
                     }
                 }
             }
