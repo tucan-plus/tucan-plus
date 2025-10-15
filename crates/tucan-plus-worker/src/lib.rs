@@ -406,8 +406,25 @@ impl RequestResponse for UpdateAnmeldungEntry {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
+        connection.set_instrumentation(
+            move |event: diesel::connection::InstrumentationEvent<'_>| {
+                info!("{event:?}");
+            },
+        );
+        // AsChangeset doesn't update primary keys
         diesel::update(&self.entry)
-            .set(&self.new_entry)
+            .set((
+                anmeldungen_entries::course_of_study.eq(&self.new_entry.course_of_study),
+                anmeldungen_entries::available_semester.eq(&self.new_entry.available_semester),
+                anmeldungen_entries::anmeldung.eq(&self.new_entry.anmeldung),
+                anmeldungen_entries::module_url.eq(&self.new_entry.module_url),
+                anmeldungen_entries::id.eq(&self.new_entry.id),
+                anmeldungen_entries::name.eq(&self.new_entry.name),
+                anmeldungen_entries::credits.eq(&self.new_entry.credits),
+                anmeldungen_entries::state.eq(&self.new_entry.state),
+                anmeldungen_entries::semester.eq(&self.new_entry.semester),
+                anmeldungen_entries::year.eq(&self.new_entry.year),
+            ))
             .execute(connection)
             .unwrap();
     }

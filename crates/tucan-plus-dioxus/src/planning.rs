@@ -390,9 +390,9 @@ fn AnmeldungenEntries(
                                         async move {
                                             let mut new_entry = entry.clone();
                                             new_entry.anmeldung = event.value();
-                                            info!("sent {:?}", entry);
+                                            info!("sent {:?} {new_entry:?}", entry);
                                             worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
-                                            future.restart();
+                                            //future.restart();
                                         }
                                     }
                                 },
