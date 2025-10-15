@@ -284,12 +284,14 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 class: "btn btn-primary mb-3",
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
-            h2 {
-                "Nicht gefunden "
-            }
-            AnmeldungenEntries {
-                future,
-                entries: failed()
+            if !failed().is_empty() {
+                h2 {
+                    "Nicht gefunden "
+                }
+                AnmeldungenEntries {
+                    future,
+                    entries: failed()
+                }
             }
             if let Some(value) = future.value()() {
                 if let Some(value) = value.0 {
@@ -392,7 +394,7 @@ fn AnmeldungenEntries(
                                             new_entry.anmeldung = event.value();
                                             info!("sent {:?} {new_entry:?}", entry);
                                             worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
-                                            //future.restart();
+                                            future.restart();
                                         }
                                     }
                                 },
