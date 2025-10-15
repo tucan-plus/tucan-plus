@@ -388,8 +388,10 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
-                                            entry.anmeldung = event.value();
-                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            let mut new_entry = entry.clone();
+                                            new_entry.anmeldung = event.value();
+                                            info!("sent {:?}", entry);
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }
                                     }
@@ -416,8 +418,9 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
-                                            entry.state = serde_json::from_str(&event.value()).unwrap();
-                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            let mut new_entry = entry.clone();
+                                            new_entry.state = serde_json::from_str(&event.value()).unwrap();
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }
                                     }
@@ -459,10 +462,11 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
+                                            let mut new_entry = entry.clone();
                                             let (year, semester) = serde_json::from_str(&event.value()).unwrap();
-                                            entry.year = year;
-                                            entry.semester = semester;
-                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            new_entry.year = year;
+                                            new_entry.semester = semester;
+                                            worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }
                                     }

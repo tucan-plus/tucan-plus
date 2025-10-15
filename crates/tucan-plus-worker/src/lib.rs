@@ -399,6 +399,7 @@ impl RequestResponse for UpdateModuleYearAndSemester {
 #[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
     pub entry: AnmeldungEntry,
+    pub new_entry: AnmeldungEntry,
 }
 
 impl RequestResponse for UpdateAnmeldungEntry {
@@ -406,7 +407,7 @@ impl RequestResponse for UpdateAnmeldungEntry {
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         diesel::update(&self.entry)
-            .set(&self.entry)
+            .set(&self.new_entry)
             .execute(connection)
             .unwrap();
     }
@@ -528,6 +529,22 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     .unwrap();
                 continue 'top_level;
             }
+            // still insert
+            diesel::insert_into(anmeldungen_entries::table)
+                .values(&entry)
+                .on_conflict((
+                    anmeldungen_entries::course_of_study,
+                    anmeldungen_entries::anmeldung,
+                    anmeldungen_entries::available_semester,
+                    anmeldungen_entries::id,
+                ))
+                .do_update()
+                .set((
+                    anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                    (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                ))
+                .execute(connection)
+                .unwrap();
             failed.push(calculate_move_targets(connection, entry));
         }
         failed
