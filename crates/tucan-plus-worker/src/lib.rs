@@ -516,7 +516,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     .unwrap();
                 continue 'top_level;
             }
-            failed.push(entry);
+            // TODO
+            failed.push(AnmeldungEntryWithMoveInformation {
+                entry,
+                move_targets: vec![("todo".to_string(), "todo".to_string())],
+            });
         }
         failed
     }
