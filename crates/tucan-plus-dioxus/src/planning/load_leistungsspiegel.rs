@@ -2,7 +2,7 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use log::info;
 use tucan_plus_worker::{
-    MyDatabase, SetCpAndModuleCount, SetStateAndCredits, UpdateModuleYearAndSemester,
+    InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount, UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -145,7 +145,7 @@ pub async fn recursive_update(
         .map(|entry| AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: this_url.clone(),
+            anmeldung: this_url.clone(),                  // here we need to traverse further
             module_url: entry
                 .id
                 .as_ref()
@@ -174,7 +174,9 @@ pub async fn recursive_update(
             semester: None,
         })
         .collect();
-    worker.send_message(SetStateAndCredits { inserts }).await;
+    worker
+        .send_message(InsertEntrySomewhereBelow { inserts })
+        .await;
 }
 
 pub async fn load_leistungsspiegel(

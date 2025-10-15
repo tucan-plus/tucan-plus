@@ -1,7 +1,6 @@
 use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
 use std::{
-    rc::Rc,
     sync::{Arc, atomic::AtomicBool},
     time::Duration,
 };
@@ -445,29 +444,62 @@ impl RequestResponse for AnmeldungenEntriesNoSemester {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct SetStateAndCredits {
+pub struct InsertEntrySomewhereBelow {
     pub inserts: Vec<AnmeldungEntry>,
 }
 
-impl RequestResponse for SetStateAndCredits {
+impl RequestResponse for InsertEntrySomewhereBelow {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::insert_into(anmeldungen_entries::table)
-            .values(&self.inserts)
-            .on_conflict((
-                anmeldungen_entries::course_of_study,
-                anmeldungen_entries::anmeldung,
-                anmeldungen_entries::available_semester,
-                anmeldungen_entries::id,
-            ))
-            .do_update()
-            .set((
-                anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
-                (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
-            ))
-            .execute(connection)
+        for mut entry in self.inserts.clone() {
+            info!("handling {entry:?}");
+            // find where the entry is already
+            let possible_places = QueryDsl::filter(
+                anmeldungen_entries::table,
+                anmeldungen_entries::course_of_study
+                    .eq(&entry.course_of_study)
+                    .and(anmeldungen_entries::id.eq(&entry.id)),
+            )
+            .select(AnmeldungEntry::as_select())
+            .load(connection)
             .unwrap();
+            info!("possible places {possible_places:?}");
+            'all: for possible_place in possible_places {
+                let mut anmeldung = possible_place.anmeldung.clone();
+                while anmeldung != entry.anmeldung {
+                    let parent_anmeldung = anmeldungen_plan::table
+                        .filter(anmeldungen_plan::url.eq(&anmeldung))
+                        .select(Anmeldung::as_select())
+                        .get_result(connection)
+                        .unwrap()
+                        .parent;
+                    if let Some(parent_anmeldung) = parent_anmeldung {
+                        anmeldung = parent_anmeldung;
+                    } else {
+                        continue 'all;
+                    }
+                }
+                info!("found place to insert {possible_place:?}");
+                entry.anmeldung = possible_place.anmeldung;
+                diesel::insert_into(anmeldungen_entries::table)
+                    .values(entry)
+                    .on_conflict((
+                        anmeldungen_entries::course_of_study,
+                        anmeldungen_entries::anmeldung,
+                        anmeldungen_entries::available_semester,
+                        anmeldungen_entries::id,
+                    ))
+                    .do_update()
+                    .set((
+                        anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
+                        (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                    ))
+                    .execute(connection)
+                    .unwrap();
+                break 'all;
+            }
+        }
     }
 }
 
@@ -570,7 +602,7 @@ request_response_enum!(
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
     UpdateModuleYearAndSemester
-    SetStateAndCredits
+    InsertEntrySomewhereBelow
     SetCpAndModuleCount
     CacheRequest
     StoreCacheRequest
