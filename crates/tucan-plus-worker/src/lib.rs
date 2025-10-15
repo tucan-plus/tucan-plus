@@ -139,6 +139,13 @@ pub struct RecursiveAnmeldungenRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct AnmeldungEntryWithMoveInformation {
+    pub entry: AnmeldungEntry,
+    pub move_targets: Vec<(String, String)>,
+}
+
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecursiveAnmeldungenResponse {
     pub has_contents: bool,
     pub has_rules: bool,
@@ -147,7 +154,7 @@ pub struct RecursiveAnmeldungenResponse {
     pub modules: usize,
     pub anmeldung: Anmeldung,
     pub results: Vec<Anmeldung>,
-    pub entries: Vec<AnmeldungEntry>,
+    pub entries: Vec<AnmeldungEntryWithMoveInformation>,
     pub inner: Vec<RecursiveAnmeldungenResponse>,
 }
 
@@ -177,12 +184,14 @@ fn prep_planning(
         || anmeldung.max_modules.is_some();
     let has_contents = expanded.contains(&AnmeldungRequest::parse(&anmeldung.url))
         || has_rules
-        || entries.iter().any(|entry| entry.state != State::NotPlanned)
+        || entries
+            .iter()
+            .any(|entry| entry.entry.state != State::NotPlanned)
         || inner.iter().any(|v| v.has_contents);
     let actual_credits: i32 = entries
         .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
-        .map(|entry| entry.credits)
+        .filter(|entry| entry.entry.state == State::Done || entry.entry.state == State::Planned)
+        .map(|entry| entry.entry.credits)
         .sum::<i32>()
         + inner
             .iter()
@@ -192,7 +201,7 @@ fn prep_planning(
         std::cmp::min(actual_credits, anmeldung.max_cp.unwrap_or(actual_credits));
     let modules: usize = entries
         .iter()
-        .filter(|entry| entry.state == State::Done || entry.state == State::Planned)
+        .filter(|entry| entry.entry.state == State::Done || entry.entry.state == State::Planned)
         .count()
         + inner.iter().map(|inner| inner.modules).sum::<usize>();
     RecursiveAnmeldungenResponse {
@@ -237,7 +246,7 @@ pub struct AnmeldungEntriesRequest {
 }
 
 impl RequestResponse for AnmeldungEntriesRequest {
-    type Response = Vec<AnmeldungEntry>;
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
@@ -249,6 +258,12 @@ impl RequestResponse for AnmeldungEntriesRequest {
         .select(AnmeldungEntry::as_select())
         .load(connection)
         .unwrap()
+        .into_iter()
+        .map(|entry| AnmeldungEntryWithMoveInformation {
+            entry,
+            move_targets: vec![("test".to_string(), "test".to_string())], // TODO FIXME
+        })
+        .collect_vec()
     }
 }
 
@@ -450,10 +465,10 @@ pub struct InsertEntrySomewhereBelow {
 
 impl RequestResponse for InsertEntrySomewhereBelow {
     /// failed ones
-    type Response = Vec<AnmeldungEntry>;
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        let mut failed = Vec::new();
+        let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
         'top_level: for mut entry in self.inserts.clone() {
             info!("handling {entry:?}");
             // find where the entry is already

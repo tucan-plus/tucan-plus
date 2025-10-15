@@ -2,7 +2,8 @@ use std::{collections::HashMap, sync::LazyLock};
 
 use log::info;
 use tucan_plus_worker::{
-    InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount, UpdateModuleYearAndSemester,
+    AnmeldungEntryWithMoveInformation, InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount,
+    UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -122,7 +123,7 @@ pub async fn recursive_update(
     modules: &HashMap<String, Module>,
     url: Option<String>,
     level: StudentResultLevel,
-) -> Vec<AnmeldungEntry> {
+) -> Vec<AnmeldungEntryWithMoveInformation> {
     let mut failed = Vec::new();
     let this_url = worker
         .send_message(SetCpAndModuleCount {
@@ -193,7 +194,7 @@ pub async fn load_leistungsspiegel(
     tucan: RcTucanType,
     mut student_result: StudentResultResponse,
     course_of_study: String,
-) -> Vec<AnmeldungEntry> {
+) -> Vec<AnmeldungEntryWithMoveInformation> {
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
 
@@ -222,7 +223,7 @@ pub async fn load_leistungsspiegel(
         .map(|module| (module.nr.clone(), module))
         .collect();
 
-    let mut failed = Vec::new();
+    let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
 
     // load patches
     if let Some(patch) = PATCHES.get(name.as_str()) {

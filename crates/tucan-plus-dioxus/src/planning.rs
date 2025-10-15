@@ -5,11 +5,12 @@ use std::collections::HashSet;
 
 use dioxus::html::FileData;
 use dioxus::prelude::*;
+use itertools::Itertools;
 use log::info;
 use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
 use tucan_plus_worker::{
-    AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester, MyDatabase,
-    RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
+    AnmeldungEntryWithMoveInformation, AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester,
+    MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
 };
 use tucan_types::moduledetails::ModuleDetailsRequest;
 use tucan_types::student_result::StudentResultResponse;
@@ -95,7 +96,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
-    let mut failed = use_signal(|| Vec::new());
+    let mut failed: Signal<Vec<AnmeldungEntryWithMoveInformation>> = use_signal(|| Vec::new());
     let mut future: MyResource = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
@@ -307,7 +308,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         }
                         AnmeldungenEntries {
                             future,
-                            entries: value
+                            entries: value.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
+                                entry,
+                                move_targets: Vec::new()
+                            }).collect_vec()
                         }
                     }
                 }
@@ -319,7 +323,10 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     }
                     AnmeldungenEntries {
                         future,
-                        entries: value.2
+                        entries: value.2.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
+                            entry,
+                            move_targets: Vec::new()
+                        }).collect_vec()
                     }
                 }
             }
@@ -339,17 +346,20 @@ pub enum PlanningState {
 #[component]
 fn AnmeldungenEntries(
     future: MyResource,
-    entries: ReadSignal<Option<Vec<AnmeldungEntry>>>,
+    entries: ReadSignal<Option<Vec<AnmeldungEntryWithMoveInformation>>>,
 ) -> Element {
     let worker: MyDatabase = use_context();
     rsx! {
         table {
             class: "table",
             tbody {
-                for (key, entry) in entries()
+                for (key, AnmeldungEntryWithMoveInformation {
+                    entry,
+                    move_targets
+                }) in entries()
                     .iter()
                     .flatten()
-                    .map(|entry| (format!("{}{:?}", entry.id, entry.available_semester), entry)) {
+                    .map(|entry| (format!("{}{:?}", entry.entry.id, entry.entry.available_semester), entry)) {
                     tr {
                         key: "{key}",
                         td {
@@ -492,12 +502,12 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
             class: "ms-2 ps-2",
             style: "border-left: 1px solid #ccc;",
             if (!entries.is_empty() && expanded())
-                || entries.iter().any(|entry| entry.state != State::NotPlanned) {
+                || entries.iter().any(|entry| entry.entry.state != State::NotPlanned) {
                 AnmeldungenEntries {
                     future,
                     entries: Some(entries
                         .iter()
-                        .filter(|entry| expanded() || entry.state != State::NotPlanned)
+                        .filter(|entry| expanded() || entry.entry.state != State::NotPlanned)
                         .cloned()
                         .collect::<Vec<_>>()),
                 }
