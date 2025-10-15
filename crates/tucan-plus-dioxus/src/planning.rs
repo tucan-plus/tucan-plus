@@ -95,6 +95,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
+    let mut failed = use_signal(|| Vec::new());
     let mut future: MyResource = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
@@ -137,14 +138,16 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 loading.set(true);
 
                 let current_session = current_session_handle().unwrap();
-                load_leistungsspiegel(
-                    worker,
-                    current_session,
-                    tucan,
-                    student_result,
-                    course_of_study,
-                )
-                .await;
+                failed.set(
+                    load_leistungsspiegel(
+                        worker,
+                        current_session,
+                        tucan,
+                        student_result,
+                        course_of_study,
+                    )
+                    .await,
+                );
 
                 info!("updated");
                 loading.set(false);
@@ -280,9 +283,17 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 class: "btn btn-primary mb-3",
                 "Leistungsspiegel laden (nach Laden der Semester)"
             }
+            h2 {
+                "Nicht gefunden "
+            }
+            AnmeldungenEntries {
+                future,
+                entries: failed()
+            }
             if let Some(value) = future.value()() {
                 if let Some(value) = value.0 {
-                RegistrationTreeNode {
+                    RegistrationTreeNode {
+                        key: "{value:?}",
                         future,
                         value: value
                     }

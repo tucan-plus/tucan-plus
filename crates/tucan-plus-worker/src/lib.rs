@@ -449,10 +449,12 @@ pub struct InsertEntrySomewhereBelow {
 }
 
 impl RequestResponse for InsertEntrySomewhereBelow {
-    type Response = ();
+    /// failed ones
+    type Response = Vec<AnmeldungEntry>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        for mut entry in self.inserts.clone() {
+        let mut failed = Vec::new();
+        'top_level: for mut entry in self.inserts.clone() {
             info!("handling {entry:?}");
             // find where the entry is already
             let possible_places = QueryDsl::filter(
@@ -497,9 +499,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     ))
                     .execute(connection)
                     .unwrap();
-                break 'all;
+                continue 'top_level;
             }
+            failed.push(entry);
         }
+        failed
     }
 }
 

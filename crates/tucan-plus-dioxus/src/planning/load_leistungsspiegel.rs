@@ -115,13 +115,15 @@ static PATCHES: LazyLock<HashMap<&str, StudentResultLevel>> = LazyLock::new(|| {
     )])
 });
 
+#[must_use]
 pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
     modules: &HashMap<String, Module>,
     url: Option<String>,
     level: StudentResultLevel,
-) {
+) -> Vec<AnmeldungEntry> {
+    let mut failed = Vec::new();
     let this_url = worker
         .send_message(SetCpAndModuleCount {
             course_of_study: course_of_study.to_string(),
@@ -130,14 +132,16 @@ pub async fn recursive_update(
         })
         .await;
     for child in level.children {
-        Box::pin(recursive_update(
-            worker.clone(),
-            course_of_study,
-            modules,
-            Some(this_url.clone()),
-            child,
-        ))
-        .await;
+        failed.extend(
+            Box::pin(recursive_update(
+                worker.clone(),
+                course_of_study,
+                modules,
+                Some(this_url.clone()),
+                child,
+            ))
+            .await,
+        );
     }
     let inserts: Vec<_> = level
         .entries
@@ -174,18 +178,22 @@ pub async fn recursive_update(
             semester: None,
         })
         .collect();
-    worker
-        .send_message(InsertEntrySomewhereBelow { inserts })
-        .await;
+    failed.extend(
+        worker
+            .send_message(InsertEntrySomewhereBelow { inserts })
+            .await,
+    );
+    failed
 }
 
+#[must_use]
 pub async fn load_leistungsspiegel(
     worker: MyDatabase,
     current_session: LoginResponse,
     tucan: RcTucanType,
     mut student_result: StudentResultResponse,
     course_of_study: String,
-) {
+) -> Vec<AnmeldungEntry> {
     // top level anmeldung has name "M.Sc. Informatik (2023)"
     // top level leistungsspiegel has "Informatik"
 
@@ -214,6 +222,8 @@ pub async fn load_leistungsspiegel(
         .map(|module| (module.nr.clone(), module))
         .collect();
 
+    let mut failed = Vec::new();
+
     // load patches
     if let Some(patch) = PATCHES.get(name.as_str()) {
         info!("loading patches {patch:?}");
@@ -224,26 +234,30 @@ pub async fn load_leistungsspiegel(
                 child: student_result.level0.clone(),
             })
             .await;
-        recursive_update(
-            worker.clone(),
-            &course_of_study,
-            &my_modules,
-            Some(this_url),
-            patch.clone(),
-        )
-        .await;
+        failed.extend(
+            recursive_update(
+                worker.clone(),
+                &course_of_study,
+                &my_modules,
+                Some(this_url),
+                patch.clone(),
+            )
+            .await,
+        );
         info!("loaded patches");
     }
 
     // load leistungsspiegel hierarchy
-    recursive_update(
-        worker.clone(),
-        &course_of_study,
-        &my_modules,
-        None,
-        student_result.level0,
-    )
-    .await;
+    failed.extend(
+        recursive_update(
+            worker.clone(),
+            &course_of_study,
+            &my_modules,
+            None,
+            student_result.level0,
+        )
+        .await,
+    );
 
     // move modules into correct semester
     let semesters = tucan
@@ -273,4 +287,5 @@ pub async fn load_leistungsspiegel(
                 .await;
         }
     }
+    failed
 }
