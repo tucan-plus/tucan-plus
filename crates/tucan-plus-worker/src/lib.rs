@@ -245,6 +245,49 @@ pub struct AnmeldungEntriesRequest {
     pub anmeldung: Anmeldung,
 }
 
+fn calculate_move_targets(
+    connection: &mut SqliteConnection,
+    entry: AnmeldungEntry,
+) -> AnmeldungEntryWithMoveInformation {
+    let mut move_targets = Vec::new();
+    let current = anmeldungen_plan::table
+        .filter(
+            anmeldungen_plan::course_of_study
+                .eq(&entry.course_of_study)
+                .and(anmeldungen_plan::url.eq(&entry.anmeldung)),
+        )
+        .select(Anmeldung::as_select())
+        .get_result(connection)
+        .unwrap();
+    move_targets.push((current.name.clone(), current.url.clone()));
+    let children = AnmeldungChildrenRequest {
+        course_of_study: entry.course_of_study.clone(),
+        anmeldung: entry.anmeldung.clone(),
+    }
+    .execute(connection);
+    move_targets.extend(
+        children
+            .iter()
+            .map(|elem| (elem.name.clone(), elem.url.clone())),
+    );
+    if let Some(parent) = current.parent {
+        let parent = anmeldungen_plan::table
+            .filter(
+                anmeldungen_plan::course_of_study
+                    .eq(&entry.course_of_study)
+                    .and(anmeldungen_plan::url.eq(&parent)),
+            )
+            .select(Anmeldung::as_select())
+            .get_result(connection)
+            .unwrap();
+        move_targets.push((parent.name.clone(), parent.url.clone()));
+    }
+    AnmeldungEntryWithMoveInformation {
+        entry,
+        move_targets,
+    }
+}
+
 impl RequestResponse for AnmeldungEntriesRequest {
     type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
@@ -259,10 +302,7 @@ impl RequestResponse for AnmeldungEntriesRequest {
         .load(connection)
         .unwrap()
         .into_iter()
-        .map(|entry| AnmeldungEntryWithMoveInformation {
-            entry,
-            move_targets: vec![("test".to_string(), "test".to_string())], // TODO FIXME
-        })
+        .map(|entry| calculate_move_targets(connection, entry))
         .collect_vec()
     }
 }
@@ -488,43 +528,7 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     .unwrap();
                 continue 'top_level;
             }
-            let mut move_targets = Vec::new();
-            let current = anmeldungen_plan::table
-                .filter(
-                    anmeldungen_plan::course_of_study
-                        .eq(&entry.course_of_study)
-                        .and(anmeldungen_plan::url.eq(&entry.anmeldung)),
-                )
-                .select(Anmeldung::as_select())
-                .get_result(connection)
-                .unwrap();
-            move_targets.push((current.name.clone(), current.url.clone()));
-            let children = AnmeldungChildrenRequest {
-                course_of_study: entry.course_of_study.clone(),
-                anmeldung: entry.anmeldung.clone(),
-            }
-            .execute(connection);
-            move_targets.extend(
-                children
-                    .iter()
-                    .map(|elem| (elem.name.clone(), elem.url.clone())),
-            );
-            if let Some(parent) = current.parent {
-                let parent = anmeldungen_plan::table
-                    .filter(
-                        anmeldungen_plan::course_of_study
-                            .eq(&entry.course_of_study)
-                            .and(anmeldungen_plan::url.eq(&parent)),
-                    )
-                    .select(Anmeldung::as_select())
-                    .get_result(connection)
-                    .unwrap();
-                move_targets.push((parent.name.clone(), parent.url.clone()));
-            }
-            failed.push(AnmeldungEntryWithMoveInformation {
-                entry,
-                move_targets,
-            });
+            failed.push(calculate_move_targets(connection, entry));
         }
         failed
     }
@@ -859,8 +863,6 @@ impl MyDatabase {
         RequestResponseEnum: std::convert::From<R>,
     {
         use rand::distr::{Alphanumeric, SampleString as _};
-
-        // TODO FIXME add retry
 
         let id = Alphanumeric.sample_string(&mut rand::rng(), 16);
 
