@@ -1,6 +1,10 @@
 use std::collections::HashSet;
 #[cfg(target_arch = "wasm32")]
-use std::{rc::Rc, sync::atomic::AtomicBool, time::Duration};
+use std::{
+    rc::Rc,
+    sync::{Arc, atomic::AtomicBool},
+    time::Duration,
+};
 
 #[cfg(not(target_arch = "wasm32"))]
 use diesel::r2d2::CustomizeConnection;
@@ -668,7 +672,7 @@ impl MyDatabase {
 #[derive(Clone)]
 pub struct MyDatabase {
     broadcast_channel: Fragile<BroadcastChannel>,
-    pinged: Rc<AtomicBool>,
+    pinged: Arc<AtomicBool>,
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -734,7 +738,7 @@ impl MyDatabase {
 
         let this = Self {
             broadcast_channel,
-            pinged: Rc::new(AtomicBool::new(false)),
+            pinged: Arc::new(AtomicBool::new(false)),
         };
 
         this
