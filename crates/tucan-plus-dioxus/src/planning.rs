@@ -379,6 +379,30 @@ fn AnmeldungenEntries(
                         }
                         td {
                             { format!("{:?}", entry.available_semester) }
+                            select {
+                                class: "form-select",
+                                onchange: {
+                                    let entry = entry.clone();
+                                    let worker = worker.clone();
+                                    move |event| {
+                                        let mut entry = entry.clone();
+                                        let worker = worker.clone();
+                                        async move {
+                                            entry.anmeldung = serde_json::from_str(&event.value()).unwrap();
+                                            worker.send_message(UpdateAnmeldungEntry { entry }).await;
+                                            future.restart();
+                                        }
+                                    }
+                                },
+                                for move_target in move_targets {
+                                    option {
+                                        key: "{move_target.1}",
+                                        value: "{move_target.1}",
+                                        selected: false,
+                                        "{move_target.0}"
+                                    }
+                                }
+                            }
                         }
                         td {
                             { entry.credits.to_string() }

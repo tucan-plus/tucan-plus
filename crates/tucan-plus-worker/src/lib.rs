@@ -111,7 +111,7 @@ impl RequestResponse for AnmeldungenRootRequest {
 #[derive(Debug)]
 pub struct AnmeldungChildrenRequest {
     pub course_of_study: String,
-    pub anmeldung: Anmeldung,
+    pub anmeldung: String, // TODO type safety in database and here
 }
 
 impl RequestResponse for AnmeldungChildrenRequest {
@@ -122,7 +122,7 @@ impl RequestResponse for AnmeldungChildrenRequest {
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
                 .eq(&self.course_of_study)
-                .and(anmeldungen_plan::parent.eq(&self.anmeldung.url)),
+                .and(anmeldungen_plan::parent.eq(&self.anmeldung)),
         )
         .select(Anmeldung::as_select())
         .load(connection)
@@ -166,7 +166,7 @@ fn prep_planning(
 ) -> RecursiveAnmeldungenResponse {
     let results = AnmeldungChildrenRequest {
         course_of_study: course_of_study.to_owned(),
-        anmeldung: anmeldung.clone(),
+        anmeldung: anmeldung.url.clone(),
     }
     .execute(connection);
     let entries = AnmeldungEntriesRequest {
@@ -374,34 +374,6 @@ impl RequestResponse for UpdateAnmeldungEntry {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct AnmeldungenEntriesInSemester {
-    pub course_of_study: String,
-    pub year: i32,
-    pub semester: Semester,
-}
-
-impl RequestResponse for AnmeldungenEntriesInSemester {
-    type Response = Vec<AnmeldungEntry>;
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        QueryDsl::filter(
-            anmeldungen_entries::table,
-            anmeldungen_entries::course_of_study
-                .eq(&self.course_of_study)
-                .and(
-                    anmeldungen_entries::semester
-                        .eq(self.semester)
-                        .and(anmeldungen_entries::year.eq(self.year)),
-                ),
-        )
-        .select(AnmeldungEntry::as_select())
-        .load(connection)
-        .unwrap()
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
 pub struct AnmeldungenEntriesPerSemester {
     pub course_of_study: String,
 }
@@ -516,10 +488,42 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     .unwrap();
                 continue 'top_level;
             }
-            // TODO
+            let mut move_targets = Vec::new();
+            let current = anmeldungen_plan::table
+                .filter(
+                    anmeldungen_plan::course_of_study
+                        .eq(&entry.course_of_study)
+                        .and(anmeldungen_plan::url.eq(&entry.anmeldung)),
+                )
+                .select(Anmeldung::as_select())
+                .get_result(connection)
+                .unwrap();
+            move_targets.push((current.name.clone(), current.url.clone()));
+            let children = AnmeldungChildrenRequest {
+                course_of_study: entry.course_of_study.clone(),
+                anmeldung: entry.anmeldung.clone(),
+            }
+            .execute(connection);
+            move_targets.extend(
+                children
+                    .iter()
+                    .map(|elem| (elem.name.clone(), elem.url.clone())),
+            );
+            if let Some(parent) = current.parent {
+                let parent = anmeldungen_plan::table
+                    .filter(
+                        anmeldungen_plan::course_of_study
+                            .eq(&entry.course_of_study)
+                            .and(anmeldungen_plan::url.eq(&parent)),
+                    )
+                    .select(Anmeldung::as_select())
+                    .get_result(connection)
+                    .unwrap();
+                move_targets.push((parent.name.clone(), parent.url.clone()));
+            }
             failed.push(AnmeldungEntryWithMoveInformation {
                 entry,
-                move_targets: vec![("todo".to_string(), "todo".to_string())],
+                move_targets,
             });
         }
         failed
@@ -631,7 +635,6 @@ request_response_enum!(
     StoreCacheRequest
     ExportDatabaseRequest
     UpdateAnmeldungEntry
-    AnmeldungenEntriesInSemester
     PingRequest
     ImportDatabaseRequest
     RecursiveAnmeldungenRequest
