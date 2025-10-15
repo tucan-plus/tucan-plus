@@ -406,11 +406,11 @@ impl RequestResponse for UpdateAnmeldungEntry {
     type Response = ();
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        connection.set_instrumentation(
+        /*connection.set_instrumentation(
             move |event: diesel::connection::InstrumentationEvent<'_>| {
                 info!("{event:?}");
             },
-        );
+        );*/
         // AsChangeset doesn't update primary keys
         diesel::update(&self.entry)
             .set((

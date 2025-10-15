@@ -286,7 +286,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
             if !failed().is_empty() {
                 h2 {
-                    "Nicht gefunden "
+                    "Nicht automatisch zuordnenbar"
                 }
                 AnmeldungenEntries {
                     future,
