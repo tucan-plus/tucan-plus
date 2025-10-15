@@ -388,7 +388,7 @@ fn AnmeldungenEntries(
                                         let mut entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
-                                            entry.anmeldung = serde_json::from_str(&event.value()).unwrap();
+                                            entry.anmeldung = event.value();
                                             worker.send_message(UpdateAnmeldungEntry { entry }).await;
                                             future.restart();
                                         }
