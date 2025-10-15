@@ -492,14 +492,16 @@ fn RegistrationTreeNode(future: MyResource, value: RecursiveAnmeldungenResponse)
                 }
             }
             if expanded() || inner.iter().any(|v| v.has_contents) {
-                for (key, value) in value.results
-                    .iter()
-                    .zip(inner.into_iter())
-                    .filter(|(_, value)| expanded() || value.has_contents)
-                    .map(|(key, value)| (&key.url, value)) {
-                    div {
-                        key: "{key}",
-                        RegistrationTreeNode { future, value }
+                div {
+                    for (key, value) in value.results
+                        .iter()
+                        .zip(inner.into_iter())
+                        .filter(|(_, value)| expanded() || value.has_contents)
+                        .map(|(key, value)| (&key.url, value)) {
+                        div {
+                            key: "{key}",
+                            RegistrationTreeNode { future, value }
+                        }
                     }
                 }
             }

@@ -9,7 +9,6 @@ pub(crate) mod everything {
         response::IntoResponse,
     };
     use axum_extra::extract::{CookieJar, cookie::Cookie};
-    use dioxus_devtools::subsecond;
     use tucan_connector::{TucanConnector, login::login};
     use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, SemesterId, TucanError,

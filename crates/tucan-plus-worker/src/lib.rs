@@ -17,8 +17,6 @@ use log::info;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
-use tokio::sync::OnceCell;
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
@@ -28,10 +26,8 @@ use crate::{
     schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
 use tucan_types::{
-    Semesterauswahl,
-    courseresults::ModuleResult,
-    registration::AnmeldungRequest,
-    student_result::{StudentResultLevel, StudentResultResponse},
+    Semesterauswahl, courseresults::ModuleResult, registration::AnmeldungRequest,
+    student_result::StudentResultLevel,
 };
 
 pub mod models;
@@ -813,7 +809,6 @@ impl MyDatabase {
         let temporary_broadcast_channel = Fragile::new(BroadcastChannel::new(&id).unwrap());
 
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
-            use log::info;
             use wasm_bindgen::{JsCast as _, prelude::Closure};
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
@@ -842,8 +837,6 @@ impl MyDatabase {
         let promise = js_sys::Promise::new(&mut cb);
 
         {
-            use log::info;
-
             let value = serde_wasm_bindgen::to_value(&MessageWithId {
                 id: id.clone(),
                 message: RequestResponseEnum::from(message),

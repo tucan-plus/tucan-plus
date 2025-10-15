@@ -145,7 +145,7 @@ pub async fn recursive_update(
         .map(|entry| AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: url.clone().unwrap(),
+            anmeldung: this_url.clone(),
             module_url: entry
                 .id
                 .as_ref()
