@@ -146,6 +146,20 @@ pub struct AnmeldungEntry {
     pub year: Option<i32>,
 }
 
+impl AnmeldungEntry {
+    pub fn identifier(
+        &self,
+    ) -> (
+        std::string::String,
+        Semester,
+        std::string::String,
+        std::string::String,
+    ) {
+        let (a, b, c, d) = self.id();
+        (a.clone(), b.clone(), c.clone(), d.clone())
+    }
+}
+
 #[derive(
     Insertable,
     Queryable,

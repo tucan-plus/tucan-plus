@@ -1,8 +1,9 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
+use diesel::Identifiable;
 use dioxus::html::FileData;
 use dioxus::prelude::*;
 use itertools::Itertools;
@@ -120,6 +121,19 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         course_of_study: course_of_study.clone(),
                     })
                     .await;
+                let entries: HashMap<_, _> = per_semester
+                    .iter()
+                    .flat_map(|m| m.1.clone())
+                    .chain(no_semester)
+                    .map(|m| (m.entry.identifier().clone(), m))
+                    .collect();
+                // here we could update failed
+                failed.with_mut(|failed| {
+                    for f in failed {
+                        *f = entries[&f.entry.identifier()];
+                    }
+                });
+
                 (recursive, per_semester, no_semester)
             }
         })
