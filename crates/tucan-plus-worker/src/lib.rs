@@ -360,43 +360,6 @@ impl RequestResponse for UpdateAnmeldungEntryRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct UpdateModuleYearAndSemester {
-    pub course_of_study: String,
-    pub semester: Semesterauswahl,
-    pub module: ModuleResult,
-}
-
-impl RequestResponse for UpdateModuleYearAndSemester {
-    type Response = ();
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::update(anmeldungen_entries::table)
-            .filter(
-                anmeldungen_entries::course_of_study
-                    .eq(&self.course_of_study)
-                    .and(
-                        anmeldungen_entries::id
-                            .eq(&self.module.nr)
-                            // TODO FIXME if you can register it at multiple paths
-                            // this will otherwise break
-                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
-                    ),
-            )
-            .set((
-                anmeldungen_entries::semester.eq(if self.semester.name.starts_with("SoSe ") {
-                    Semester::Sommersemester
-                } else {
-                    Semester::Wintersemester
-                }),
-                (anmeldungen_entries::year.eq(self.semester.name[5..9].parse::<i32>().unwrap())),
-            ))
-            .execute(connection)
-            .unwrap();
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
     pub entry: AnmeldungEntry,
     pub new_entry: AnmeldungEntry,
@@ -437,7 +400,7 @@ pub struct AnmeldungenEntriesPerSemester {
 }
 
 impl RequestResponse for AnmeldungenEntriesPerSemester {
-    type Response = Vec<((i32, Semester), Vec<AnmeldungEntry>)>;
+    type Response = Vec<((i32, Semester), Vec<AnmeldungEntryWithMoveInformation>)>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let result = QueryDsl::filter(
@@ -455,7 +418,14 @@ impl RequestResponse for AnmeldungenEntriesPerSemester {
             .into_iter()
             .chunk_by(|elem| (elem.year.unwrap(), elem.semester.unwrap()))
             .into_iter()
-            .map(|(elem, value)| (elem, value.collect_vec()))
+            .map(|(elem, value)| {
+                (
+                    elem,
+                    value
+                        .map(|value| calculate_move_targets(connection, value))
+                        .collect_vec(),
+                )
+            })
             .collect_vec()
     }
 }
@@ -467,7 +437,7 @@ pub struct AnmeldungenEntriesNoSemester {
 }
 
 impl RequestResponse for AnmeldungenEntriesNoSemester {
-    type Response = Vec<AnmeldungEntry>;
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
@@ -484,6 +454,9 @@ impl RequestResponse for AnmeldungenEntriesNoSemester {
         .select(AnmeldungEntry::as_select())
         .load(connection)
         .unwrap()
+        .into_iter()
+        .map(|value| calculate_move_targets(connection, value))
+        .collect_vec()
     }
 }
 
@@ -500,7 +473,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
         'top_level: for mut entry in self.inserts.clone() {
-            info!("handling {entry:?}");
             // find where the entry is already
             let possible_places = QueryDsl::filter(
                 anmeldungen_entries::table,
@@ -511,7 +483,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
             .select(AnmeldungEntry::as_select())
             .load(connection)
             .unwrap();
-            info!("possible places {possible_places:?}");
             'all: for possible_place in possible_places {
                 let mut anmeldung = possible_place.anmeldung.clone();
                 while anmeldung != entry.anmeldung {
@@ -527,7 +498,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                         continue 'all;
                     }
                 }
-                info!("found place to insert {possible_place:?}");
                 entry.anmeldung = possible_place.anmeldung;
                 diesel::insert_into(anmeldungen_entries::table)
                     .values(entry)
@@ -539,8 +509,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     ))
                     .do_update()
                     .set((
+                        // TODO FIXME this should be cleaner
                         anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                         (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                        (anmeldungen_entries::year.eq(excluded(anmeldungen_entries::year))),
+                        (anmeldungen_entries::semester.eq(excluded(anmeldungen_entries::semester))),
                     ))
                     .execute(connection)
                     .unwrap();
@@ -557,8 +530,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                 ))
                 .do_update()
                 .set((
+                    // TODO FIXME this should be cleaner
                     anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                     (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                    (anmeldungen_entries::year.eq(excluded(anmeldungen_entries::year))),
+                    (anmeldungen_entries::semester.eq(excluded(anmeldungen_entries::semester))),
                 ))
                 .execute(connection)
                 .unwrap();
@@ -580,7 +556,6 @@ impl RequestResponse for SetCpAndModuleCount {
     type Response = String;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        info!("{:?}", self);
         diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study
@@ -666,7 +641,6 @@ request_response_enum!(
     AnmeldungEntriesRequest
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
-    UpdateModuleYearAndSemester
     InsertEntrySomewhereBelow
     SetCpAndModuleCount
     CacheRequest

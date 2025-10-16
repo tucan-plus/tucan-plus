@@ -1,6 +1,7 @@
 pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
+pub mod enhanced_module_results;
 pub mod examresults;
 pub mod gradeoverview;
 pub mod mlsstart;
@@ -13,7 +14,7 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use std::{convert::Infallible, fmt::Display, str::FromStr};
+use std::{collections::HashMap, convert::Infallible, fmt::Display, str::FromStr};
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
@@ -34,9 +35,17 @@ use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
 use crate::{
+    enhanced_module_results::{EnhancedModuleResult, EnhancedModuleResultsResponse},
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    mymodules::Module,
     student_result::StudentResultState,
 };
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToSchema)]
+pub enum Semester {
+    Sommersemester,
+    Wintersemester,
+}
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
@@ -189,6 +198,22 @@ pub struct Semesterauswahl {
     pub name: String,
     pub value: SemesterId,
     pub selected: bool,
+}
+
+impl Semesterauswahl {
+    pub fn semester(&self) -> Semester {
+        if self.name.starts_with("SoSe ") {
+            Semester::Sommersemester
+        } else {
+            Semester::Wintersemester
+        }
+    }
+    pub fn year(&self) -> i32 {
+        self.name[5..9].parse::<i32>().unwrap()
+    }
+    pub fn active(value: &Vec<Semesterauswahl>) -> &Semesterauswahl {
+        value.iter().find(|value| value.selected).unwrap()
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
@@ -476,4 +501,102 @@ pub trait Tucan: Send + Sync {
         revalidation_strategy: RevalidationStrategy,
         gradeoverview: GradeOverviewRequest,
     ) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>>;
+
+    fn enhanced_module_results(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<EnhancedModuleResultsResponse, TucanError>> {
+        async move {
+            let modules: HashMap<String, Module> = self
+                .my_modules(login_response, revalidation_strategy, semester.clone())
+                .await?
+                .modules
+                .into_iter()
+                .map(|module| (module.nr.clone(), module))
+                .collect();
+            let output_semester: Vec<Semesterauswahl>;
+            let mut results: Vec<EnhancedModuleResult>;
+            let mut gpas: Vec<enhanced_module_results::GPA>;
+            // SemesterId::all() will internally loop
+            if semester == SemesterId::all() {
+                let all_semesters = self
+                    .course_results(login_response, revalidation_strategy, SemesterId::current())
+                    .await?;
+                output_semester = all_semesters.semester.clone();
+                results = Vec::new();
+                gpas = Vec::new();
+                for semester in all_semesters.semester {
+                    let module_results_in_semester = self
+                        .course_results(login_response, revalidation_strategy, semester.value)
+                        .await?;
+                    let active = Semesterauswahl::active(&module_results_in_semester.semester);
+                    results.extend(module_results_in_semester.results.iter().map(|module| {
+                        let m = modules.get(&module.nr);
+                        EnhancedModuleResult {
+                            year: active.year(),
+                            semester: active.semester(),
+                            url: m.map(|m| m.url.clone()),
+                            nr: module.nr.clone(),
+                            name: module.name.clone(),
+                            lecturer: m.map(|m| m.lecturer.clone()),
+                            grade: module.grade.clone(),
+                            credits: module.credits.clone(),
+                            pruefungen_url: module.pruefungen_url.clone(),
+                            average_url: module.average_url.clone(),
+                        }
+                    }));
+                    gpas.extend(module_results_in_semester.gpas.iter().map(|gpa| {
+                        enhanced_module_results::GPA {
+                            semester: active.clone(),
+                            course_of_study: gpa.course_of_study.clone(),
+                            average_grade: gpa.average_grade.clone(),
+                            sum_credits: gpa.sum_credits.clone(),
+                        }
+                    }));
+                }
+            } else {
+                let module_results = self
+                    .course_results(login_response, revalidation_strategy, semester.clone())
+                    .await?;
+                output_semester = module_results.semester.clone();
+                let active = Semesterauswahl::active(&module_results.semester);
+                results = module_results
+                    .results
+                    .iter()
+                    .map(|module| {
+                        let m = modules.get(&module.nr);
+                        EnhancedModuleResult {
+                            year: active.year(),
+                            semester: active.semester(),
+                            url: m.map(|m| m.url.clone()),
+                            nr: module.nr.clone(),
+                            name: module.name.clone(),
+                            lecturer: m.map(|m| m.lecturer.clone()),
+                            grade: module.grade.clone(),
+                            credits: module.credits.clone(),
+                            pruefungen_url: module.pruefungen_url.clone(),
+                            average_url: module.average_url.clone(),
+                        }
+                    })
+                    .collect();
+                gpas = module_results
+                    .gpas
+                    .iter()
+                    .map(|gpa| enhanced_module_results::GPA {
+                        semester: active.clone(),
+                        course_of_study: gpa.course_of_study.clone(),
+                        average_grade: gpa.average_grade.clone(),
+                        sum_credits: gpa.sum_credits.clone(),
+                    })
+                    .collect();
+            }
+            Ok(EnhancedModuleResultsResponse {
+                semester: output_semester,
+                results,
+                gpas,
+            })
+        }
+    }
 }

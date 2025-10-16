@@ -19,6 +19,15 @@ pub enum Semester {
     Wintersemester,
 }
 
+impl From<tucan_types::Semester> for Semester {
+    fn from(value: tucan_types::Semester) -> Self {
+        match value {
+            tucan_types::Semester::Sommersemester => Self::Sommersemester,
+            tucan_types::Semester::Wintersemester => Self::Wintersemester,
+        }
+    }
+}
+
 impl std::fmt::Display for Semester {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
@@ -135,6 +144,20 @@ pub struct AnmeldungEntry {
     pub state: State,
     pub semester: Option<Semester>,
     pub year: Option<i32>,
+}
+
+impl AnmeldungEntry {
+    pub fn identifier(
+        &self,
+    ) -> (
+        std::string::String,
+        Semester,
+        std::string::String,
+        std::string::String,
+    ) {
+        let (a, b, c, d) = self.id();
+        (a.clone(), b.clone(), c.clone(), d.clone())
+    }
 }
 
 #[derive(

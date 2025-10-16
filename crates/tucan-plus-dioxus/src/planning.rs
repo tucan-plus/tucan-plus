@@ -1,8 +1,9 @@
 pub mod load_leistungsspiegel;
 pub mod load_semesters;
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 
+use diesel::Identifiable;
 use dioxus::html::FileData;
 use dioxus::prelude::*;
 use itertools::Itertools;
@@ -76,8 +77,8 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
 
 pub type MyResource = Resource<(
     Option<RecursiveAnmeldungenResponse>,
-    Vec<((i32, Semester), Vec<AnmeldungEntry>)>,
-    Vec<AnmeldungEntry>,
+    Vec<((i32, Semester), Vec<AnmeldungEntryWithMoveInformation>)>,
+    Vec<AnmeldungEntryWithMoveInformation>,
 )>;
 
 #[component]
@@ -120,6 +121,19 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         course_of_study: course_of_study.clone(),
                     })
                     .await;
+                let entries: HashMap<_, _> = per_semester
+                    .iter()
+                    .flat_map(|m| m.1.clone())
+                    .chain(no_semester.clone())
+                    .map(|m| (m.entry.id.clone(), m))
+                    .collect();
+                let mut failed_value = failed.peek().clone();
+                for f in failed_value.iter_mut() {
+                    if let Some(value) = entries.get(&f.entry.id) {
+                        *f = value.clone();
+                    }
+                }
+                failed.set(failed_value);
                 (recursive, per_semester, no_semester)
             }
         })
@@ -150,7 +164,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .await,
                 );
 
-                info!("updated");
                 loading.set(false);
                 future.restart();
             }
@@ -180,7 +193,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     wintersemester,
                 )
                 .await;
-                info!("done");
                 loading.set(false);
                 future.restart();
             }
@@ -286,7 +298,12 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
             if !failed().is_empty() {
                 h2 {
-                    "Nicht automatisch zuordnenbar"
+                    "Nicht automatisch zuordnenbar "
+                    button {
+                        onclick: move |_| failed.set(Vec::new()),
+                        class: "btn btn-secondary",
+                        "Manuell zugeordnet"
+                    }
                 }
                 AnmeldungenEntries {
                     future,
@@ -306,14 +323,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         key: "{i}{semester}",
                         h2 {
                             "{semester} {i} "
-                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
+                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.entry.state != State::MaybePlanned).map(|elem| elem.entry.credits).sum::<i32>())} }
                         }
                         AnmeldungenEntries {
                             future,
-                            entries: value.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
-                                entry,
-                                move_targets: Vec::new()
-                            }).collect_vec()
+                            entries: value
                         }
                     }
                 }
@@ -321,14 +335,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     key: "no-semester",
                     h2 {
                         "Nicht zugeordnet "
-                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
+                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.entry.state != State::MaybePlanned).map(|elem| elem.entry.credits).sum::<i32>())} }
                     }
                     AnmeldungenEntries {
                         future,
-                        entries: value.2.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
-                            entry,
-                            move_targets: Vec::new()
-                        }).collect_vec()
+                        entries: value.2
                     }
                 }
             }
@@ -348,8 +359,9 @@ pub enum PlanningState {
 #[component]
 fn AnmeldungenEntries(
     future: MyResource,
-    entries: ReadSignal<Option<Vec<AnmeldungEntryWithMoveInformation>>>,
+    entries: Option<Vec<AnmeldungEntryWithMoveInformation>>,
 ) -> Element {
+    info!("update {:?}", entries);
     let worker: MyDatabase = use_context();
     rsx! {
         table {
@@ -358,12 +370,12 @@ fn AnmeldungenEntries(
                 for (key, AnmeldungEntryWithMoveInformation {
                     entry,
                     move_targets
-                }) in entries()
+                }) in entries
                     .iter()
                     .flatten()
                     .map(|entry| (format!("{}{:?}", entry.entry.id, entry.entry.available_semester), entry)) {
                     tr {
-                        key: "{key}",
+                        key: "{key}{entry:?}{move_targets:?}",
                         td {
                             { entry.id.clone() }
                         }
@@ -392,7 +404,6 @@ fn AnmeldungenEntries(
                                         async move {
                                             let mut new_entry = entry.clone();
                                             new_entry.anmeldung = event.value();
-                                            info!("sent {:?} {new_entry:?}", entry);
                                             worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }

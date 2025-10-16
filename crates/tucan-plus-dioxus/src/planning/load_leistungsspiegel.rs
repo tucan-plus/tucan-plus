@@ -3,14 +3,16 @@ use std::{collections::HashMap, sync::LazyLock};
 use log::info;
 use tucan_plus_worker::{
     AnmeldungEntryWithMoveInformation, InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount,
-    UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
+    courseresults::ModuleResult,
+    enhanced_module_results::EnhancedModuleResult,
     mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
+use wasm_bindgen::module;
 
 use crate::RcTucanType;
 
@@ -120,7 +122,7 @@ static PATCHES: LazyLock<HashMap<&str, StudentResultLevel>> = LazyLock::new(|| {
 pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
-    modules: &HashMap<String, Module>,
+    modules: &HashMap<String, EnhancedModuleResult>,
     url: Option<String>,
     level: StudentResultLevel,
 ) -> Vec<AnmeldungEntryWithMoveInformation> {
@@ -147,15 +149,24 @@ pub async fn recursive_update(
     let inserts: Vec<_> = level
         .entries
         .iter()
-        .map(|entry| AnmeldungEntry {
+        .map(|entry| {
+            let module_result = entry
+                .id
+                .as_ref()
+                .and_then(|nr| modules.get(nr));
+             AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
-            available_semester: Semester::Sommersemester, // TODO FIXME
-            anmeldung: this_url.clone(),                  // here we need to traverse further
+            available_semester: module_result
+                .map(|m| m.semester.clone())
+                .unwrap_or(tucan_types::Semester::Wintersemester)
+                .into(),
+            anmeldung: this_url.clone(),
             module_url: entry
                 .id
                 .as_ref()
                 .and_then(|nr| modules.get(nr))
-                .map(|module| module.url.inner().to_owned()),
+                .and_then(|module| module.url.clone())
+                .map(|m| m.inner().to_owned()),
             id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
                                                                       * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
@@ -175,9 +186,9 @@ pub async fn recursive_update(
             } else {
                 State::Planned
             },
-            year: None,
-            semester: None,
-        })
+            year: module_result.map(|m| m.year),
+            semester: module_result.map(|m| m.semester.into()),
+        }})
         .collect();
     failed.extend(
         worker
@@ -208,26 +219,23 @@ pub async fn load_leistungsspiegel(
 
     student_result.level0.name = Some(name.clone());
 
-    // load all modules
-    let my_modules = tucan
-        .my_modules(
+    let module_results: HashMap<String, EnhancedModuleResult> = tucan
+        .enhanced_module_results(
             &current_session,
             RevalidationStrategy::cache(),
             SemesterId::all(),
         )
         .await
         .unwrap()
-        .modules;
-    let my_modules: HashMap<_, _> = my_modules
+        .results
         .into_iter()
-        .map(|module| (module.nr.clone(), module))
+        .map(|result| (result.nr.clone(), result))
         .collect();
 
     let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
 
     // load patches
     if let Some(patch) = PATCHES.get(name.as_str()) {
-        info!("loading patches {patch:?}");
         let this_url = worker
             .send_message(SetCpAndModuleCount {
                 course_of_study: course_of_study.to_string(),
@@ -239,13 +247,12 @@ pub async fn load_leistungsspiegel(
             recursive_update(
                 worker.clone(),
                 &course_of_study,
-                &my_modules,
+                &module_results,
                 Some(this_url),
                 patch.clone(),
             )
             .await,
         );
-        info!("loaded patches");
     }
 
     // load leistungsspiegel hierarchy
@@ -253,40 +260,12 @@ pub async fn load_leistungsspiegel(
         recursive_update(
             worker.clone(),
             &course_of_study,
-            &my_modules,
+            &module_results,
             None,
             student_result.level0,
         )
         .await,
     );
 
-    // move modules into correct semester
-    let semesters = tucan
-        .course_results(
-            &current_session,
-            RevalidationStrategy::cache(),
-            SemesterId::current(),
-        )
-        .await
-        .unwrap();
-    for semester in semesters.semester {
-        let result = tucan
-            .course_results(
-                &current_session,
-                RevalidationStrategy::cache(),
-                semester.value.clone(),
-            )
-            .await
-            .unwrap();
-        for module in result.results {
-            worker
-                .send_message(UpdateModuleYearAndSemester {
-                    course_of_study: course_of_study.clone(),
-                    semester: semester.clone(),
-                    module,
-                })
-                .await;
-        }
-    }
     failed
 }
