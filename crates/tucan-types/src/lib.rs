@@ -517,18 +517,44 @@ pub trait Tucan: Send + Sync {
                 .map(|module| (module.nr.clone(), module))
                 .collect();
             let output_semester: Vec<Semesterauswahl>;
-            let results: Vec<EnhancedModuleResult>;
-            let gpas: Vec<enhanced_module_results::GPA>;
+            let mut results: Vec<EnhancedModuleResult>;
+            let mut gpas: Vec<enhanced_module_results::GPA>;
             // SemesterId::all() will internally loop
             if semester == SemesterId::all() {
                 let all_semesters = self
                     .course_results(login_response, revalidation_strategy, SemesterId::current())
                     .await?;
                 output_semester = all_semesters.semester.clone();
+                results = Vec::new();
+                gpas = Vec::new();
                 for semester in all_semesters.semester {
                     let module_results_in_semester = self
                         .course_results(login_response, revalidation_strategy, semester.value)
                         .await?;
+                    let active = Semesterauswahl::active(&module_results_in_semester.semester);
+                    results.extend(module_results_in_semester.results.iter().map(|module| {
+                        let m = modules.get(&module.nr).unwrap();
+                        EnhancedModuleResult {
+                            year: active.year(),
+                            semester: active.semester(),
+                            url: m.url.clone(),
+                            nr: module.nr.clone(),
+                            name: module.name.clone(),
+                            lecturer: m.lecturer.clone(),
+                            grade: module.grade.clone(),
+                            credits: module.credits.clone(),
+                            pruefungen_url: module.pruefungen_url.clone(),
+                            average_url: module.average_url.clone(),
+                        }
+                    }));
+                    gpas.extend(module_results_in_semester.gpas.iter().map(|gpa| {
+                        enhanced_module_results::GPA {
+                            semester: active.clone(),
+                            course_of_study: gpa.course_of_study.clone(),
+                            average_grade: gpa.average_grade.clone(),
+                            sum_credits: gpa.sum_credits.clone(),
+                        }
+                    }));
                 }
             } else {
                 let module_results = self
