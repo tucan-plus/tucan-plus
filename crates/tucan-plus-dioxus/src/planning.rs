@@ -125,11 +125,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .iter()
                     .flat_map(|m| m.1.clone())
                     .chain(no_semester.clone())
-                    .map(|m| (m.entry.identifier().clone(), m))
+                    .map(|m| (m.entry.id, m))
                     .collect();
                 failed.with_mut(|failed| {
                     for f in failed {
-                        *f = entries[&f.entry.identifier()].clone();
+                        *f = entries[&f.entry.id].clone();
                     }
                 });
 
