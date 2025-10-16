@@ -146,6 +146,7 @@ pub async fn recursive_update(
             .await,
         );
     }
+    info!("ENTRIES: {:?}", level.entries);
     let inserts: Vec<_> = level
         .entries
         .iter()
@@ -231,12 +232,12 @@ pub async fn load_leistungsspiegel(
         .into_iter()
         .map(|result| (result.nr.clone(), result))
         .collect();
+    info!("module results: {module_results:?}");
 
     let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
 
     // load patches
     if let Some(patch) = PATCHES.get(name.as_str()) {
-        info!("loading patches {patch:?}");
         let this_url = worker
             .send_message(SetCpAndModuleCount {
                 course_of_study: course_of_study.to_string(),
@@ -254,7 +255,6 @@ pub async fn load_leistungsspiegel(
             )
             .await,
         );
-        info!("loaded patches");
     }
 
     // load leistungsspiegel hierarchy

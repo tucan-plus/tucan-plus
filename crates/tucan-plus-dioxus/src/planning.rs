@@ -163,7 +163,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .await,
                 );
 
-                info!("updated");
                 loading.set(false);
                 future.restart();
             }
@@ -193,7 +192,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     wintersemester,
                 )
                 .await;
-                info!("done");
                 loading.set(false);
                 future.restart();
             }
@@ -399,7 +397,6 @@ fn AnmeldungenEntries(
                                         async move {
                                             let mut new_entry = entry.clone();
                                             new_entry.anmeldung = event.value();
-                                            info!("sent {:?} {new_entry:?}", entry);
                                             worker.send_message(UpdateAnmeldungEntry { entry, new_entry }).await;
                                             future.restart();
                                         }

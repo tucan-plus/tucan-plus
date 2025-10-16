@@ -473,7 +473,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
         'top_level: for mut entry in self.inserts.clone() {
-            info!("handling {entry:?}");
             // find where the entry is already
             let possible_places = QueryDsl::filter(
                 anmeldungen_entries::table,
@@ -484,7 +483,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
             .select(AnmeldungEntry::as_select())
             .load(connection)
             .unwrap();
-            info!("possible places {possible_places:?}");
             'all: for possible_place in possible_places {
                 let mut anmeldung = possible_place.anmeldung.clone();
                 while anmeldung != entry.anmeldung {
@@ -500,7 +498,6 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                         continue 'all;
                     }
                 }
-                info!("found place to insert {possible_place:?}");
                 entry.anmeldung = possible_place.anmeldung;
                 diesel::insert_into(anmeldungen_entries::table)
                     .values(entry)
@@ -512,8 +509,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                     ))
                     .do_update()
                     .set((
+                        // TODO FIXME this should be cleaner
                         anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                         (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                        (anmeldungen_entries::year.eq(excluded(anmeldungen_entries::year))),
+                        (anmeldungen_entries::semester.eq(excluded(anmeldungen_entries::semester))),
                     ))
                     .execute(connection)
                     .unwrap();
@@ -530,8 +530,11 @@ impl RequestResponse for InsertEntrySomewhereBelow {
                 ))
                 .do_update()
                 .set((
+                    // TODO FIXME this should be cleaner
                     anmeldungen_entries::state.eq(excluded(anmeldungen_entries::state)),
                     (anmeldungen_entries::credits.eq(excluded(anmeldungen_entries::credits))),
+                    (anmeldungen_entries::year.eq(excluded(anmeldungen_entries::year))),
+                    (anmeldungen_entries::semester.eq(excluded(anmeldungen_entries::semester))),
                 ))
                 .execute(connection)
                 .unwrap();
@@ -553,7 +556,6 @@ impl RequestResponse for SetCpAndModuleCount {
     type Response = String;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        info!("{:?}", self);
         diesel::update(QueryDsl::filter(
             anmeldungen_plan::table,
             anmeldungen_plan::course_of_study

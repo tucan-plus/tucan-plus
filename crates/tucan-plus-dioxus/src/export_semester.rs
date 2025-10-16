@@ -105,7 +105,6 @@ pub fn FetchAnmeldung() -> Element {
             let semester = if registration_sose { "sose" } else { "wise" };
 
             for course_of_study in anmeldung_response.studiumsauswahl {
-                log::info!("start");
                 let session = current_session_handle().unwrap();
                 let atomic_current = use_signal_sync(BigRational::zero);
                 let atomic_total = use_signal_sync(BigRational::one);
@@ -158,7 +157,6 @@ pub fn FetchAnmeldung() -> Element {
                             });
                         let module_response = module_stream.collect().await;
 
-                        log::info!("downloaded done 3");
                         let content = serde_json::to_string(&SemesterExportV1 {
                             anmeldungen: response,
                             modules: module_response,
@@ -170,13 +168,11 @@ pub fn FetchAnmeldung() -> Element {
                                 Vec::new(),
                                 async_compression::Level::Precise(9),
                             );
-                        info!("file chunks: {}", in_data.len() / 100 / 1024);
                         let chunk_part = 3 * in_data.len() / 100 / 1024;
                         for chunk in in_data.chunks(100 * 1024).enumerate() {
                             let change =
                                 BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                             encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
-                            info!("{}/{}", chunk.0, in_data.len() / 100 / 1024);
                             atomic_current.with_mut(|current| *current += change.clone());
                             #[cfg(target_arch = "wasm32")]
                             crate::sleep(Duration::from_millis(0)).await;
@@ -297,7 +293,6 @@ pub fn MigrateV0ToV1() -> Element {
                 .find(|e| e.selected)
                 .unwrap()
                 .clone();
-            log::info!("start");
             let session = current_session_handle().unwrap();
             let atomic_current = use_signal_sync(BigRational::zero);
             let atomic_total = use_signal_sync(BigRational::one);
@@ -338,7 +333,6 @@ pub fn MigrateV0ToV1() -> Element {
                         });
                     let module_response = module_stream.collect().await;
 
-                    log::info!("downloaded done 3");
                     let content = serde_json::to_string(&SemesterExportV1 {
                         anmeldungen: anmeldung_response,
                         modules: module_response,
@@ -349,12 +343,10 @@ pub fn MigrateV0ToV1() -> Element {
                         Vec::new(),
                         async_compression::Level::Precise(9),
                     );
-                    info!("file chunks: {}", in_data.len() / 100 / 1024);
                     let chunk_part = 3 * in_data.len() / 100 / 1024;
                     for chunk in in_data.chunks(100 * 1024).enumerate() {
                         let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                         encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
-                        info!("{}/{}", chunk.0, in_data.len() / 100 / 1024);
                         atomic_current.with_mut(|current| *current += change.clone());
                         #[cfg(target_arch = "wasm32")]
                         crate::sleep(Duration::from_millis(0)).await;

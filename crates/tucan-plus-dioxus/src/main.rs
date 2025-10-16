@@ -345,12 +345,10 @@ pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
         async_compression::Level::Best,
     );
     // https://github.com/DioxusLabs/dioxus/blob/09c1de7574abb36b11a2c8c825ac30d7398de948/packages/core/src/tasks.rs#L288
-    info!("file chunks: {}", in_data.len() / 10 / 1024);
     for chunk in in_data.chunks(10 * 1024).enumerate() {
         encoder.write_all(chunk.1).await?; // hangs, move to worker?
         #[cfg(target_arch = "wasm32")]
         sleep(Duration::from_millis(0)).await;
-        info!("{}/{}", chunk.0, in_data.len() / 10 / 1024);
     }
     encoder.shutdown().await?;
     Ok(encoder.into_inner())
@@ -462,7 +460,6 @@ async fn worker_main() {
             let old_connection =
                 connection.replace(SqliteConnection::establish(":memory:").unwrap());
             drop(old_connection);
-            info!("databases: {:?}", util.list());
             util.delete_db("tucan-plus.db").unwrap();
             util.import_db("tucan-plus.db", &import.data).unwrap();
             connection.replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());

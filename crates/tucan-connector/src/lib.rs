@@ -67,7 +67,6 @@ pub async fn fetch_with_cache<Request, Response>(
             updated: date,
         }) = &old_content_and_date
         {
-            info!("{}", OffsetDateTime::now_utc() - *date);
             if OffsetDateTime::now_utc() - *date
                 < time::Duration::seconds(revalidation_strategy.max_age)
             {
