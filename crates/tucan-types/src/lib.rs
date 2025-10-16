@@ -14,7 +14,7 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use std::{convert::Infallible, fmt::Display, str::FromStr};
+use std::{collections::HashMap, convert::Infallible, fmt::Display, str::FromStr};
 
 use axum_core::response::{IntoResponse, Response};
 use coursedetails::{CourseDetailsRequest, CourseDetailsResponse};
@@ -35,8 +35,9 @@ use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
 use crate::{
-    enhanced_module_results::EnhancedModuleResultsResponse,
+    enhanced_module_results::{EnhancedModuleResult, EnhancedModuleResultsResponse},
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
+    mymodules::Module,
     student_result::StudentResultState,
 };
 
@@ -492,11 +493,22 @@ pub trait Tucan: Send + Sync {
         semester: SemesterId,
     ) -> impl std::future::Future<Output = Result<EnhancedModuleResultsResponse, TucanError>> {
         async move {
+            let modules: HashMap<String, Module> = self
+                .my_modules(login_response, revalidation_strategy, semester.clone())
+                .await?
+                .modules
+                .into_iter()
+                .map(|module| (module.nr.clone(), module))
+                .collect();
+            let output_semester: Vec<Semesterauswahl>;
+            let results: Vec<EnhancedModuleResult>;
+            let gpas: Vec<enhanced_module_results::GPA>;
             // SemesterId::all() will internally loop
             if semester == SemesterId::all() {
                 let all_semesters = self
                     .course_results(login_response, revalidation_strategy, SemesterId::current())
                     .await?;
+                output_semester = all_semesters.semester.clone();
                 for semester in all_semesters.semester {
                     let module_results_in_semester = self
                         .course_results(login_response, revalidation_strategy, semester.value)
@@ -506,10 +518,11 @@ pub trait Tucan: Send + Sync {
                 let module_results = self
                     .course_results(login_response, revalidation_strategy, semester.clone())
                     .await?;
+                output_semester = module_results.semester;
+                results = module_results.results;
+                gpas = module_results.gpas;
             }
-            let modules = self
-                .my_modules(login_response, revalidation_strategy, semester)
-                .await?;
+
             // now we need to combine them
             Ok(todo!())
         }
