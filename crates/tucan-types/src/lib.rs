@@ -41,7 +41,7 @@ use crate::{
     student_result::StudentResultState,
 };
 
-#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, ToSchema)]
 pub enum Semester {
     Sommersemester,
     Wintersemester,

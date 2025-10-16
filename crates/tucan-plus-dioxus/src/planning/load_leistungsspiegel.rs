@@ -154,8 +154,9 @@ pub async fn recursive_update(
                 .id
                 .as_ref()
                 .and_then(|nr| modules.get(nr))
-                .map(|m| m.semester)
-                .unwrap_or(Semester::Wintersemester),
+                .map(|m| m.semester.clone())
+                .unwrap_or(tucan_types::Semester::Wintersemester)
+                .into(),
             anmeldung: this_url.clone(),
             module_url: entry
                 .id
@@ -257,7 +258,7 @@ pub async fn load_leistungsspiegel(
         recursive_update(
             worker.clone(),
             &course_of_study,
-            &my_modules,
+            &module_results,
             None,
             student_result.level0,
         )
