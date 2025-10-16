@@ -437,7 +437,7 @@ pub struct AnmeldungenEntriesPerSemester {
 }
 
 impl RequestResponse for AnmeldungenEntriesPerSemester {
-    type Response = Vec<((i32, Semester), Vec<AnmeldungEntry>)>;
+    type Response = Vec<((i32, Semester), Vec<AnmeldungEntryWithMoveInformation>)>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         let result = QueryDsl::filter(
@@ -455,7 +455,14 @@ impl RequestResponse for AnmeldungenEntriesPerSemester {
             .into_iter()
             .chunk_by(|elem| (elem.year.unwrap(), elem.semester.unwrap()))
             .into_iter()
-            .map(|(elem, value)| (elem, value.collect_vec()))
+            .map(|(elem, value)| {
+                (
+                    elem,
+                    value
+                        .map(|value| calculate_move_targets(connection, value))
+                        .collect_vec(),
+                )
+            })
             .collect_vec()
     }
 }
@@ -467,7 +474,7 @@ pub struct AnmeldungenEntriesNoSemester {
 }
 
 impl RequestResponse for AnmeldungenEntriesNoSemester {
-    type Response = Vec<AnmeldungEntry>;
+    type Response = Vec<AnmeldungEntryWithMoveInformation>;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         QueryDsl::filter(
@@ -484,6 +491,9 @@ impl RequestResponse for AnmeldungenEntriesNoSemester {
         .select(AnmeldungEntry::as_select())
         .load(connection)
         .unwrap()
+        .into_iter()
+        .map(|value| calculate_move_targets(connection, value))
+        .collect_vec()
     }
 }
 

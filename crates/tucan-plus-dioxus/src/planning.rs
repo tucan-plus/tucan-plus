@@ -76,8 +76,8 @@ pub fn Planning(course_of_study: ReadSignal<String>) -> Element {
 
 pub type MyResource = Resource<(
     Option<RecursiveAnmeldungenResponse>,
-    Vec<((i32, Semester), Vec<AnmeldungEntry>)>,
-    Vec<AnmeldungEntry>,
+    Vec<((i32, Semester), Vec<AnmeldungEntryWithMoveInformation>)>,
+    Vec<AnmeldungEntryWithMoveInformation>,
 )>;
 
 #[component]
@@ -306,14 +306,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                         key: "{i}{semester}",
                         h2 {
                             "{semester} {i} "
-                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
+                            span { class: "badge text-bg-secondary", {format!("{} CP", value.iter().filter(|elem| elem.entry.state != State::MaybePlanned).map(|elem| elem.entry.credits).sum::<i32>())} }
                         }
                         AnmeldungenEntries {
                             future,
-                            entries: value.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
-                                entry,
-                                move_targets: Vec::new()
-                            }).collect_vec()
+                            entries: value
                         }
                     }
                 }
@@ -321,14 +318,11 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     key: "no-semester",
                     h2 {
                         "Nicht zugeordnet "
-                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.state != State::MaybePlanned).map(|elem| elem.credits).sum::<i32>())} }
+                        span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.entry.state != State::MaybePlanned).map(|elem| elem.entry.credits).sum::<i32>())} }
                     }
                     AnmeldungenEntries {
                         future,
-                        entries: value.2.into_iter().map(|entry| AnmeldungEntryWithMoveInformation {
-                            entry,
-                            move_targets: Vec::new()
-                        }).collect_vec()
+                        entries: value.2
                     }
                 }
             }
