@@ -200,6 +200,22 @@ pub struct Semesterauswahl {
     pub selected: bool,
 }
 
+impl Semesterauswahl {
+    pub fn semester(&self) -> Semester {
+        if self.name.starts_with("SoSe ") {
+            Semester::Sommersemester
+        } else {
+            Semester::Wintersemester
+        }
+    }
+    pub fn year(&self) -> i32 {
+        self.name[5..9].parse::<i32>().unwrap()
+    }
+    pub fn active(value: &Vec<Semesterauswahl>) -> &Semesterauswahl {
+        value.iter().find(|value| value.selected).unwrap()
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema, PartialEq, Eq)]
 pub enum Grade {
     G1_0,
@@ -518,13 +534,40 @@ pub trait Tucan: Send + Sync {
                 let module_results = self
                     .course_results(login_response, revalidation_strategy, semester.clone())
                     .await?;
-                output_semester = module_results.semester;
-                results = module_results.results;
-                gpas = module_results.gpas;
+                output_semester = module_results.semester.clone();
+                let active = Semesterauswahl::active(&module_results.semester);
+                results = module_results
+                    .results
+                    .iter()
+                    .map(|module| EnhancedModuleResult {
+                        year: todo!(),
+                        semester: todo!(),
+                        url: todo!(),
+                        nr: todo!(),
+                        name: todo!(),
+                        lecturer: todo!(),
+                        grade: todo!(),
+                        credits: todo!(),
+                        pruefungen_url: todo!(),
+                        average_url: todo!(),
+                    })
+                    .collect();
+                gpas = module_results
+                    .gpas
+                    .iter()
+                    .map(|gpa| enhanced_module_results::GPA {
+                        semester: active.clone(),
+                        course_of_study: gpa.course_of_study,
+                        average_grade: gpa.average_grade,
+                        sum_credits: gpa.sum_credits,
+                    })
+                    .collect();
             }
-
-            // now we need to combine them
-            Ok(todo!())
+            Ok(EnhancedModuleResultsResponse {
+                semester: output_semester,
+                results,
+                gpas,
+            })
         }
     }
 }

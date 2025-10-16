@@ -8,6 +8,7 @@ use crate::{
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct GPA {
+    pub semester: Semesterauswahl,
     pub course_of_study: String,
     pub average_grade: String,
     pub sum_credits: String,

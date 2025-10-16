@@ -243,13 +243,6 @@ pub async fn load_leistungsspiegel(
             .await
             .unwrap();
         for module in result.results {
-            /*
-            if module.semester.name.starts_with("SoSe ") {
-                    Semester::Sommersemester
-                } else {
-                    Semester::Wintersemester
-                },
-                module.semester.name[5..9].parse::<i32>().unwrap(), */
             //my_modules.insert(module.nr, module);
         }
     }
