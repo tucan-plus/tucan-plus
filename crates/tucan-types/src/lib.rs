@@ -1,6 +1,7 @@
 pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
+pub mod enhanced_module_results;
 pub mod examresults;
 pub mod gradeoverview;
 pub mod mlsstart;
@@ -34,9 +35,16 @@ use utoipa::ToSchema;
 use vv::{ActionRequest, Vorlesungsverzeichnis};
 
 use crate::{
+    enhanced_module_results::EnhancedModuleResultsResponse,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     student_result::StudentResultState,
 };
+
+#[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
+pub enum Semester {
+    Sommersemester,
+    Wintersemester,
+}
 
 #[derive(Serialize, Deserialize, ToSchema, Debug)]
 pub struct LoginRequest {
@@ -476,4 +484,34 @@ pub trait Tucan: Send + Sync {
         revalidation_strategy: RevalidationStrategy,
         gradeoverview: GradeOverviewRequest,
     ) -> impl std::future::Future<Output = Result<GradeOverviewResponse, TucanError>>;
+
+    fn enhanced_module_results(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<EnhancedModuleResultsResponse, TucanError>> {
+        async move {
+            // SemesterId::all() will internally loop
+            if semester == SemesterId::all() {
+                let all_semesters = self
+                    .course_results(login_response, revalidation_strategy, SemesterId::current())
+                    .await?;
+                for semester in all_semesters.semester {
+                    let module_results_in_semester = self
+                        .course_results(login_response, revalidation_strategy, semester.value)
+                        .await?;
+                }
+            } else {
+                let module_results = self
+                    .course_results(login_response, revalidation_strategy, semester.clone())
+                    .await?;
+            }
+            let modules = self
+                .my_modules(login_response, revalidation_strategy, semester)
+                .await?;
+            // now we need to combine them
+            Ok(todo!())
+        }
+    }
 }

@@ -3,7 +3,6 @@ use std::{collections::HashMap, sync::LazyLock};
 use log::info;
 use tucan_plus_worker::{
     AnmeldungEntryWithMoveInformation, InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount,
-    UpdateModuleYearAndSemester,
     models::{AnmeldungEntry, Semester, State},
 };
 use tucan_types::{
@@ -156,7 +155,7 @@ pub async fn recursive_update(
                 .id
                 .as_ref()
                 .and_then(|nr| modules.get(nr))
-                .map(|module| module.url.inner().to_owned()),
+                .map(|module| todo!()),
             id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
                                                                       * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
@@ -251,7 +250,7 @@ pub async fn load_leistungsspiegel(
                     Semester::Wintersemester
                 },
                 module.semester.name[5..9].parse::<i32>().unwrap(), */
-            my_modules.insert(module.nr, module);
+            //my_modules.insert(module.nr, module);
         }
     }
 

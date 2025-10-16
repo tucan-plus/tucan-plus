@@ -3,7 +3,7 @@ use std::str::FromStr;
 use html_handler::{Root, parse_document};
 use tucan_types::{
     LoginResponse, ModuleGrade, SemesterId, Semesterauswahl, TucanError,
-    courseresults::{ModuleResult, ModuleResultsResponse},
+    courseresults::{GPA, ModuleResult, ModuleResultsResponse},
     gradeoverview::GradeOverviewRequest,
 };
 
@@ -176,7 +176,7 @@ pub(crate) fn course_results_internal(
                                         <th class="tbdata" colspan="4">
                                         </th>
                                     </tr>
-                                } => (course_of_study, average_grade, sum_credits);
+                                } => GPA { course_of_study, average_grade, sum_credits };
                             </tbody>
                         </table>
                     </div>
