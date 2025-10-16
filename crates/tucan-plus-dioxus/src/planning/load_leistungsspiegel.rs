@@ -12,6 +12,7 @@ use tucan_types::{
     mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
+use wasm_bindgen::module;
 
 use crate::RcTucanType;
 
@@ -148,12 +149,14 @@ pub async fn recursive_update(
     let inserts: Vec<_> = level
         .entries
         .iter()
-        .map(|entry| AnmeldungEntry {
-            course_of_study: course_of_study.to_owned(),
-            available_semester: entry
+        .map(|entry| {
+            let module_result = entry
                 .id
                 .as_ref()
-                .and_then(|nr| modules.get(nr))
+                .and_then(|nr| modules.get(nr));
+             AnmeldungEntry {
+            course_of_study: course_of_study.to_owned(),
+            available_semester: module_result
                 .map(|m| m.semester.clone())
                 .unwrap_or(tucan_types::Semester::Wintersemester)
                 .into(),
@@ -162,7 +165,8 @@ pub async fn recursive_update(
                 .id
                 .as_ref()
                 .and_then(|nr| modules.get(nr))
-                .map(|module| module.url.inner().to_owned()),
+                .and_then(|module| module.url.clone())
+                .map(|m| m.inner().to_owned()),
             id: entry.id.as_ref().unwrap_or(&entry.name).to_owned(), /* TODO FIXME, use two columns
                                                                       * and both as primary key */
             credits: i32::try_from(entry.used_cp.unwrap_or_else(|| {
@@ -182,9 +186,9 @@ pub async fn recursive_update(
             } else {
                 State::Planned
             },
-            year: None,
-            semester: None,
-        })
+            year: module_result.map(|m| m.year),
+            semester: module_result.map(|m| m.semester.into()),
+        }})
         .collect();
     failed.extend(
         worker

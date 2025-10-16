@@ -533,14 +533,14 @@ pub trait Tucan: Send + Sync {
                         .await?;
                     let active = Semesterauswahl::active(&module_results_in_semester.semester);
                     results.extend(module_results_in_semester.results.iter().map(|module| {
-                        let m = modules.get(&module.nr).unwrap();
+                        let m = modules.get(&module.nr);
                         EnhancedModuleResult {
                             year: active.year(),
                             semester: active.semester(),
-                            url: m.url.clone(),
+                            url: m.map(|m| m.url.clone()),
                             nr: module.nr.clone(),
                             name: module.name.clone(),
-                            lecturer: m.lecturer.clone(),
+                            lecturer: m.map(|m| m.lecturer.clone()),
                             grade: module.grade.clone(),
                             credits: module.credits.clone(),
                             pruefungen_url: module.pruefungen_url.clone(),
@@ -566,14 +566,14 @@ pub trait Tucan: Send + Sync {
                     .results
                     .iter()
                     .map(|module| {
-                        let m = modules.get(&module.nr).unwrap();
+                        let m = modules.get(&module.nr);
                         EnhancedModuleResult {
                             year: active.year(),
                             semester: active.semester(),
-                            url: m.url.clone(),
+                            url: m.map(|m| m.url.clone()),
                             nr: module.nr.clone(),
                             name: module.name.clone(),
-                            lecturer: m.lecturer.clone(),
+                            lecturer: m.map(|m| m.lecturer.clone()),
                             grade: module.grade.clone(),
                             credits: module.credits.clone(),
                             pruefungen_url: module.pruefungen_url.clone(),

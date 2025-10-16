@@ -25,10 +25,10 @@ pub struct EnhancedModuleResultsResponse {
 pub struct EnhancedModuleResult {
     pub year: i32,
     pub semester: Semester,
-    pub url: ModuleDetailsRequest,
+    pub url: Option<ModuleDetailsRequest>,
     pub nr: String,
     pub name: String,
-    pub lecturer: String,
+    pub lecturer: Option<String>,
     pub grade: ModuleGrade,
     pub credits: String,
     pub pruefungen_url: Option<String>,
