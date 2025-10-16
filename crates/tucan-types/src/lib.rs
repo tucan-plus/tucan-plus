@@ -539,17 +539,20 @@ pub trait Tucan: Send + Sync {
                 results = module_results
                     .results
                     .iter()
-                    .map(|module| EnhancedModuleResult {
-                        year: todo!(),
-                        semester: todo!(),
-                        url: todo!(),
-                        nr: todo!(),
-                        name: todo!(),
-                        lecturer: todo!(),
-                        grade: todo!(),
-                        credits: todo!(),
-                        pruefungen_url: todo!(),
-                        average_url: todo!(),
+                    .map(|module| {
+                        let m = modules.get(&module.nr).unwrap();
+                        EnhancedModuleResult {
+                            year: active.year(),
+                            semester: active.semester(),
+                            url: m.url.clone(),
+                            nr: module.nr.clone(),
+                            name: module.name.clone(),
+                            lecturer: m.lecturer.clone(),
+                            grade: module.grade.clone(),
+                            credits: module.credits.clone(),
+                            pruefungen_url: module.pruefungen_url.clone(),
+                            average_url: module.average_url.clone(),
+                        }
                     })
                     .collect();
                 gpas = module_results
@@ -557,9 +560,9 @@ pub trait Tucan: Send + Sync {
                     .iter()
                     .map(|gpa| enhanced_module_results::GPA {
                         semester: active.clone(),
-                        course_of_study: gpa.course_of_study,
-                        average_grade: gpa.average_grade,
-                        sum_credits: gpa.sum_credits,
+                        course_of_study: gpa.course_of_study.clone(),
+                        average_grade: gpa.average_grade.clone(),
+                        sum_credits: gpa.sum_credits.clone(),
                     })
                     .collect();
             }
