@@ -129,7 +129,9 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .collect();
                 let mut failed_value = failed.peek().clone();
                 for f in failed_value.iter_mut() {
-                    *f = entries[&f.entry.id].clone();
+                    if let Some(value) = entries.get(&f.entry.id) {
+                        *f = value.clone();
+                    }
                 }
                 failed.set(failed_value);
                 (recursive, per_semester, no_semester)
@@ -296,7 +298,12 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
             }
             if !failed().is_empty() {
                 h2 {
-                    "Nicht automatisch zuordnenbar"
+                    "Nicht automatisch zuordnenbar "
+                    button {
+                        onclick: move |_| failed.set(Vec::new()),
+                        class: "btn btn-secondary",
+                        "Manuell zugeordnet"
+                    }
                 }
                 AnmeldungenEntries {
                     future,
