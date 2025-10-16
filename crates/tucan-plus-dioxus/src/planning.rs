@@ -124,13 +124,12 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                 let entries: HashMap<_, _> = per_semester
                     .iter()
                     .flat_map(|m| m.1.clone())
-                    .chain(no_semester)
+                    .chain(no_semester.clone())
                     .map(|m| (m.entry.identifier().clone(), m))
                     .collect();
-                // here we could update failed
                 failed.with_mut(|failed| {
                     for f in failed {
-                        *f = entries[&f.entry.identifier()];
+                        *f = entries[&f.entry.identifier()].clone();
                     }
                 });
 
