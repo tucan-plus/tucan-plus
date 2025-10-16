@@ -360,43 +360,6 @@ impl RequestResponse for UpdateAnmeldungEntryRequest {
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
-pub struct UpdateModuleYearAndSemester {
-    pub course_of_study: String,
-    pub semester: Semesterauswahl,
-    pub module: ModuleResult,
-}
-
-impl RequestResponse for UpdateModuleYearAndSemester {
-    type Response = ();
-
-    fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        diesel::update(anmeldungen_entries::table)
-            .filter(
-                anmeldungen_entries::course_of_study
-                    .eq(&self.course_of_study)
-                    .and(
-                        anmeldungen_entries::id
-                            .eq(&self.module.nr)
-                            // TODO FIXME if you can register it at multiple paths
-                            // this will otherwise break
-                            .and(anmeldungen_entries::state.ne(State::NotPlanned)),
-                    ),
-            )
-            .set((
-                anmeldungen_entries::semester.eq(if self.semester.name.starts_with("SoSe ") {
-                    Semester::Sommersemester
-                } else {
-                    Semester::Wintersemester
-                }),
-                (anmeldungen_entries::year.eq(self.semester.name[5..9].parse::<i32>().unwrap())),
-            ))
-            .execute(connection)
-            .unwrap();
-    }
-}
-
-#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
-#[derive(Debug)]
 pub struct UpdateAnmeldungEntry {
     pub entry: AnmeldungEntry,
     pub new_entry: AnmeldungEntry,
@@ -676,7 +639,6 @@ request_response_enum!(
     AnmeldungEntriesRequest
     InsertOrUpdateAnmeldungenRequest
     UpdateAnmeldungEntryRequest
-    UpdateModuleYearAndSemester
     InsertEntrySomewhereBelow
     SetCpAndModuleCount
     CacheRequest

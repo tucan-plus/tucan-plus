@@ -8,6 +8,7 @@ use tucan_plus_worker::{
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
+    courseresults::ModuleResult,
     mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
@@ -120,7 +121,7 @@ static PATCHES: LazyLock<HashMap<&str, StudentResultLevel>> = LazyLock::new(|| {
 pub async fn recursive_update(
     worker: MyDatabase,
     course_of_study: &str,
-    modules: &HashMap<String, Module>,
+    modules: &HashMap<String, ModuleResult>,
     url: Option<String>,
     level: StudentResultLevel,
 ) -> Vec<AnmeldungEntryWithMoveInformation> {
@@ -208,7 +209,10 @@ pub async fn load_leistungsspiegel(
 
     student_result.level0.name = Some(name.clone());
 
-    // load all modules
+    // TODO I think we should create an enhanced intermediate api that enriches these apis with this useful information
+    // this would also be good for our other endpoints in general
+
+    // this contains links to the modules
     let my_modules = tucan
         .my_modules(
             &current_session,
@@ -216,12 +220,40 @@ pub async fn load_leistungsspiegel(
             SemesterId::all(),
         )
         .await
-        .unwrap()
-        .modules;
-    let my_modules: HashMap<_, _> = my_modules
-        .into_iter()
-        .map(|module| (module.nr.clone(), module))
-        .collect();
+        .unwrap();
+
+    let my_modules: HashMap<String, ModuleResult> = HashMap::new();
+
+    // this does not contain a link to the module
+    // extract in which year and semester you did a module
+    let semesters = tucan
+        .course_results(
+            &current_session,
+            RevalidationStrategy::cache(),
+            SemesterId::current(),
+        )
+        .await
+        .unwrap();
+    for semester in semesters.semester {
+        let result = tucan
+            .course_results(
+                &current_session,
+                RevalidationStrategy::cache(),
+                semester.value.clone(),
+            )
+            .await
+            .unwrap();
+        for module in result.results {
+            /*
+            if module.semester.name.starts_with("SoSe ") {
+                    Semester::Sommersemester
+                } else {
+                    Semester::Wintersemester
+                },
+                module.semester.name[5..9].parse::<i32>().unwrap(), */
+            my_modules.insert(module.nr, module);
+        }
+    }
 
     let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
 
@@ -260,33 +292,5 @@ pub async fn load_leistungsspiegel(
         .await,
     );
 
-    // move modules into correct semester
-    let semesters = tucan
-        .course_results(
-            &current_session,
-            RevalidationStrategy::cache(),
-            SemesterId::current(),
-        )
-        .await
-        .unwrap();
-    for semester in semesters.semester {
-        let result = tucan
-            .course_results(
-                &current_session,
-                RevalidationStrategy::cache(),
-                semester.value.clone(),
-            )
-            .await
-            .unwrap();
-        for module in result.results {
-            worker
-                .send_message(UpdateModuleYearAndSemester {
-                    course_of_study: course_of_study.clone(),
-                    semester: semester.clone(),
-                    module,
-                })
-                .await;
-        }
-    }
     failed
 }
