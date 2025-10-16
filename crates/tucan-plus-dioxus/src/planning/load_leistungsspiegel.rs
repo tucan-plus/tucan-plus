@@ -146,7 +146,6 @@ pub async fn recursive_update(
             .await,
         );
     }
-    info!("ENTRIES: {:?}", level.entries);
     let inserts: Vec<_> = level
         .entries
         .iter()
@@ -232,7 +231,6 @@ pub async fn load_leistungsspiegel(
         .into_iter()
         .map(|result| (result.nr.clone(), result))
         .collect();
-    info!("module results: {module_results:?}");
 
     let mut failed: Vec<AnmeldungEntryWithMoveInformation> = Vec::new();
 

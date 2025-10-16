@@ -125,14 +125,13 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     .iter()
                     .flat_map(|m| m.1.clone())
                     .chain(no_semester.clone())
-                    .map(|m| (m.entry.id, m))
+                    .map(|m| (m.entry.id.clone(), m))
                     .collect();
-                failed.with_mut(|failed| {
-                    for f in failed {
-                        *f = entries[&f.entry.id].clone();
-                    }
-                });
-
+                let mut failed_value = failed.peek().clone();
+                for f in failed_value.iter_mut() {
+                    *f = entries[&f.entry.id].clone();
+                }
+                failed.set(failed_value);
                 (recursive, per_semester, no_semester)
             }
         })
@@ -353,8 +352,9 @@ pub enum PlanningState {
 #[component]
 fn AnmeldungenEntries(
     future: MyResource,
-    entries: ReadSignal<Option<Vec<AnmeldungEntryWithMoveInformation>>>,
+    entries: Option<Vec<AnmeldungEntryWithMoveInformation>>,
 ) -> Element {
+    info!("update {:?}", entries);
     let worker: MyDatabase = use_context();
     rsx! {
         table {
@@ -363,12 +363,12 @@ fn AnmeldungenEntries(
                 for (key, AnmeldungEntryWithMoveInformation {
                     entry,
                     move_targets
-                }) in entries()
+                }) in entries
                     .iter()
                     .flatten()
                     .map(|entry| (format!("{}{:?}", entry.entry.id, entry.entry.available_semester), entry)) {
                     tr {
-                        key: "{key}",
+                        key: "{key}{entry:?}{move_targets:?}",
                         td {
                             { entry.id.clone() }
                         }
