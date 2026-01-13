@@ -6,7 +6,7 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-dioxus-devtools = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["serve"] }
+dioxus-devtools = { version = "0.7", features = ["serve"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

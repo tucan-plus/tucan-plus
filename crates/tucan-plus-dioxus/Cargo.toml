@@ -8,9 +8,9 @@ rust-version = "1.87"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", features = ["launch", "devtools", "logger", "lib", "router" ] }
-dioxus-desktop = { git = "https://github.com/mohe2015/dioxus.git", branch = "my", optional = true }
-dioxus-router = { git = "https://github.com/mohe2015/dioxus.git", branch = "my" }
+dioxus = { version = "0.7", features = ["launch", "devtools", "logger", "lib", "router" ] }
+dioxus-desktop = { version = "0.7", optional = true }
+dioxus-router = { version = "0.7" }
 tucan-types = { path = "../tucan-types" }
 log = { version = "0.4" }
 reqwest = { version = "0.12.9", default-features = false, features = ["rustls-tls", "http2", "charset", "json"] }
@@ -26,7 +26,7 @@ futures = "0.3.31"
 serde-wasm-bindgen = "0.6"
 serde = { version = "1", features = ["derive"] }
 tucan-plus-worker = { path = "../tucan-plus-worker" }
-tokio = { version = "1" }
+tokio = { version = "1", features = ["sync"] }
 rand = "0.9.2"
 time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 # https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
@@ -42,11 +42,12 @@ tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { git = "https://github.com/mohe2015/sqlite-wasm-rs.git", branch = "sqlite3_os_end", default-features = false, features = ["bundled"] }
+sqlite-wasm-rs = { version = "0.5.1", default-features = false }
+sqlite-wasm-vfs = "0.1.1"
 cookie = "0.18"
 getrandom = { version = "0.3", features = ["wasm_js"] }
-web-extensions = { optional = true, git = "https://github.com/mohe2015/web-extensions", branch = "cookies" }
-web-extensions-sys = { optional = true,version = "0.4.2" }
+web-extensions = { optional = true, git = "https://github.com/web-extensions-rs/web-extensions" }
+web-extensions-sys = { optional = true, version = "0.4.2" }
 web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
 wasm-bindgen = { version = "0.2.104" }
 wasm-bindgen-futures = "0.4"

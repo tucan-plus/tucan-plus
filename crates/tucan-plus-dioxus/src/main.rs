@@ -257,9 +257,9 @@ pub fn Root() -> Element {
             p {
                 { "Du kannst gerne die " }
                 a {
-                    href: "https://tucan-plus.github.io/tucan-plus/",
+                    href: "https://github.com/tucan-plus/tucan-plus?tab=readme-ov-file#installation",
                     target: "_blank",
-                    { "Browsererweiterung herunterladen" }
+                    { "Browsererweiterung installieren" }
                 }
                 { ", falls Du diese noch nicht verwendest." }
             }
@@ -433,8 +433,8 @@ async fn worker_main() {
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
-    let util = sqlite_wasm_rs::sahpool_vfs::install(
-        &sqlite_wasm_rs::sahpool_vfs::OpfsSAHPoolCfg::default(),
+    let util = sqlite_wasm_vfs::sahpool::install(
+        &sqlite_wasm_vfs::sahpool::OpfsSAHPoolCfg::default(),
         true,
     )
     .await
