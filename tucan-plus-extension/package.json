@@ -8,12 +8,12 @@
   },
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
-    "@eslint/js": "^9.34.0",
-    "@types/chrome": "^0.1.4",
-    "eslint": "^9.34.0",
-    "sass": "^1.91.0",
-    "typescript": "^5.9.2",
-    "typescript-eslint": "^8.41.0"
+    "@eslint/js": "^9.39.2",
+    "@types/chrome": "^0.1.33",
+    "eslint": "^9.39.2",
+    "sass": "^1.97.2",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.53.0"
   },
   "dependencies": {
     "bootstrap": "^5.3.8"
