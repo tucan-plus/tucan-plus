@@ -21,4 +21,4 @@ jobs:
     - uses: actions/checkout@v5
     - run: |
         pip install dogtail qecore psutil
-        LOGGING=true qecore-headless --debug --session-type xorg
+        PRODUCTION=false RICH_TRACEBACK=true LOGGING=true qecore-headless --debug --session-type xorg
