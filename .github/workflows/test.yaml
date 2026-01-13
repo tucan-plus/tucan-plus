@@ -21,4 +21,4 @@ jobs:
     - uses: actions/checkout@v5
     - run: |
         pip install dogtail qecore psutil
-        qecore-headless
+        qecore-headless --session-type xorg
