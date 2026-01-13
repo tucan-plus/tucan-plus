@@ -19,13 +19,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v5
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       with:
         path: ~/.cargo
         key: cargo
-    - uses: actions/cache@v4
+    - uses: actions/cache@v5
       with:
-        path: target
+        path: |
+          !target/dx
+          target
         key: target-${{ hashFiles('**/Cargo.lock') }}
     - id: version
       run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
