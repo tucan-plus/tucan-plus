@@ -15,9 +15,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v5
+    - uses: Swatinem/rust-cache@v2
     - run: cargo install dioxus-cli
-    - name: Build
-      run: |
-        cd crates/tucan-plus-dioxus
-        dx bundle --features direct --release
+    - working-directory: crates/tucan-plus-dioxus
+      run: dx bundle --web --features direct --release
