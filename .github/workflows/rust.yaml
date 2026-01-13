@@ -40,3 +40,6 @@ jobs:
       with:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
         path: tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+    - run: |
+        pip install dogtail qecore
+        qecore-headless
