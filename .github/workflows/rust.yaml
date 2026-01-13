@@ -16,6 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+    - run: cargo install dioxus-cli
     - name: Build
       run: |
         cd crates/tucan-plus-dioxus
