@@ -1,8 +1,5 @@
 name: Rust
 
-permissions:
-  contents: read
-
 on:
   push:
     branches: [ "main" ]
@@ -14,30 +11,12 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+
+    runs-on: ubuntu-latest
+
     steps:
-    - name: Add SSH key
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
+    - uses: actions/checkout@v4
+    - name: Build
       run: |
-          mkdir -p /home/runner/.ssh
-          ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
-          chmod 600 /home/runner/.ssh/github_actions
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add /home/runner/.ssh/github_actions
-    - env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-          set -ex
-          OUTPUT=$(echo '
-          DIR=$(mktemp -d)
-          cd $DIR
-          git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucan-plus/tucan-plus
-          cd tucan-plus
-          nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket build -L .#extension .#api-server
-          echo $DIR
-          ' | ssh -o ServerAliveInterval=30 root@selfmade4u.de 'bash')
-          echo "$OUTPUT"
-          rsync -vL root@selfmade4u.de:$(echo "$OUTPUT" | tail -n1)/tucan-plus/result result.zip
-          ls -lh result.zip
+        cd crates/tucan-plus-dioxus
+        dx bundle --features direct --release
