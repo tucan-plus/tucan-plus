@@ -22,8 +22,15 @@ jobs:
     - name: Extract version
       id: version
       run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
-    - uses: Swatinem/rust-cache@v2
+    - uses: actions/cache@v4
+      with:
+        path: ~/.cargo
+        key: cargo
     - run: cargo install dioxus-cli
+    - uses: actions/cache@v4
+      with:
+        path: target
+        key: target-${{ hashFiles('**/Cargo.lock') }}
     - working-directory: crates/tucan-plus-dioxus
       run: dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --features direct --release
     - working-directory: tucan-plus-extension
@@ -31,4 +38,4 @@ jobs:
     - uses: actions/upload-artifact@v6
       with:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
-        path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+        path: tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
