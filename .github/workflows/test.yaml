@@ -20,5 +20,5 @@ jobs:
     steps:
     - uses: actions/checkout@v5
     - run: |
-        pip install dogtail qecore
+        pip install dogtail qecore psutil
         qecore-headless
