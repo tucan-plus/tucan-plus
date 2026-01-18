@@ -14,32 +14,10 @@ env:
 
 jobs:
   build:
-
-    runs-on: ubuntu-latest
-
+    runs-on: ubuntu-24.04
     steps:
-    - uses: actions/checkout@v5
-    - uses: actions/cache@v5
-      with:
-        path: ~/.cargo
-        key: cargo
-    - uses: actions/cache@v5
-      with:
-        path: |
-          !target/dx
-          target
-        key: target-${{ hashFiles('**/Cargo.lock') }}
-    - id: version
-      run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
-    - run: cargo install dioxus-cli
-    - working-directory: crates/tucan-plus-dioxus
-      run: dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --features direct --release
-    - working-directory: tucan-plus-extension
-      run: zip -r ../tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx *
-    - uses: actions/upload-artifact@v6
-      with:
-        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
-        path: tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - run: |
-        pip install dogtail qecore
-        qecore-headless
+          nix build -L .#extension .#api-server
