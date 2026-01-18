@@ -289,3 +289,13 @@ seems like your wahlbereiche will be reduced to 3 if you complete your bachelor
 
 inkscape -w 512 ../crates/tucan-plus-dioxus/assets/logo.svg -o logo.png
 ```
+
+## CI
+
+Use a GitHub self-hosted runner with e.g. Ubuntu and Nix installed (so no NixOS).
+
+Important: Enable "Require approval for all outside collaborators"
+
+https://docs.github.com/en/actions/reference/security/secure-use#hardening-for-self-hosted-runners
+
+Alternative: Run the self-hosted runner in a containerized environment and mount the nix store into it or something like that.
