@@ -42,8 +42,8 @@ tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
 dbus-secret-service-keyring-store = { version = "0.2", features = ["crypto-rust"], optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.5.1", default-features = false }
-sqlite-wasm-vfs = "0.1.1"
+sqlite-wasm-rs = { version = "0.5.2" }
+sqlite-wasm-vfs = "0.2.0"
 cookie = "0.18"
 getrandom = { version = "0.3", features = ["wasm_js"] }
 web-extensions = { optional = true, git = "https://github.com/web-extensions-rs/web-extensions" }

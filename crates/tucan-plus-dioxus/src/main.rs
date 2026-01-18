@@ -433,7 +433,7 @@ async fn worker_main() {
 
     let global = js_sys::global().unchecked_into::<web_sys::DedicatedWorkerGlobalScope>();
 
-    let util = sqlite_wasm_vfs::sahpool::install(
+    let util = sqlite_wasm_vfs::sahpool::install::<sqlite_wasm_rs::WasmOsCallback>(
         &sqlite_wasm_vfs::sahpool::OpfsSAHPoolCfg::default(),
         true,
     )

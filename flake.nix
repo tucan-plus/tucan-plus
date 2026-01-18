@@ -420,14 +420,14 @@
           pkgs.buildWasmBindgenCli rec {
             src = pkgs.fetchCrate {
               pname = "wasm-bindgen-cli";
-              version = "0.2.104";
-              hash = "sha256-9kW+a7IreBcZ3dlUdsXjTKnclVW1C1TocYfY8gUgewE=";
+              version = "0.2.108";
+              hash = "sha256-UsuxILm1G6PkmVw0I/JF12CRltAfCJQFOaT4hFwvR8E=";
             };
 
             cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
               inherit src;
               inherit (src) pname version;
-              hash = "sha256-V0AV5jkve37a5B/UvJ9B3kwOW72vWblST8Zxs8oDctE=";
+              hash = "sha256-iqQiWbsKlLBiJFeqIYiXo3cqxGLSjNM8SOWXGM9u43E=";
             };
           }
         );
@@ -498,8 +498,6 @@
           dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
           buildDepsOnly = {
             preBuild = ''
-              export CC=emcc
-              export CXX=emcc
             '';
             dummySrc = craneLib.mkDummySrc {
               src = client-args.src;
@@ -518,8 +516,6 @@
           };
           notBuildDepsOnly = {
             preBuild = ''
-              export CC=emcc
-              export CXX=emcc
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/ || true
             '';
             # temporary https://github.com/DioxusLabs/dioxus/issues/4758
@@ -535,8 +531,13 @@
               '')
             ];
           };
+          CC_wasm32_unknown_unknown = "${pkgs.llvmPackages_21.clang-unwrapped}/bin/clang";
+          CXX_wasm32_unknown_unknown = "${pkgs.llvmPackages_21.clang-unwrapped}/bin/clang++";
+          AR_wasm32_unknown_unknown = "${pkgs.llvmPackages_21.bintools-unwrapped}/bin/llvm-ar";
+          AS_wasm32_unknown_unknown = "${pkgs.llvmPackages_21.bintools-unwrapped}/bin/llvm-as";
+          STRIP_wasm32_unknown_unknown = "${pkgs.llvmPackages_21.bintools-unwrapped}/bin/llvm-strip";
+          CPATH = "${lib.getLib pkgs.llvmPackages_21.clang-unwrapped}/lib/clang/${lib.versions.major (lib.getVersion pkgs.llvmPackages_21.clang-unwrapped)}/include";
           strictDeps = true;
-          stdenv = p: p.emscriptenStdenv;
           doCheck = false;
           src = lib.fileset.toSource {
             root = ./.;
@@ -548,7 +549,6 @@
           checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
             pkgs.which
-            pkgs.emscripten
             wasm-bindgen
             pkgs.binaryen
           ];
@@ -840,7 +840,6 @@
         devShells.default = pkgs.mkShell {
           shellHook = ''
             export PATH=~/.cargo/bin/:$PATH
-            export CC_wasm32_unknown_emscripten=emcc
             #export SERVICE_WORKER_JS_PATH=/assets/wasm/tucan-plus-service-worker.js
           '';
           buildInputs = [
@@ -870,7 +869,6 @@
             pkgs.nodejs
             pkgs.bun
             pkgs.pkg-config
-            pkgs.emscripten
             pkgs.gobject-introspection
             pkgs.jdk
             pkgs.android-tools
