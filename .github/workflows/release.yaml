@@ -21,36 +21,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
     - uses: actions/checkout@v4
-    - name: Add SSH key
-      env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-          mkdir -p /home/runner/.ssh
-          ssh-keyscan selfmade4u.de >> /home/runner/.ssh/known_hosts
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > /home/runner/.ssh/github_actions
-          chmod 600 /home/runner/.ssh/github_actions
-          ssh-agent -a $SSH_AUTH_SOCK > /dev/null
-          ssh-add /home/runner/.ssh/github_actions
+    - uses: DeterminateSystems/nix-installer-action@main
+    - uses: DeterminateSystems/magic-nix-cache-action@main
     - name: Extract version
       id: version
       run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
-    - env:
-        SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-      run: |
-        set -ex
-        OUTPUT=$(echo '
-        DIR=$(mktemp -d)
-        cd $DIR
-        git clone --depth 1 --revision ${{ github.sha }} https://github.com/tucan-plus/tucan-plus
-        cd tucan-plus
+    - run: |
         echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
-        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix --extra-experimental-features "nix-command flakes" --store unix:///nix/var/nix/daemon-socket/socket run -L .#publish
-        echo $DIR
-        ' | ssh -o ServerAliveInterval=30 root@selfmade4u.de 'bash')
-        echo "$OUTPUT"
-        rsync -vr --include='*.crx' --include='*.xpi' --exclude="*" root@selfmade4u.de:$(echo "$OUTPUT" | tail -n1)/tucan-plus/out/ out
-        ls -lh out
+        WEB_EXT_API_KEY=${{ secrets.WEB_EXT_API_KEY }} WEB_EXT_API_SECRET=${{ secrets.WEB_EXT_API_SECRET }} CHROMIUM_EXTENSION_SIGNING_KEY=$PWD/cert.pem nix run -L .#publish
     - uses: actions/upload-artifact@v4
       with:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx

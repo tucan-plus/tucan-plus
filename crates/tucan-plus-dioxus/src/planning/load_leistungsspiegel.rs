@@ -12,7 +12,6 @@ use tucan_types::{
     mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
-use wasm_bindgen::module;
 
 use crate::RcTucanType;
 

@@ -84,7 +84,7 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ### Running as local webserver
 
 ```bash
-cargo install --git https://github.com/mohe2015/dioxus --branch my dioxus-cli
+cargo install dioxus-cli
 
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
@@ -102,7 +102,7 @@ dx bundle --web --features direct --release --wasm-split --features "dioxus-rout
 ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
 
 # in second tab
-cargo install --locked bacon
+cargo install bacon
 cd crates/tucan-plus-api/
 bacon run
 
