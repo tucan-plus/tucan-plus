@@ -14,12 +14,8 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: self-hosted
     steps:
     - uses: actions/checkout@v4
-    - uses: DeterminateSystems/nix-installer-action@main
-    - uses: DeterminateSystems/magic-nix-cache-action@main
-      with:
-        use-flakehub: false
     - run: |
           nix build -L .#extension .#api-server
