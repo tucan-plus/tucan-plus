@@ -57,10 +57,10 @@
 
         dioxus-cli = craneLib.buildPackage {
           src = pkgs.fetchFromGitHub {
-            owner = "mohe2015";
+            owner = "DioxusLabs";
             repo = "dioxus";
-            rev = "72bfb16e204240883aee195ef7c2993c26ad0d9b";
-            hash = "sha256-GGP60d3IJpVAlvnfk8CjvLrb42GoHp+KsVAPa+Nvv9Q=";
+            tag = "v0.7.3";
+            hash = "sha256-9BoJn8sgjij8eD6y90JzUArITWJog8RgttPTN8MS6UI=";
           };
           doCheck = false;
           strictDeps = true;
