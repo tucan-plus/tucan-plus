@@ -9,11 +9,11 @@
   "license": "AGPL-3.0-or-later",
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@types/chrome": "^0.1.33",
+    "@types/chrome": "^0.1.36",
     "eslint": "^9.39.2",
-    "sass": "^1.97.2",
+    "sass": "^1.97.3",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.0"
+    "typescript-eslint": "^8.54.0"
   },
   "dependencies": {
     "bootstrap": "^5.3.8"
