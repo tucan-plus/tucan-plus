@@ -17,7 +17,7 @@ utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
 tucan-connector = { path = "../tucan-connector" }
 utoipa-axum = "0.2"
 tucan-types = { path = "../tucan-types" }
-axum-extra = { version = "0.10.0", features = ["cookie"]}
+axum-extra = { version = "0.12.5", features = ["cookie"]}
 serde_json = "1.0.133"
 tower-http = { version = "0.6.6", features = ["cors"] }
 tower = "0.5.2"
