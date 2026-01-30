@@ -662,7 +662,7 @@ mod tests {
             .await;
         TucanConnector::new_test(
             client.clone(),
-            MyDatabase::wait_for_worker().await,
+            MyDatabase::wait_for_worker(),
             semaphore.clone(),
         )
         .await
