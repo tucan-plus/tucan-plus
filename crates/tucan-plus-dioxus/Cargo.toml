@@ -35,7 +35,7 @@ num = "0.4"
 itertools = "0.14"
 async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
 diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] } # libsqlite3-sys 0.36
-diesel_migrations = { version = "2.3.0", features = ["sqlite"] }
+diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
