@@ -8,52 +8,52 @@ rust-version = "1.87"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-dioxus = { version = "0.7", features = ["launch", "devtools", "logger", "lib", "router" ] }
-dioxus-desktop = { version = "0.7", optional = true }
-dioxus-router = { version = "0.7" }
-tucan-types = { path = "../tucan-types" }
-log = { version = "0.4" }
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset", "json"] }
-serde_json = "1"
-url = "2"
-tucan-connector = { optional = true, path = "../tucan-connector" }
-tucan-plus-planning = { path = "../tucan-plus-planning" }
-tracing = "0.1.41"
-plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
-keyring-core = { version = "0.7", optional = true }
-git-version = "0.3"
-futures = "0.3.31"
-serde-wasm-bindgen = "0.6"
-serde = { version = "1", features = ["derive"] }
-tucan-plus-worker = { path = "../tucan-plus-worker" }
-tokio = { version = "1", features = ["sync"] }
-rand = "0.9.2"
-time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
+dioxus.workspace = true
+dioxus-desktop = { workspace = true, optional = true }
+dioxus-router.workspace = true
+tucan-types.workspace = true
+log.workspace = true
+reqwest = { workspace = true, features = ["json"] }
+serde_json.workspace = true
+url.workspace = true
+tucan-connector = { workspace = true, optional = true }
+tucan-plus-planning.workspace = true
+tracing.workspace = true
+plotters.workspace = true
+keyring-core = { workspace = true, optional = true }
+git-version.workspace = true
+futures.workspace = true
+serde-wasm-bindgen.workspace = true
+serde.workspace = true
+tucan-plus-worker.workspace = true
+tokio = { workspace = true, features = ["sync"] }
+rand.workspace = true
+time.workspace = true
 # https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
-fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"], optional = true }
-num = "0.4"
-itertools = "0.14"
-async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] } # libsqlite3-sys 0.36
-diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
+fragile = { workspace = true, optional = true }
+num.workspace = true
+itertools.workspace = true
+async-compression.workspace = true
+diesel.workspace = true
+diesel_migrations.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { features = ["macros", "rt", "rt-multi-thread"], version = "1" }
-dbus-secret-service-keyring-store = { version = "0.3", features = ["crypto-rust"], optional = true }
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
+dbus-secret-service-keyring-store = { workspace = true, optional = true }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-sqlite-wasm-rs = { version = "0.5.2" }
-sqlite-wasm-vfs = "0.2.0"
-cookie = "0.18"
-getrandom = { version = "0.3", features = ["wasm_js"] }
-web-extensions = { optional = true, git = "https://github.com/web-extensions-rs/web-extensions" }
-web-extensions-sys = { optional = true, version = "0.4.2" }
-web-sys = { version = "0.3", features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
-wasm-bindgen = { version = "0.2.104" }
-wasm-bindgen-futures = "0.4"
-android-native-keyring-store = { version = "0.5", optional = true }
-js-sys = "0.3"
-console_log = { version = "1", features = ["color"] }
+sqlite-wasm-rs.workspace = true
+sqlite-wasm-vfs.workspace = true
+cookie.workspace = true
+getrandom.workspace = true
+web-extensions = { workspace = true, optional = true }
+web-extensions-sys = { workspace = true, optional = true }
+web-sys = { workspace = true, features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
+wasm-bindgen.workspace = true
+wasm-bindgen-futures.workspace = true
+android-native-keyring-store = { workspace = true, optional = true }
+js-sys.workspace = true
+console_log = { workspace = true, features = ["color"] }
 
 # extension: target wasm and feature direct
 # native: target native and feature direct

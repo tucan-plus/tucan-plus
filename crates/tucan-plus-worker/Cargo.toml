@@ -4,32 +4,32 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-log = { version = "0.4" }
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] } # libsqlite3-sys 0.36
-diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
-tucan-types = { path = "../tucan-types" }
-tokio = { features = [], version = "1" }
-time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
-serde = { version = "1", features = ["derive"] }
-futures = "0.3.31"
-itertools = "0.14"
+log.workspace = true
+diesel.workspace = true
+diesel_migrations.workspace = true
+tucan-types.workspace = true
+tokio = { workspace = true, default-features = false }
+time.workspace = true
+serde.workspace = true
+futures.workspace = true
+itertools.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
+libsqlite3-sys.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # TODO FIXME: separate the rpc layer
-sqlite-wasm-rs = { version = "0.5.2" }
-getrandom = { version = "0.3", features = ["wasm_js"] }
-wasm-bindgen-futures = "0.4"
-serde-wasm-bindgen = "0.6"
-wasm-bindgen = { version = "0.2.104" }
-web-sys = { version = "0.3", features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker", "BroadcastChannel", "Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
-js-sys = "0.3"
-typetag = "0.2"
-erased-serde = "0.4"
-enum_dispatch = "0.3.13"
+sqlite-wasm-rs.workspace = true
+getrandom.workspace = true
+wasm-bindgen-futures.workspace = true
+serde-wasm-bindgen.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["DedicatedWorkerGlobalScope", "MessageEvent", "Worker", "BroadcastChannel", "Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
+js-sys.workspace = true
+typetag.workspace = true
+erased-serde.workspace = true
+enum_dispatch.workspace = true
 # https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
-fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"] }
-derive_more = { version = "2.0.1", features = ["from"] }
-rand = "0.9.2"
+fragile.workspace = true
+derive_more.workspace = true
+rand.workspace = true
