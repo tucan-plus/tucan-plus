@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 log = { version = "0.4" }
-diesel = { version = "2.3.2", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
+diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] } # libsqlite3-sys 0.36
 diesel_migrations = { version = "2.3.0", features = ["sqlite"] }
 tucan-types = { path = "../tucan-types" }
 tokio = { features = [], version = "1" }
@@ -15,7 +15,7 @@ futures = "0.3.31"
 itertools = "0.14"
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-libsqlite3-sys = { version = "0.35.0", features = ["bundled"] }
+libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 # TODO FIXME: separate the rpc layer
