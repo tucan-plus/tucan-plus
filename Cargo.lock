@@ -1137,8 +1137,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "745fd255645f0f1135f9ec55c7b00e0882192af9683ab4731e4bba3da82b8f9c"
 dependencies = [
  "diesel 2.3.6 (registry+https://github.com/rust-lang/crates.io-index)",
- "migrations_internals",
- "migrations_macros",
+ "migrations_internals 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "migrations_macros 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+]
+
+[[package]]
+name = "diesel_migrations"
+version = "2.3.1"
+source = "git+https://github.com/diesel-rs/diesel.git#6bde6e2c2d977f67432b4a2ad2ca3b10df2e8516"
+dependencies = [
+ "diesel 2.3.6 (git+https://github.com/diesel-rs/diesel.git)",
+ "migrations_internals 2.3.0 (git+https://github.com/diesel-rs/diesel.git)",
+ "migrations_macros 2.3.0 (git+https://github.com/diesel-rs/diesel.git)",
 ]
 
 [[package]]
@@ -1875,12 +1885,6 @@ dependencies = [
  "quote",
  "syn 2.0.114",
 ]
-
-[[package]]
-name = "ego-tree"
-version = "0.10.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b2972feb8dffe7bc8c5463b1dacda1b0dfbed3710e50f977d965429692d74cd8"
 
 [[package]]
 name = "ego-tree"
@@ -2743,9 +2747,9 @@ name = "html-handler"
 version = "0.1.2"
 dependencies = [
  "data-encoding",
- "ego-tree 0.11.0",
+ "ego-tree",
  "html5ever 0.37.1",
- "scraper 0.25.0 (git+https://github.com/rust-scraper/scraper.git)",
+ "scraper",
  "sha3",
 ]
 
@@ -2759,16 +2763,6 @@ dependencies = [
  "mac",
  "markup5ever 0.14.1",
  "match_token",
-]
-
-[[package]]
-name = "html5ever"
-version = "0.36.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6452c4751a24e1b99c3260d505eaeee76a050573e61f30ac2c924ddc7236f01e"
-dependencies = [
- "log",
- "markup5ever 0.36.1",
 ]
 
 [[package]]
@@ -3536,17 +3530,6 @@ dependencies = [
 
 [[package]]
 name = "markup5ever"
-version = "0.36.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c3294c4d74d0742910f8c7b466f44dda9eb2d5742c1e430138df290a1e8451c"
-dependencies = [
- "log",
- "tendril 0.4.3",
- "web_atoms",
-]
-
-[[package]]
-name = "markup5ever"
 version = "0.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7cfb33ea12d5d83b1ba9a55ae7d05faec4f2189d47b79c04d4cea6bbe9f5b083"
@@ -3632,12 +3615,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "migrations_internals"
+version = "2.3.0"
+source = "git+https://github.com/diesel-rs/diesel.git#6bde6e2c2d977f67432b4a2ad2ca3b10df2e8516"
+dependencies = [
+ "serde",
+ "toml 0.9.11+spec-1.1.0",
+]
+
+[[package]]
 name = "migrations_macros"
 version = "2.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "36fc5ac76be324cfd2d3f2cf0fdf5d5d3c4f14ed8aaebadb09e304ba42282703"
 dependencies = [
- "migrations_internals",
+ "migrations_internals 2.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "proc-macro2",
+ "quote",
+]
+
+[[package]]
+name = "migrations_macros"
+version = "2.3.0"
+source = "git+https://github.com/diesel-rs/diesel.git#6bde6e2c2d977f67432b4a2ad2ca3b10df2e8516"
+dependencies = [
+ "migrations_internals 2.3.0 (git+https://github.com/diesel-rs/diesel.git)",
  "proc-macro2",
  "quote",
 ]
@@ -4845,6 +4847,7 @@ dependencies = [
  "rustls-platform-verifier",
  "serde",
  "serde_json",
+ "serde_urlencoded",
  "sync_wrapper",
  "tokio",
  "tokio-rustls",
@@ -5099,26 +5102,10 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "scraper"
 version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93cecd86d6259499c844440546d02f55f3e17bd286e529e48d1f9f67e92315cb"
-dependencies = [
- "cssparser 0.36.0",
- "ego-tree 0.10.0",
- "getopts",
- "html5ever 0.36.1",
- "indexmap",
- "precomputed-hash",
- "selectors 0.33.0",
- "tendril 0.4.3",
-]
-
-[[package]]
-name = "scraper"
-version = "0.25.0"
 source = "git+https://github.com/rust-scraper/scraper.git#ff2ea5135a18996198ece7cac828b91e96af2780"
 dependencies = [
  "cssparser 0.36.0",
- "ego-tree 0.11.0",
+ "ego-tree",
  "getopts",
  "html5ever 0.37.1",
  "indexmap",
@@ -5189,25 +5176,6 @@ dependencies = [
  "phf_codegen 0.8.0",
  "precomputed-hash",
  "servo_arc 0.2.0",
- "smallvec",
-]
-
-[[package]]
-name = "selectors"
-version = "0.33.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "feef350c36147532e1b79ea5c1f3791373e61cbd9a6a2615413b3807bb164fb7"
-dependencies = [
- "bitflags 2.10.0",
- "cssparser 0.36.0",
- "derive_more 2.1.1",
- "log",
- "new_debug_unreachable",
- "phf 0.13.1",
- "phf_codegen 0.13.1",
- "precomputed-hash",
- "rustc-hash 2.1.1",
- "servo_arc 0.4.3",
  "smallvec",
 ]
 
@@ -6212,7 +6180,7 @@ dependencies = [
  "bytes",
  "data-encoding",
  "dotenvy",
- "ego-tree 0.11.0",
+ "ego-tree",
  "fragile",
  "futures-core",
  "futures-util",
@@ -6224,7 +6192,7 @@ dependencies = [
  "log",
  "regex",
  "reqwest 0.13.1",
- "scraper 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "scraper",
  "serde",
  "sha3",
  "thiserror 2.0.18",
@@ -6269,7 +6237,7 @@ dependencies = [
  "cookie",
  "dbus-secret-service-keyring-store",
  "diesel 2.3.6 (git+https://github.com/diesel-rs/diesel.git)",
- "diesel_migrations",
+ "diesel_migrations 2.3.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "dioxus",
  "dioxus-desktop",
  "dioxus-router",
@@ -6340,7 +6308,7 @@ version = "0.1.0"
 dependencies = [
  "derive_more 2.1.1",
  "diesel 2.3.6 (git+https://github.com/diesel-rs/diesel.git)",
- "diesel_migrations",
+ "diesel_migrations 2.3.1 (git+https://github.com/diesel-rs/diesel.git)",
  "enum_dispatch",
  "erased-serde",
  "fragile",
