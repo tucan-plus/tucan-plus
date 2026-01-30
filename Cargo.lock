@@ -2744,8 +2744,8 @@ version = "0.1.2"
 dependencies = [
  "data-encoding",
  "ego-tree 0.11.0",
- "html5ever 0.38.0",
- "scraper",
+ "html5ever 0.37.1",
+ "scraper 0.25.0 (git+https://github.com/rust-scraper/scraper.git)",
  "sha3",
 ]
 
@@ -2773,12 +2773,12 @@ dependencies = [
 
 [[package]]
 name = "html5ever"
-version = "0.38.0"
+version = "0.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1054432bae2f14e0061e33d23402fbaa67a921d319d56adc6bcf887ddad1cbc2"
+checksum = "5935f02fdc02823ff15fec27c2b3d7ca19d629e996f7a0ae4d7d500e62e54c76"
 dependencies = [
  "log",
- "markup5ever 0.38.0",
+ "markup5ever 0.37.1",
 ]
 
 [[package]]
@@ -3547,9 +3547,9 @@ dependencies = [
 
 [[package]]
 name = "markup5ever"
-version = "0.38.0"
+version = "0.37.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8983d30f2915feeaaab2d6babdd6bc7e9ed1a00b66b5e6d74df19aa9c0e91862"
+checksum = "7cfb33ea12d5d83b1ba9a55ae7d05faec4f2189d47b79c04d4cea6bbe9f5b083"
 dependencies = [
  "log",
  "tendril 0.5.0",
@@ -5113,6 +5113,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "scraper"
+version = "0.25.0"
+source = "git+https://github.com/rust-scraper/scraper.git#ff2ea5135a18996198ece7cac828b91e96af2780"
+dependencies = [
+ "cssparser 0.36.0",
+ "ego-tree 0.11.0",
+ "getopts",
+ "html5ever 0.37.1",
+ "indexmap",
+ "precomputed-hash",
+ "selectors 0.35.0",
+ "tendril 0.5.0",
+]
+
+[[package]]
 name = "sealed"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5182,6 +5197,25 @@ name = "selectors"
 version = "0.33.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "feef350c36147532e1b79ea5c1f3791373e61cbd9a6a2615413b3807bb164fb7"
+dependencies = [
+ "bitflags 2.10.0",
+ "cssparser 0.36.0",
+ "derive_more 2.1.1",
+ "log",
+ "new_debug_unreachable",
+ "phf 0.13.1",
+ "phf_codegen 0.13.1",
+ "precomputed-hash",
+ "rustc-hash 2.1.1",
+ "servo_arc 0.4.3",
+ "smallvec",
+]
+
+[[package]]
+name = "selectors"
+version = "0.35.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "93fdfed56cd634f04fe8b9ddf947ae3dc493483e819593d2ba17df9ad05db8b2"
 dependencies = [
  "bitflags 2.10.0",
  "cssparser 0.36.0",
@@ -6190,7 +6224,7 @@ dependencies = [
  "log",
  "regex",
  "reqwest 0.13.1",
- "scraper",
+ "scraper 0.25.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "serde",
  "sha3",
  "thiserror 2.0.18",
