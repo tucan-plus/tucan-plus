@@ -6,37 +6,37 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset", "stream", "form"] }
-tokio = { version = "1", features = ["rt", "macros", "time"] }
-thiserror = "2"
-futures-core = "0.3"
-bytes = "1"
-futures-util = { version = "0.3", features = ["io"] }
-tokio-util = "0.7"
-scraper = { git = "https://github.com/rust-scraper/scraper.git", features = ["deterministic"] }
-ego-tree = "0.11"
-sha3 = "0.10"
-data-encoding = "2"
-html-extractor = { path = "../html-extractor" }
-html-handler = { path = "../html-handler" }
-dotenvy = "0.15"
-regex = { version = "1" }
-itertools = "0.14"
-serde = { version = "1", features = ["derive"] }
-utoipa = "5"
-axum-core = "0.5.0"
-tucan-types = { path = "../tucan-types" }
-log = { version = "0.4" }
-time = { version = "0.3.41", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
-tucan-plus-worker = { path = "../tucan-plus-worker" }
+reqwest = { workspace = true, features = ["stream", "form"] }
+tokio = { workspace = true, features = ["rt", "macros", "time"] }
+thiserror.workspace = true
+futures-core.workspace = true
+bytes.workspace = true
+futures-util.workspace = true
+tokio-util.workspace = true
+scraper.workspace = true
+ego-tree.workspace = true
+sha3.workspace = true
+data-encoding.workspace = true
+html-extractor.workspace = true
+html-handler.workspace = true
+dotenvy.workspace = true
+regex.workspace = true
+itertools.workspace = true
+serde.workspace = true
+utoipa.workspace = true
+axum-core.workspace = true
+tucan-types.workspace = true
+log.workspace = true
+time.workspace = true
+tucan-plus-worker.workspace = true
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-web-sys = "0.3.77"
-js-sys = "0.3.77"
-wasm-bindgen-futures = "0.4.50"
-getrandom = { version = "0.3", features = ["wasm_js"] }
+web-sys.workspace = true
+js-sys.workspace = true
+wasm-bindgen-futures.workspace = true
+getrandom.workspace = true
 # https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
-fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"] }
+fragile.workspace = true
 
 [features]
 authenticated_tests = []

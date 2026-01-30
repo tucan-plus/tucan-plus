@@ -4,9 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-js-sys = "0.3"
-wasm-bindgen = { version = "0.2.104" }
-web-sys = { version = "0.3", features = ["ServiceWorkerGlobalScope", "ExtendableMessageEvent"] }
-console_log = { version = "1" }
-log = { version = "0.4" }
-wasm-bindgen-futures = "0.4"
+js-sys.workspace = true
+wasm-bindgen.workspace = true
+web-sys = { workspace = true, features = ["ServiceWorkerGlobalScope", "ExtendableMessageEvent"] }
+console_log.workspace = true
+log.workspace = true
+wasm-bindgen-futures.workspace = true

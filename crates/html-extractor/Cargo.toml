@@ -9,7 +9,7 @@ rust-version = "1.87"
 proc-macro = true
 
 [dependencies]
-syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
-quote = "1"
-proc-macro2 = "1"
-itertools = "0.14"
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true
+itertools.workspace = true

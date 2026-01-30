@@ -6,10 +6,10 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-serde = { version = "1", features = ["derive"] }
-utoipa = "5"
-axum-core = "0.5.0"
-thiserror = "2"
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset", "stream"] }
-regex = { version = "1" }
-dynosaur = "0.3"
+serde.workspace = true
+utoipa.workspace = true
+axum-core.workspace = true
+thiserror.workspace = true
+reqwest = { workspace = true, features = ["stream"] }
+regex.workspace = true
+dynosaur.workspace = true

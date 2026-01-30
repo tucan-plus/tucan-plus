@@ -6,8 +6,8 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-scraper = { git = "https://github.com/rust-scraper/scraper.git", features = ["deterministic"] }
-data-encoding = "2"
-sha3 = "0.10"
-ego-tree = "0.11"
-html5ever = "0.37.1"
+scraper.workspace = true
+data-encoding.workspace = true
+sha3.workspace = true
+ego-tree.workspace = true
+html5ever.workspace = true
