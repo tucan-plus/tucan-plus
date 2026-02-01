@@ -12,4 +12,3 @@ dotenvy.workspace = true
 env_logger.workspace = true
 base64 = "0.22.1"
 async-trait = "0.1.89"
-rstest = "0.26.1"

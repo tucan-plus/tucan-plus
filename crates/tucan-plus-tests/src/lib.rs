@@ -11,7 +11,6 @@ use std::{
 };
 
 use base64::{Engine, prelude::BASE64_STANDARD};
-use rstest::{fixture, rstest};
 use serde_json::json;
 use tokio::{process::Command, sync::OnceCell, time::sleep};
 use webdriverbidi::{
@@ -40,14 +39,12 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
-use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder as _};
+use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder};
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-async fn setup_session() -> Box<dyn Browser> {
-    let browser =
-        AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
-    let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
+async fn setup_session<B: BrowserBuilder>() -> Box<dyn Browser> {
+    let browser = B::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
     // chromedriver --port=4444 --enable-chrome-logs
 
@@ -185,14 +182,10 @@ async fn write_text(
     Ok(())
 }
 
-#[fixture]
-pub async fn session() -> Box<dyn Browser> {
-    setup_session().await
-}
-
-#[rstest]
 #[tokio::test]
-async fn it_works(#[future(awt)] mut session: Box<dyn Browser>) {
+async fn it_works() {
+    let mut session = setup_session::<AndroidEdgeCanary>().await;
+
     let username = "";
     let password = "";
 
@@ -207,12 +200,8 @@ async fn it_works(#[future(awt)] mut session: Box<dyn Browser>) {
     .await.unwrap();*/
     // chrome only supports unpacked path
     session
-        .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(
-            ExtensionPath::new("/data/local/tmp/tucan-plus-extension-0.49.0".to_owned()),
-        )))
-        .await
-        .unwrap();
-    sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+        .load_extension(Path::new(&std::env::var("EXTENSION_FILE").unwrap()))
+        .await;
 
     println!("get contexts");
 

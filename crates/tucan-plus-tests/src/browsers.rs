@@ -3,20 +3,28 @@ use std::{
     ops::{Deref, DerefMut},
     path::Path,
     process::Stdio,
+    time::Duration,
 };
 
 use async_trait::async_trait;
 use serde_json::json;
-use tokio::io::{AsyncBufReadExt as _, BufReader};
-use webdriverbidi::{session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest};
+use tokio::{
+    io::{AsyncBufReadExt as _, BufReader},
+    time::sleep,
+};
+use webdriverbidi::{
+    model::web_extension::{ExtensionData, ExtensionPath, InstallParameters},
+    session::WebDriverBiDiSession,
+    webdriver::capabilities::CapabilitiesRequest,
+};
 
-pub trait BrowserBuilder: Browser {
+pub trait BrowserBuilder: Browser + 'static {
     async fn start(unpacked_extension: &Path) -> Self;
 }
 
 #[async_trait]
 pub trait Browser: Send + Sync + DerefMut<Target = WebDriverBiDiSession> {
-    async fn load_extension(&self, unpacked_extension: &Path) {}
+    async fn load_extension(&mut self, unpacked_extension: &Path) {}
 }
 
 pub struct DesktopFirefox(WebDriverBiDiSession);
@@ -104,7 +112,17 @@ impl BrowserBuilder for AndroidFirefox {
     }
 }
 
-impl Browser for AndroidFirefox {}
+#[async_trait]
+impl Browser for AndroidFirefox {
+    async fn load_extension(&mut self, unpacked_extension: &Path) {
+        self.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(
+            ExtensionPath::new("/data/local/tmp/tucan-plus-extension".to_owned()),
+        )))
+        .await
+        .unwrap();
+        sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+    }
+}
 
 pub struct AndroidEdgeCanary(WebDriverBiDiSession);
 
