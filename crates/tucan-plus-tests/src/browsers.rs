@@ -1,5 +1,6 @@
 use std::{collections::HashMap, ops::Deref, path::Path, process::Stdio};
 
+use async_trait::async_trait;
 use serde_json::json;
 use tokio::io::{AsyncBufReadExt as _, BufReader};
 use webdriverbidi::{session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest};
@@ -8,7 +9,8 @@ pub trait BrowserBuilder: Browser {
     async fn start(unpacked_extension: &Path) -> Self;
 }
 
-pub trait Browser: Deref<Target = WebDriverBiDiSession> {
+#[async_trait]
+pub trait Browser: Send + Deref<Target = WebDriverBiDiSession> {
     async fn load_extension(&self, unpacked_extension: &Path) {}
 }
 

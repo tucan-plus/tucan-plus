@@ -1,7 +1,7 @@
 pub mod browsers;
 
 use std::{
-    collections::HashMap, path::Path, sync::atomic::{AtomicUsize, Ordering}, time::{Duration, Instant}
+    collections::HashMap, path::Path, sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}
 };
 
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -33,28 +33,28 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
-use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser};
+use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder as _};
 
 static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
-static SESSION: OnceCell<Box<dyn Browser>> = OnceCell::const_new();
+static SESSION: OnceCell<Arc<tokio::sync::Mutex<dyn Browser>>> = OnceCell::const_new();
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-async fn get_session() -> impl Browser {
+async fn get_session() -> Arc<tokio::sync::Mutex<dyn Browser>> {
     SESSION
         .get_or_init(async || setup_session().await)
         .await
         .clone()
 }
 
-async fn setup_session() -> impl Browser {
+async fn setup_session() -> Arc<tokio::sync::Mutex<dyn Browser>> {
     let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
     let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
     // chromedriver --port=4444 --enable-chrome-logs
 
-    browser
+    Arc::new(tokio::sync::Mutex::new(browser))
 }
 
 async fn navigate(
