@@ -11,20 +11,23 @@ use rustenium::{
         },
     },
 };
+use serde_json::{Value, json};
 use tokio::time::{Duration, sleep};
 
 #[tokio::test]
 async fn open_browser() {
+    let mut caps = ChromeCapabilities::default();
+    caps.add_args([
+        "--enable-unsafe-extension-debugging",
+        "--remote-debugging-pipe",
+    ]);
+    caps.chrome_options.android_package = Some("com.microsoft.emmx.canary".to_string());
     let mut browser = create_chrome_browser(Some(ChromeConfig {
         chrome_executable_path: Some("chromium-browser".to_string()),
-        driver_executable_path: "chromedriver".to_string(),
+        driver_executable_path: "/home/moritz/Downloads/edgedriver_linux64/msedgedriver"
+            .to_string(),
         //remote_debugging_port: Some(0),
-        capabilities: ChromeCapabilities::default()
-            .add_args([
-                "--enable-unsafe-extension-debugging",
-                "--remote-debugging-pipe",
-            ])
-            .clone(),
+        capabilities: caps,
         ..Default::default()
     }))
     .await;

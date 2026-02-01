@@ -4937,8 +4937,6 @@ dependencies = [
 [[package]]
 name = "rustenium"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "88b43a22079b677d6d6dc772f76bfe3d1ffacd50d1a28e7d60b321a920ec49c9"
 dependencies = [
  "base64 0.22.1",
  "rustenium-bidi-commands",
@@ -4954,8 +4952,6 @@ dependencies = [
 [[package]]
 name = "rustenium-bidi-commands"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df71897e044b66d1e26349518148f06b79cc35d9f1a65341f7801e8386b5e9bc"
 dependencies = [
  "serde",
  "serde_json",
@@ -4965,8 +4961,6 @@ dependencies = [
 [[package]]
 name = "rustenium-core"
 version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6d55a19150def0c6794b3fb620227ad5f29800bec5357b95c814133fd30c08d3"
 dependencies = [
  "fastwebsockets",
  "form_urlencoded",
@@ -4986,8 +4980,6 @@ dependencies = [
 [[package]]
 name = "rustenium-macros"
 version = "0.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "821fe2f5f832f3db72c5fbae6755c9407db5dc6d8e3f35e32f8bae64456019c5"
 dependencies = [
  "rustenium-bidi-commands",
 ]
@@ -6387,6 +6379,7 @@ name = "tucan-plus-tests"
 version = "0.1.0"
 dependencies = [
  "rustenium",
+ "serde_json",
  "tokio",
 ]
 
