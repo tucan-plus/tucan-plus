@@ -47,7 +47,7 @@ async fn get_session() -> WebDriverBiDiSession {
 }
 
 async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
-    // geckodriver
+    // geckodriver -vv
     // chromedriver --port=4444 --enable-chrome-logs
     // ./msedgedriver --port=4444 --enable-chrome-logs
 
@@ -96,7 +96,9 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
     capabilities.add_first_match(HashMap::from([(
         "browserName".to_owned(),
         json!("firefox"),
-    )]));
+    ), ("moz:firefoxOptions".to_owned(), json!({
+        "androidPackage": "org.mozilla.firefox"
+    }))]));
     let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
     session.start().await?;
     println!("started");
@@ -247,10 +249,10 @@ async fn it_works() -> anyhow::Result<()> {
 
     let try_catch: anyhow::Result<()> = async {
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
-            //session
-            //    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
-            //    .await?;
-            //sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+            session
+                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
+                .await.unwrap();
+            sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
             println!("get contexts");
 
@@ -259,6 +261,8 @@ async fn it_works() -> anyhow::Result<()> {
             println!("got contexts");
             
             let browsing_context = contexts.contexts[0].context.clone().clone();
+
+            println!("1");
 
             session
                 .register_event_handler(EventType::LogEntryAdded, async |event| {
@@ -269,15 +273,21 @@ async fn it_works() -> anyhow::Result<()> {
                 })
                 .await;
 
+            println!("2");
+
             session
                 .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
                     println!("user prompt {event}");
                 })
                 .await;
 
+            println!("3");
+
             session
                 .session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None))
-                .await?;
+                .await.unwrap();
+
+            println!("4");
 
             session
                 .session_subscribe(SubscriptionRequest::new(
@@ -285,16 +295,19 @@ async fn it_works() -> anyhow::Result<()> {
                     Some(vec![browsing_context.clone()]),
                     None,
                 ))
-                .await?;
+                .await.unwrap();
 
-            session
+            println!("5");
+
+            // not supported on firefox android obviously, ahh this may have made edge weird
+            /*session
                 .browsing_context_set_viewport(SetViewportParameters {
                     user_contexts: None,
                     context: Some(browsing_context.clone()),
                     viewport: Some(Viewport { width: 1300, height: 768 }),
                     device_pixel_ratio: None,
                 })
-                .await?;
+                .await.unwrap();*/
 
             println!("abc");
 
