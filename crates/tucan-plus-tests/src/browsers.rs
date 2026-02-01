@@ -54,6 +54,7 @@ impl BrowserBuilder for DesktopFirefox {
         cmd.kill_on_drop(true);
         cmd.arg("--log=trace");
         cmd.arg("--port=0");
+        cmd.arg("--websocket-port=1234");
 
         cmd.stdout(Stdio::piped());
 
@@ -100,17 +101,7 @@ impl BrowserBuilder for DesktopFirefox {
 
         let mut capabilities = CapabilitiesRequest::default();
 
-        capabilities.add_first_match(HashMap::from([
-            ("browserName".to_owned(), json!("firefox")),
-            (
-                "moz:firefoxOptions".to_owned(),
-                json!({
-                    "log": {
-                        "level": "trace"
-                    },
-                }),
-            ),
-        ]));
+        capabilities.add_first_match(HashMap::from([]));
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
         session.start().await.unwrap();
