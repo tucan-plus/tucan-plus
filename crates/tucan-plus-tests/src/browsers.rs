@@ -141,6 +141,7 @@ impl BrowserBuilder for DesktopChromium {
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("chromedriver");
         cmd.kill_on_drop(true);
+        cmd.arg("--enable-chrome-logs");
 
         cmd.stdout(Stdio::piped());
 
@@ -181,6 +182,8 @@ impl BrowserBuilder for DesktopChromium {
         let port = port.unwrap();
         println!("port {:?}", port);
 
+        cmd.stdout(Stdio::inherit());
+
         let chrome_options = json!({
             "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", format!("--load-extension={}", unpacked_extension.display())],
             "enableExtensionTargets": true,
@@ -190,7 +193,7 @@ impl BrowserBuilder for DesktopChromium {
 
         capabilities.add_first_match(HashMap::from([
             ("browserName".to_owned(), json!("chrome")),
-            ("goo:chromeOptions".to_owned(), chrome_options),
+            ("goog:chromeOptions".to_owned(), chrome_options),
         ]));
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
