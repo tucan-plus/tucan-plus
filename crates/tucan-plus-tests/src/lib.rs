@@ -34,7 +34,7 @@ async fn open_browser() {
                 params: InstallParameters {
                     extension_data: ExtensionData::ExtensionPath(ExtensionPath {
                         r#type: PathEnum::Path,
-                        path: "./tucan-plus-extension".to_string(),
+                        path: "../../tucan-plus-extension".to_string(),
                     }),
                 },
             }),
@@ -45,6 +45,7 @@ async fn open_browser() {
         panic!()
     };
     println!("{:?}", result);
+    sleep(Duration::from_secs(1)).await; // wait for extension installed
     browser
         .open_url(
             "https://www.tucan.tu-darmstadt.de/",

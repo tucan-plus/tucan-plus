@@ -18,7 +18,7 @@ TUCaN URLs are automatically fixed so you can open URLs shared by others.
 
 ## Installation
 
-### Firefox (with autoupdates)
+### Firefox on Desktop and Android (with autoupdates)
 
 1. Download .xpi file from https://github.com/tucan-plus/tucan-plus/releases/latest
 
@@ -32,14 +32,22 @@ On Android continue with the following steps:
     1. Go to chrome://geckoview/content/config.xhtml
     2. Set javascript.options.wasm_optimizingjit to false
 
-### Chromium (with autoupdates)
+### Chromium on Desktop (with autoupdates)
 
 1. Go to https://github.com/tucan-plus/tucan-plus/releases/latest
 2. Right click on the .crx file and select "Save link as..." to download the extension file. Doing it this way is important, simply clicking on the link to download does not work as Chromium blocks the download.
 2. In the Chromium Menu, go to Extensions -> Manage Extensions
 3. Enable developer mode in the top right corner
 4. Drag and drop the downloaded file into this area
-        
+
+### Edge Canary on Android
+
+Chrome on Android unfortunately has no extension support but Edge Canary has.
+
+1. Go to https://github.com/tucan-plus/tucan-plus/releases/latest and download the .crx file.
+1. Open Settings, click on "About Microsoft Edge", then click five times on version number
+2. Go back, go to "Developer options", click on "Extension install by crx", choose the downloaded file.
+
 ## Development
 
 Requirements: [Rustup](https://www.rust-lang.org/tools/install)
