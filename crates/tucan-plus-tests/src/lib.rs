@@ -7,7 +7,12 @@ use tokio::time::{Duration, sleep};
 
 #[tokio::test]
 async fn open_browser() {
-    let mut browser = create_chrome_browser(None).await;
+    let mut browser = create_chrome_browser(Some(ChromeConfig {
+        chrome_executable_path: Some("chromium-browser".to_string()),
+        driver_executable_path: "chromedriver".to_string(),
+        ..Default::default()
+    }))
+    .await;
     browser
         .open_url("https://linkedin.com", Some(ReadinessState::Complete), None)
         .await
@@ -16,12 +21,14 @@ async fn open_browser() {
         .find_nodes(css!("body"), None, None, None, None)
         .await
         .unwrap();
-    sleep(Duration::from_secs(13)).await;
+    //sleep(Duration::from_secs(13)).await;
+    browser.end_bidi_session().await.unwrap();
 }
 
 #[tokio::test]
 async fn test_auto_attach_mode() {
     let mut config = ChromeConfig::default();
+    config.chrome_executable_path = Some("chromium-browser".to_string());
     config.driver_executable_path = "chromedriver".to_string();
     config.remote_debugging_port = Some(0); // Auto mode
 
@@ -36,6 +43,7 @@ async fn test_auto_attach_mode() {
         .await
         .unwrap();
     assert!(!nodes.is_empty());
+    browser.end_bidi_session().await.unwrap();
 }
 
 #[tokio::test]
@@ -56,4 +64,5 @@ async fn test_manual_attach_mode() {
         .await
         .unwrap();
     assert!(!nodes.is_empty());
+    browser.end_bidi_session().await.unwrap();
 }
