@@ -1,22 +1,33 @@
-use std::{collections::HashMap, path::Path, process::Stdio};
+use std::{collections::HashMap, ops::Deref, path::Path, process::Stdio};
 
 use serde_json::json;
 use tokio::io::{AsyncBufReadExt as _, BufReader};
 use webdriverbidi::{session::WebDriverBiDiSession, webdriver::capabilities::CapabilitiesRequest};
 
-pub trait Browser {
-    async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession;
+pub trait BrowserBuilder: Browser {
+    async fn start(unpacked_extension: &Path) -> Self;
+}
+
+pub trait Browser: Deref<Target = WebDriverBiDiSession> {
     async fn load_extension(&self, unpacked_extension: &Path) {}
 }
 
-pub struct DesktopFirefox;
+pub struct DesktopFirefox(WebDriverBiDiSession);
 
-pub struct DesktopChromium;
+pub struct DesktopChromium(WebDriverBiDiSession);
 
-pub struct AndroidFirefox;
+pub struct AndroidFirefox(WebDriverBiDiSession);
 
-impl Browser for AndroidFirefox {
-    async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession {
+impl Deref for AndroidFirefox {
+    type Target = WebDriverBiDiSession;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl BrowserBuilder for AndroidFirefox {
+    async fn start(unpacked_extension: &Path) -> Self {
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("/home/moritz/Downloads/geckodriver");
         cmd.arg("--port=0");
@@ -76,14 +87,24 @@ impl Browser for AndroidFirefox {
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
         session.start().await.unwrap();
-        session
+        Self(session)
     }
 }
 
-pub struct AndroidEdgeCanary;
+impl Browser for AndroidFirefox {}
 
-impl Browser for AndroidEdgeCanary {
-    async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession {
+pub struct AndroidEdgeCanary(WebDriverBiDiSession);
+
+impl Deref for AndroidEdgeCanary {
+    type Target = WebDriverBiDiSession;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl BrowserBuilder for AndroidEdgeCanary {
+    async fn start(unpacked_extension: &Path) -> Self {
         // bug/missing feature in chromedriver
         assert!(tokio::process::Command::new("adb")
         .arg("shell")
@@ -172,6 +193,8 @@ impl Browser for AndroidEdgeCanary {
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
         session.start().await.unwrap();
-        session
+        Self(session)
     }
 }
+
+impl Browser for AndroidEdgeCanary {}

@@ -37,18 +37,18 @@ use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser};
 
 static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
-static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
+static SESSION: OnceCell<Box<dyn Browser>> = OnceCell::const_new();
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-async fn get_session() -> WebDriverBiDiSession {
+async fn get_session() -> impl Browser {
     SESSION
         .get_or_init(async || setup_session().await)
         .await
         .clone()
 }
 
-async fn setup_session() -> WebDriverBiDiSession {
+async fn setup_session() -> impl Browser {
     let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
     let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
