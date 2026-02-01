@@ -35,26 +35,15 @@ use webdriverbidi::{
 
 use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder as _};
 
-static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
-
-static SESSION: OnceCell<Arc<dyn Browser>> = OnceCell::const_new();
-
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-async fn get_session() -> Arc<dyn Browser> {
-    SESSION
-        .get_or_init(async || setup_session().await)
-        .await
-        .clone()
-}
-
-async fn setup_session() -> Arc<dyn Browser> {
+async fn setup_session() -> Box<dyn Browser> {
     let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
     let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
     // chromedriver --port=4444 --enable-chrome-logs
 
-    Arc::new(browser)
+    Box::new(browser)
 }
 
 async fn navigate(
@@ -196,10 +185,9 @@ async fn it_works() -> anyhow::Result<()> {
 
     env_logger::init();
 
-
-    let mut session = get_session().await;
-
     let try_catch: anyhow::Result<()> = async {
+            let mut session = setup_session().await;
+        
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
 
              let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
@@ -381,10 +369,6 @@ async fn it_works() -> anyhow::Result<()> {
             Ok(())
         }
         .await;
-
-    if TEST_COUNT.fetch_sub(1, Ordering::SeqCst) == 1 {
-        session.close().await?;
-    }
 
     try_catch?;
 

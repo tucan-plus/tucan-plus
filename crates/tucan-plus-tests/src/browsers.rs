@@ -1,4 +1,9 @@
-use std::{collections::HashMap, ops::Deref, path::Path, process::Stdio};
+use std::{
+    collections::HashMap,
+    ops::{Deref, DerefMut},
+    path::Path,
+    process::Stdio,
+};
 
 use async_trait::async_trait;
 use serde_json::json;
@@ -10,7 +15,7 @@ pub trait BrowserBuilder: Browser {
 }
 
 #[async_trait]
-pub trait Browser: Send + Sync + Deref<Target = WebDriverBiDiSession> {
+pub trait Browser: Send + Sync + DerefMut<Target = WebDriverBiDiSession> {
     async fn load_extension(&self, unpacked_extension: &Path) {}
 }
 
@@ -25,6 +30,12 @@ impl Deref for AndroidFirefox {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for AndroidFirefox {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
@@ -102,6 +113,12 @@ impl Deref for AndroidEdgeCanary {
 
     fn deref(&self) -> &Self::Target {
         &self.0
+    }
+}
+
+impl DerefMut for AndroidEdgeCanary {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
     }
 }
 
