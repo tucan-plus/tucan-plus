@@ -47,6 +47,10 @@ async fn get_session() -> WebDriverBiDiSession {
 }
 
 async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+    // geckodriver
+    // chromedriver --port=4444 --enable-chrome-logs
+    // ./msedgedriver --port=4444 --enable-chrome-logs
+
     // EXTENSION_FILE=tucan-plus-extension-0.49.0.crx cargo test --package tucan-plus-tests
     // https://github.com/tucan-plus/tucan-plus/releases/download/v0.49.0/tucan-plus-extension-0.49.0.crx
     let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
@@ -238,11 +242,6 @@ async fn it_works() -> anyhow::Result<()> {
 
     env_logger::init();
 
-    // geckodriver
-
-    // chromedriver --port=4444 --enable-chrome-logs
-
-    // ./msedgedriver --port=4444 --enable-chrome-logs
 
     let mut session = get_session().await;
 
