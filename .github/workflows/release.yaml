@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-sign:
     runs-on: self-hosted
     steps:
     - name: Prerequisites
@@ -43,6 +43,21 @@ jobs:
       with:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
         path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi
+  release:
+    needs: [build-and-sign]
+    - name: Extract version
+      id: version
+      run: |
+        VERSION=$(jq -r .version tucan-plus-extension/manifest.json)
+        echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+    - name: Download extension files
+      uses: actions/download-artifact@v5
+      with:
+        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
+    - name: Download extension files
+      uses: actions/download-artifact@v5
+      with:
+        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
     - run: |
         mkdir pages
         cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
