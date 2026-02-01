@@ -91,6 +91,7 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
     )]));
     let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
     session.start().await?;
+    println!("started");
     Ok(session)
 }
 
@@ -101,6 +102,7 @@ async fn navigate(
 ) -> anyhow::Result<()> {
     let navigate_params = NavigateParameters::new(ctx, url, Some(ReadinessState::Complete));
     session.browsing_context_navigate(navigate_params).await?;
+    println!("navigated");
     Ok(())
 }
 
@@ -163,6 +165,8 @@ async fn write_text(
     element: &str,
     input: &str,
 ) -> anyhow::Result<()> {
+    println!("locating");
+
     let node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
@@ -173,6 +177,8 @@ async fn write_text(
         ))
         .await?;
     let node = &node.nodes[0];
+
+    println!("located");
 
     let result = session
         .script_call_function(CallFunctionParameters::new(
@@ -237,13 +243,18 @@ async fn it_works() -> anyhow::Result<()> {
     let mut session = get_session().await;
 
     let try_catch: anyhow::Result<()> = async {
+            sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
             //session
             //    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
             //    .await?;
             //sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
+            println!("get contexts");
+
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
+            println!("got contexts");
+            
             let browsing_context = contexts.contexts[0].context.clone().clone();
 
             session
@@ -282,11 +293,15 @@ async fn it_works() -> anyhow::Result<()> {
                 })
                 .await?;
 
+            println!("abc");
+
             let start = Instant::now();
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             // we should do this better?
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
+
+            println!("waited");
 
             write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
 
