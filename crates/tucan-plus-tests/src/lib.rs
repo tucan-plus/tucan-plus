@@ -53,6 +53,7 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
             "goog:chromeOptions".to_owned(),
             json!({
                 "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
+                "androidPackage": "com.android.chrome",
             }),
         ),
     ]));
