@@ -54,36 +54,38 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
         .unwrap();
     let extension_base64 = BASE64_STANDARD.encode(extension_base64);
 
+    // 02-01 19:09:46.837 24767 24767 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: We couldn't load the extension from: . Manifest file is missing or unreadable
+    // adb push /home/moritz/Downloads/tucan-plus-extension-0.49.0 /data/local/tmp/tucan-plus-extension-0.49.0
     let mut capabilities = CapabilitiesRequest::default();
+    let edge_options = json!({
+        "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension-0.49.0"],
+        "androidPackage": "com.microsoft.emmx.canary",
+        "androidActivity": "com.microsoft.ruby.Main",
+        "androidExecName": "chrome",
+        "androidDeviceSocket": "chrome_devtools_remote",
+        "extensions": [extension_base64],
+        "enableExtensionTargets": true
+    });
     capabilities.add_first_match(HashMap::from([
         ("browserName".to_owned(), json!("chrome")),
         (
             "goog:chromeOptions".to_owned(),
-            json!({
-                "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
-                "androidPackage": "com.microsoft.emmx.canary",
-            }),
+            edge_options.clone(),
         ),
     ]));
+    // seems like the logic for the command line file fails for edge so we have to hack around with chromedriver?
     // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc#64
-    // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc
     // https://learn.microsoft.com/en-us/microsoft-edge/webdriver/capabilities-edge-options
     // https://chromium.googlesource.com/chromium/src/+/master/chrome/test/chromedriver/capabilities.cc
     // https://developer.chrome.com/docs/devtools/remote-debugging
+    // ln -s /data/local/tmp/chrome_devtools_remote /data/local/tmp/chrome-command-line
+    // /data/local/tmp/chrome_devtools_remote is the file that is written with the command line stuff
     // @chrome_devtools_remote
     capabilities.add_first_match(HashMap::from([
         ("browserName".to_owned(), json!("msedge")),
         (
             "ms:edgeOptions".to_owned(),
-            json!({
-                "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=./test.crx"],
-                "androidPackage": "com.microsoft.emmx.canary",
-                "androidActivity": "com.microsoft.ruby.Main",
-                "androidExecName": "chrome",
-                "androidDeviceSocket": "chrome_devtools_remote",
-                "extensions": [extension_base64],
-                "enableExtensionTargets": true
-            }),
+            edge_options,
         ),
     ]));
     capabilities.add_first_match(HashMap::from([(
