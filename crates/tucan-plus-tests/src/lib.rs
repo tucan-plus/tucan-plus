@@ -1,9 +1,7 @@
 pub mod browsers;
 
 use std::{
-    collections::HashMap,
-    sync::atomic::{AtomicUsize, Ordering},
-    time::{Duration, Instant},
+    collections::HashMap, path::Path, sync::atomic::{AtomicUsize, Ordering}, time::{Duration, Instant}
 };
 
 use base64::{Engine, prelude::BASE64_STANDARD};
@@ -35,6 +33,8 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
+use crate::browsers::{AndroidEdgeCanary, Browser};
+
 static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
 static SESSION: OnceCell<WebDriverBiDiSession> = OnceCell::const_new();
@@ -49,6 +49,8 @@ async fn get_session() -> WebDriverBiDiSession {
 }
 
 async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+    let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
+
     // geckodriver -vv
     // chromedriver --port=4444 --enable-chrome-logs
     // ./msedgedriver --port=4444 --enable-chrome-logs
