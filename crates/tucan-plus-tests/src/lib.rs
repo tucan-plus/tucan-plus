@@ -1,3 +1,5 @@
+pub mod browsers;
+
 use std::{
     collections::HashMap,
     sync::atomic::{AtomicUsize, Ordering},
@@ -6,7 +8,7 @@ use std::{
 
 use base64::{Engine, prelude::BASE64_STANDARD};
 use serde_json::json;
-use tokio::{sync::OnceCell, time::sleep};
+use tokio::{process::Command, sync::OnceCell, time::sleep};
 use webdriverbidi::{
     events::EventType,
     model::{
@@ -64,23 +66,18 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
     // /data/local/tmp/chrome-command-line
     // chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension-0.49.0 --remote-debugging-pipe
 
+    // at least for edge on android we can't load the extension at runtime so need to do it here.
+
     let mut capabilities = CapabilitiesRequest::default();
-    let edge_options = json!({
-        "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension-0.49.0"],
-        "androidPackage": "com.microsoft.emmx.canary",
-        "androidActivity": "com.microsoft.ruby.Main",
-        "androidExecName": "chrome",
-        "androidDeviceSocket": "chrome_devtools_remote",
-        //"extensions": [extension_base64],
-        "enableExtensionTargets": true
-    });
-    capabilities.add_first_match(HashMap::from([
+   
+    // for simplicity also load unpacked with --load-extension here?
+    /*capabilities.add_first_match(HashMap::from([
         ("browserName".to_owned(), json!("chrome")),
         (
             "goog:chromeOptions".to_owned(),
             edge_options.clone(),
         ),
-    ]));
+    ]));*/
     // seems like the logic for the command line file fails for edge so we have to hack around with chromedriver?
     // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc#64
     // https://learn.microsoft.com/en-us/microsoft-edge/webdriver/capabilities-edge-options
@@ -90,13 +87,7 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
     // cp /data/local/tmp/chrome_devtools_remote /data/local/tmp/chrome-command-line
     // /data/local/tmp/chrome_devtools_remote is the file that is written with the command line stuff
     // @chrome_devtools_remote
-    capabilities.add_first_match(HashMap::from([
-        ("browserName".to_owned(), json!("msedge")),
-        (
-            "ms:edgeOptions".to_owned(),
-            edge_options,
-        ),
-    ]));
+   
     capabilities.add_first_match(HashMap::from([(
         "browserName".to_owned(),
         json!("firefox"),
@@ -260,8 +251,12 @@ async fn it_works() -> anyhow::Result<()> {
             let extension_base64 = BASE64_STANDARD.encode(extension_base64);
 
             // for e.g. android this makes the most sense?
-            session
+            /*session
                 .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
+                .await.unwrap();*/
+            // chrome only supports unpacked path
+            session
+                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new("/data/local/tmp/tucan-plus-extension-0.49.0".to_owned()))))
                 .await.unwrap();
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
