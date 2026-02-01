@@ -92,7 +92,7 @@ jobs:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         gh release create --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/updates.xml pages/updates.json
-    - run: mkdir _site
+    - run: mkdir _site # https://github.com/actions/jekyll-build-pages/issues/101
     - name: Setup Pages
       uses: actions/configure-pages@v5
     - name: Build with Jekyll
