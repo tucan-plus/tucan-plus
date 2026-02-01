@@ -1,72 +1,61 @@
-use rustenium::{
-    browsers::{ChromeCapabilities, ChromeConfig, create_chrome_browser},
-    css,
-    nodes::Node,
-    rustenium_bidi_commands::{
-        CommandData, ResultData, WebExtensionCommand, WebExtensionResult,
-        browsing_context::types::ReadinessState,
-        web_extension::{
-            commands::{Install, InstallParameters, WebExtensionInstallMethod},
-            types::{ExtensionData, ExtensionPath, PathEnum},
-        },
-    },
+use tokio::time;
+
+use webdriverbidi::model::browsing_context::{
+    GetTreeParameters, NavigateParameters, ReadinessState,
 };
-use serde_json::{Value, json};
-use tokio::time::{Duration, sleep};
+use webdriverbidi::session::WebDriverBiDiSession;
+use webdriverbidi::webdriver::capabilities::CapabilitiesRequest;
+
+const HOST: &str = "localhost";
+const PORT: u16 = 4444;
+
+async fn sleep_for_secs(secs: u64) {
+    time::sleep(time::Duration::from_secs(secs)).await
+}
+
+/// Initialize a new WebDriver BiDi session.
+pub async fn init_session() -> WebDriverBiDiSession {
+    let capabilities = CapabilitiesRequest::default();
+    let mut session = WebDriverBiDiSession::new(HOST.into(), PORT, capabilities);
+    session.start().await.unwrap();
+    session
+}
+
+/// Retrieve the browsing context at the specified index.
+pub async fn get_context(session: &mut WebDriverBiDiSession, idx: usize) -> String {
+    let get_tree_params = GetTreeParameters::new(None, None);
+    let get_tree_rslt = session
+        .browsing_context_get_tree(get_tree_params)
+        .await
+        .unwrap();
+    if let Some(context_entry) = get_tree_rslt.contexts.get(idx) {
+        context_entry.context.clone()
+    } else {
+        panic!(
+            "No browsing context found at index {}. Available contexts: {}",
+            idx,
+            get_tree_rslt.contexts.len()
+        );
+    }
+}
+
+/// Navigate to the specified URL and wait for the document to completely load.
+pub async fn navigate(session: &mut WebDriverBiDiSession, ctx: String, url: String) {
+    let navigate_params = NavigateParameters::new(ctx, url, Some(ReadinessState::Complete));
+    session
+        .browsing_context_navigate(navigate_params)
+        .await
+        .unwrap();
+}
 
 #[tokio::test]
-async fn open_browser() {
-    let mut caps = ChromeCapabilities::default();
-    caps.add_args([
-        "--enable-unsafe-extension-debugging",
-        "--remote-debugging-pipe",
-    ]);
-    caps.chrome_options.android_package = Some("com.microsoft.emmx.canary".to_string());
-    let mut browser = create_chrome_browser(Some(ChromeConfig {
-        chrome_executable_path: Some("chromium-browser".to_string()),
-        driver_executable_path: "/home/moritz/Downloads/edgedriver_linux64/msedgedriver"
-            .to_string(),
-        //remote_debugging_port: Some(0),
-        capabilities: caps,
-        ..Default::default()
-    }))
-    .await;
-    let ResultData::WebExtensionResult(WebExtensionResult::InstallResult(result)) = browser
-        .send_bidi_command(CommandData::WebExtensionCommand(
-            WebExtensionCommand::Install(Install {
-                method: WebExtensionInstallMethod::WebExtensionInstall,
-                params: InstallParameters {
-                    extension_data: ExtensionData::ExtensionPath(ExtensionPath {
-                        r#type: PathEnum::Path,
-                        path: "../../tucan-plus-extension".to_string(),
-                    }),
-                },
-            }),
-        ))
-        .await
-        .unwrap()
-    else {
-        panic!()
-    };
-    println!("{:?}", result);
-    sleep(Duration::from_secs(1)).await; // wait for extension installed
-    browser
-        .open_url(
-            "https://www.tucan.tu-darmstadt.de/",
-            Some(ReadinessState::Complete),
-            None,
-        )
-        .await
-        .unwrap();
-    let element = browser
-        .wait_for_node(css!("h1"), None, None, None)
-        .await
-        .unwrap()
-        .unwrap();
-    assert_eq!(
-        element.get_text_content().await,
-        "Willkommen bei TUCaN Plus!"
-    );
-    // Willkommen bei TUCaN Plus!
-    browser.end_bidi_session().await.unwrap();
+async fn test_1() {
+    let mut session = init_session().await;
+    let ctx = get_context(&mut session, 0).await;
+
+    let url = String::from("https://www.rust-lang.org/");
+    navigate(&mut session, ctx, url).await;
+
+    sleep_for_secs(1).await;
+    session.close().await.unwrap();
 }

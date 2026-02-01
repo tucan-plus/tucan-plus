@@ -4,6 +4,5 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-rustenium = { path = "../../../rustenium/rustenium", features = ["macros"] }
+webdriverbidi = "0.2.2"
 tokio = { version = "1", features = ["full"] }
-serde_json = "1"
