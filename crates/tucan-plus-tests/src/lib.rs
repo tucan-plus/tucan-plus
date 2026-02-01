@@ -1,10 +1,17 @@
 pub mod browsers;
 
 use std::{
-    collections::HashMap, path::Path, sync::{Arc, atomic::{AtomicUsize, Ordering}}, time::{Duration, Instant}
+    collections::HashMap,
+    path::Path,
+    sync::{
+        Arc,
+        atomic::{AtomicUsize, Ordering},
+    },
+    time::{Duration, Instant},
 };
 
 use base64::{Engine, prelude::BASE64_STANDARD};
+use rstest::{fixture, rstest};
 use serde_json::json;
 use tokio::{process::Command, sync::OnceCell, time::sleep};
 use webdriverbidi::{
@@ -38,7 +45,8 @@ use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
 async fn setup_session() -> Box<dyn Browser> {
-    let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
+    let browser =
+        AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
     let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
     // chromedriver --port=4444 --enable-chrome-logs
@@ -177,123 +185,169 @@ async fn write_text(
     Ok(())
 }
 
+#[fixture]
+pub async fn session() -> Box<dyn Browser> {
+    setup_session().await
+}
+
+#[rstest]
 #[tokio::test]
-async fn it_works() -> anyhow::Result<()> {
-    dotenvy::dotenv().unwrap();
-    let username = std::env::var("TUCAN_USERNAME").expect("env variable TUCAN_USERNAME missing");
-    let password = std::env::var("TUCAN_PASSWORD").expect("env variable TUCAN_PASSWORD missing");
+async fn it_works(#[future(awt)] mut session: Box<dyn Browser>) {
+    let username = "";
+    let password = "";
 
-    env_logger::init();
+    let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
+        .await
+        .unwrap();
+    let extension_base64 = BASE64_STANDARD.encode(extension_base64);
 
-    let try_catch: anyhow::Result<()> = async {
-            let mut session = setup_session().await;
-        
-            sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
+    // for e.g. android this makes the most sense?
+    /*session
+    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
+    .await.unwrap();*/
+    // chrome only supports unpacked path
+    session
+        .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(
+            ExtensionPath::new("/data/local/tmp/tucan-plus-extension-0.49.0".to_owned()),
+        )))
+        .await
+        .unwrap();
+    sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
-             let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
-                .await
-                .unwrap();
-            let extension_base64 = BASE64_STANDARD.encode(extension_base64);
+    println!("get contexts");
 
-            // for e.g. android this makes the most sense?
-            /*session
-                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
-                .await.unwrap();*/
-            // chrome only supports unpacked path
-            session
-                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new("/data/local/tmp/tucan-plus-extension-0.49.0".to_owned()))))
-                .await.unwrap();
-            sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+    let contexts = session
+        .browsing_context_get_tree(GetTreeParameters {
+            max_depth: None,
+            root: None,
+        })
+        .await
+        .unwrap();
 
-            println!("get contexts");
+    println!("got contexts");
 
-            let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
+    let browsing_context = contexts.contexts[0].context.clone().clone();
 
-            println!("got contexts");
-            
-            let browsing_context = contexts.contexts[0].context.clone().clone();
+    println!("1");
 
-            println!("1");
+    session
+        .register_event_handler(EventType::LogEntryAdded, async |event| {
+            println!(
+                "log entry {}",
+                event
+                    .as_object()
+                    .unwrap()
+                    .get_key_value("params")
+                    .unwrap()
+                    .1
+                    .as_object()
+                    .unwrap()
+                    .get_key_value("args")
+                    .unwrap()
+                    .1
+            );
+        })
+        .await;
 
-            session
-                .register_event_handler(EventType::LogEntryAdded, async |event| {
-                    println!(
-                        "log entry {}",
-                        event.as_object().unwrap().get_key_value("params").unwrap().1.as_object().unwrap().get_key_value("args").unwrap().1
-                    );
-                })
-                .await;
+    println!("2");
 
-            println!("2");
+    session
+        .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
+            println!("user prompt {event}");
+        })
+        .await;
 
-            session
-                .register_event_handler(EventType::BrowsingContextUserPromptOpened, async |event| {
-                    println!("user prompt {event}");
-                })
-                .await;
+    println!("3");
 
-            println!("3");
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["log.entryAdded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
 
-            session
-                .session_subscribe(SubscriptionRequest::new(vec!["log.entryAdded".to_owned()], Some(vec![browsing_context.clone()]), None))
-                .await.unwrap();
+    println!("4");
 
-            println!("4");
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.userPromptOpened".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
 
-            session
-                .session_subscribe(SubscriptionRequest::new(
-                    vec!["browsingContext.userPromptOpened".to_owned()],
-                    Some(vec![browsing_context.clone()]),
-                    None,
-                ))
-                .await.unwrap();
+    println!("5");
 
-            println!("5");
+    // not supported on firefox android obviously, ahh this may have made edge weird
+    /*session
+    .browsing_context_set_viewport(SetViewportParameters {
+        user_contexts: None,
+        context: Some(browsing_context.clone()),
+        viewport: Some(Viewport { width: 1300, height: 768 }),
+        device_pixel_ratio: None,
+    })
+    .await.unwrap();*/
 
-            // not supported on firefox android obviously, ahh this may have made edge weird
-            /*session
-                .browsing_context_set_viewport(SetViewportParameters {
-                    user_contexts: None,
-                    context: Some(browsing_context.clone()),
-                    viewport: Some(Viewport { width: 1300, height: 768 }),
-                    device_pixel_ratio: None,
-                })
-                .await.unwrap();*/
+    println!("abc");
 
-            println!("abc");
+    let start = Instant::now();
+    navigate(
+        &mut session,
+        browsing_context.clone(),
+        "https://www.tucan.tu-darmstadt.de/".to_owned(),
+    )
+    .await
+    .unwrap();
 
-            let start = Instant::now();
-            navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
+    // we should do this better?
+    sleep(Duration::from_secs(10)).await; // wait for frontend javascript to be executed
 
-            // we should do this better?
-            sleep(Duration::from_secs(10)).await; // wait for frontend javascript to be executed
+    println!("waited");
 
-            println!("waited");
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#login-username",
+        &username,
+    )
+    .await
+    .unwrap();
 
-            write_text(&mut session, browsing_context.clone(), "#login-username", &username).await?;
+    // TODO get the area of the login field so we can visualize it
 
-            // TODO get the area of the login field so we can visualize it
+    println!("input_login_username {:?}", start.elapsed());
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#login-password",
+        &password,
+    )
+    .await
+    .unwrap();
 
-            println!("input_login_username {:?}", start.elapsed());
-            write_text(&mut session, browsing_context.clone(), "#login-password", &password).await?;
+    let node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = &node.nodes[0];
+    click_element(&mut session, browsing_context.clone(), node)
+        .await
+        .unwrap();
 
-            let node = session
-                .browsing_context_locate_nodes(LocateNodesParameters::new(
-                    browsing_context.clone(),
-                    Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
-                    None,
-                    None,
-                    None,
-                ))
-                .await?;
-            let node = &node.nodes[0];
-            click_element(&mut session, browsing_context.clone(), node).await?;
+    // time not implemented on this platform
 
-            // time not implemented on this platform
-
-            session
-                .script_evaluate(EvaluateParameters::new(
-                    r##"
+    session
+        .script_evaluate(EvaluateParameters::new(
+            r##"
                     new Promise((resolve) => {
                         const observer = new MutationObserver((mutations, observer) => {
                             const element = document.querySelector("#logout-button");
@@ -309,44 +363,59 @@ async fn it_works() -> anyhow::Result<()> {
                         });
                     })
                     "##
-                    .to_owned(),
-                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
-                    true,
-                    None,
-                    None,
-                    Some(true),
-                ))
-                .await?;
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
+            None,
+            None,
+            Some(true),
+        ))
+        .await
+        .unwrap();
 
-            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
+    let realms = session
+        .script_get_realms(GetRealmsParameters::new(
+            Some(browsing_context.clone()),
+            None,
+        ))
+        .await
+        .unwrap();
 
-            let RealmInfo::WindowRealmInfo(_window) = &realms.realms[0] else {
-                panic!();
-            };
+    let RealmInfo::WindowRealmInfo(_window) = &realms.realms[0] else {
+        panic!();
+    };
 
-            session
-                .script_evaluate(EvaluateParameters::new(
-                    r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(),
-                    Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
-                    false,
-                    None,
-                    None,
-                    Some(true),
-                ))
-                .await?;
+    session
+        .script_evaluate(EvaluateParameters::new(
+            r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            false,
+            None,
+            None,
+            Some(true),
+        ))
+        .await
+        .unwrap();
 
-            sleep(Duration::from_secs(5)).await;
+    sleep(Duration::from_secs(5)).await;
 
-            let realms = session.script_get_realms(GetRealmsParameters::new(Some(browsing_context.clone()), None)).await?;
+    let realms = session
+        .script_get_realms(GetRealmsParameters::new(
+            Some(browsing_context.clone()),
+            None,
+        ))
+        .await
+        .unwrap();
 
-            let contexts = session
-                .browsing_context_get_tree(GetTreeParameters {
-                    max_depth: None,
-                    root: Some(browsing_context.clone()),
-                })
-                .await?;
+    let contexts = session
+        .browsing_context_get_tree(GetTreeParameters {
+            max_depth: None,
+            root: Some(browsing_context.clone()),
+        })
+        .await
+        .unwrap();
 
-            session
+    session
                 .script_evaluate(EvaluateParameters::new(
                     r#"window.dispatchEvent(new CustomEvent('tucan-plus', { detail: "open-in-tucan-page" }));"#.to_owned(),
                     Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
@@ -355,22 +424,15 @@ async fn it_works() -> anyhow::Result<()> {
                     None,
                     Some(true),
                 ))
-                .await?;
+                .await.unwrap();
 
-            sleep(Duration::from_secs(5)).await;
+    sleep(Duration::from_secs(5)).await;
 
-            session
-                .browsing_context_close(CloseParameters {
-                    context: browsing_context,
-                    prompt_unload: None,
-                })
-                .await?;
-
-            Ok(())
-        }
-        .await;
-
-    try_catch?;
-
-    Ok(())
+    session
+        .browsing_context_close(CloseParameters {
+            context: browsing_context,
+            prompt_unload: None,
+        })
+        .await
+        .unwrap();
 }
