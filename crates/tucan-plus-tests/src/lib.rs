@@ -209,9 +209,10 @@ async fn android_firefox_main() {
 }
 
 async fn it_works<B: BrowserBuilder>() {
-    let mut session = setup_session::<B>().await;
-
+    env_logger::init();
     dotenv().unwrap();
+
+    let mut session = setup_session::<B>().await;
 
     let username = std::env::var("TUCAN_USERNAME").unwrap();
     let password = std::env::var("TUCAN_PASSWORD").unwrap();

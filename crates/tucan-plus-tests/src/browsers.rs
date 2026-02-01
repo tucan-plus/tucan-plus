@@ -52,6 +52,7 @@ impl BrowserBuilder for DesktopFirefox {
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("/home/moritz/Downloads/geckodriver");
         cmd.kill_on_drop(true);
+        cmd.arg("--log=trace");
         cmd.arg("--port=0");
 
         cmd.stdout(Stdio::piped());
@@ -92,6 +93,8 @@ impl BrowserBuilder for DesktopFirefox {
                 break;
             }
         }
+        cmd.stdout(Stdio::inherit());
+
         let port = port.unwrap();
         println!("port {:?}", port);
 
@@ -99,7 +102,14 @@ impl BrowserBuilder for DesktopFirefox {
 
         capabilities.add_first_match(HashMap::from([
             ("browserName".to_owned(), json!("firefox")),
-            ("moz:firefoxOptions".to_owned(), json!({})),
+            (
+                "moz:firefoxOptions".to_owned(),
+                json!({
+                    "log": {
+                        "level": "trace"
+                    },
+                }),
+            ),
         ]));
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
@@ -268,6 +278,8 @@ impl BrowserBuilder for AndroidFirefox {
         let port = port.unwrap();
         println!("port {:?}", port);
 
+        cmd.stdout(Stdio::inherit());
+
         let mut capabilities = CapabilitiesRequest::default();
 
         capabilities.add_first_match(HashMap::from([
@@ -397,6 +409,8 @@ impl BrowserBuilder for AndroidEdgeCanary {
         }
         let port = port.unwrap();
         println!("port {:?}", port);
+
+        cmd.stdout(Stdio::inherit());
 
         let edge_options = json!({
             "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension"],
