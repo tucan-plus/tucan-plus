@@ -20,6 +20,11 @@ jobs:
   build:
     runs-on: self-hosted
     steps:
+    - name: Prerequisites
+      run: |
+        docker --version
+        jq --version
+        gh --version
     - uses: actions/checkout@v4
     - name: Extract version
       id: version
