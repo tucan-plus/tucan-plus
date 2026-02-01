@@ -60,6 +60,10 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
 
     // 02-01 19:09:46.837 24767 24767 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: We couldn't load the extension from: . Manifest file is missing or unreadable
     // adb push /home/moritz/Downloads/tucan-plus-extension-0.49.0 /data/local/tmp/tucan-plus-extension-0.49.0
+
+    // /data/local/tmp/chrome-command-line
+    // chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension-0.49.0 --remote-debugging-pipe
+
     let mut capabilities = CapabilitiesRequest::default();
     let edge_options = json!({
         "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension-0.49.0"],
