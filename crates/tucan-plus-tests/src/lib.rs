@@ -11,6 +11,7 @@ use std::{
 };
 
 use base64::{Engine, prelude::BASE64_STANDARD};
+use dotenvy::dotenv;
 use serde_json::json;
 use tokio::{process::Command, sync::OnceCell, time::sleep};
 use webdriverbidi::{
@@ -197,13 +198,10 @@ async fn android_firefox_main() {
 async fn it_works<B: BrowserBuilder>() {
     let mut session = setup_session::<B>().await;
 
-    let username = "";
-    let password = "";
+    dotenv().unwrap();
 
-    let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
-        .await
-        .unwrap();
-    let extension_base64 = BASE64_STANDARD.encode(extension_base64);
+    let username = std::env::var("TUCAN_USERNAME").unwrap();
+    let password = std::env::var("TUCAN_PASSWORD").unwrap();
 
     // for e.g. android this makes the most sense?
     /*session
@@ -229,7 +227,7 @@ async fn it_works<B: BrowserBuilder>() {
     let browsing_context = contexts.contexts[0].context.clone().clone();
 
     println!("1");
-
+    /*
     session
         .register_event_handler(EventType::LogEntryAdded, async |event| {
             println!(
@@ -247,7 +245,7 @@ async fn it_works<B: BrowserBuilder>() {
                     .1
             );
         })
-        .await;
+        .await;*/
 
     println!("2");
 
@@ -303,7 +301,26 @@ async fn it_works<B: BrowserBuilder>() {
     .unwrap();
 
     // we should do this better?
-    sleep(Duration::from_secs(10)).await; // wait for frontend javascript to be executed
+    sleep(Duration::from_secs(5)).await; // wait for frontend javascript to be executed
+
+    session
+        .script_evaluate(EvaluateParameters::new(
+            r##"
+                    if (window.getComputedStyle(document.querySelector(".navbar-toggler")).display !== "none") {
+                        document.querySelector(".navbar-toggler").click()
+                    }
+                    "##
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
+            None,
+            None,
+            Some(true),
+        ))
+        .await
+        .unwrap();
+
+    sleep(Duration::from_secs(1)).await;
 
     println!("waited");
 

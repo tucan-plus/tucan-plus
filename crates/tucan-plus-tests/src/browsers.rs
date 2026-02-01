@@ -119,6 +119,17 @@ impl BrowserBuilder for AndroidFirefox {
 #[async_trait]
 impl Browser for AndroidFirefox {
     async fn load_extension(&mut self, unpacked_extension: &Path) {
+        assert!(
+            tokio::process::Command::new("adb")
+                .arg("push")
+                .arg(unpacked_extension)
+                .arg("/data/local/tmp/tucan-plus-extension")
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
         self.web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(
             ExtensionPath::new("/data/local/tmp/tucan-plus-extension".to_owned()),
         )))
