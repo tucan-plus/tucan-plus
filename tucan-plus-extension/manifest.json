@@ -1,9 +1,9 @@
 {
     "manifest_version": 3,
     "name": "TUCaN Plus",
-    "version": "0.45.0",
+    "version": "0.46.0",
     "description": "Quality of life improvements for TUCaN",
-    "update_url": "https://tucan-plus.github.io/tucan-plus/updates.xml",
+    "update_url": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/updates.xml",
     "declarative_net_request": {
         "rule_resources": [
             {
@@ -54,7 +54,7 @@
     "browser_specific_settings": {
         "gecko": {
             "id": "tucant@selfmade4u.de",
-            "update_url": "https://tucan-plus.github.io/tucan-plus/updates.json"
+            "update_url": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/updates.json"
         }
     },
     "icons": {
