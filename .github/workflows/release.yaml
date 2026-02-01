@@ -48,6 +48,7 @@ jobs:
   release:
     runs-on: self-hosted
     needs: [build-and-sign]
+    steps:
     - name: Download extension files
       uses: actions/download-artifact@v5
       with:
