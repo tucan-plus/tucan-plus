@@ -6,6 +6,7 @@ use webdriverbidi::{session::WebDriverBiDiSession, webdriver::capabilities::Capa
 
 pub trait Browser {
     async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession;
+    async fn load_extension(&self, unpacked_extension: &Path) {}
 }
 
 pub struct DesktopFirefox;
@@ -14,10 +15,102 @@ pub struct DesktopChromium;
 
 pub struct AndroidFirefox;
 
+impl Browser for AndroidFirefox {
+    async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession {
+        // also start the webdriver here
+        let mut cmd = tokio::process::Command::new("/home/moritz/Downloads/geckodriver");
+        cmd.arg("--port=0");
+
+        cmd.stdout(Stdio::piped());
+
+        let mut child = cmd.spawn().expect("failed to spawn command");
+
+        let stdout = child
+            .stdout
+            .take()
+            .expect("child did not have a handle to stdout");
+
+        let mut reader = BufReader::new(stdout).lines();
+
+        // Ensure the child process is spawned in the runtime so it can
+        // make progress on its own while we await for any output.
+        tokio::spawn(async move {
+            let status = child
+                .wait()
+                .await
+                .expect("child process encountered an error");
+
+            println!("child status was: {}", status);
+        });
+
+        let mut port: Option<u16> = None;
+        while let Some(line) = reader.next_line().await.unwrap() {
+            println!("Line: {}", line);
+            const PATTERN: &str = "Listening on ";
+            if let Some(index) = line.find(PATTERN) {
+                port = Some(
+                    line[index + PATTERN.len()..]
+                        .split_once(":")
+                        .unwrap()
+                        .1
+                        .parse()
+                        .unwrap(),
+                );
+                break;
+            }
+        }
+        let port = port.unwrap();
+        println!("port {:?}", port);
+
+        let mut capabilities = CapabilitiesRequest::default();
+
+        capabilities.add_first_match(HashMap::from([
+            ("browserName".to_owned(), json!("firefox")),
+            (
+                "moz:firefoxOptions".to_owned(),
+                json!({
+                    "androidPackage": "org.mozilla.firefox"
+                }),
+            ),
+        ]));
+
+        let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
+        session.start().await.unwrap();
+        session
+    }
+}
+
 pub struct AndroidEdgeCanary;
 
 impl Browser for AndroidEdgeCanary {
     async fn start(unpacked_extension: &Path) -> WebDriverBiDiSession {
+        // bug/missing feature in chromedriver
+        assert!(tokio::process::Command::new("adb")
+        .arg("shell")
+        .arg("echo \"chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension --remote-debugging-pipe\" > /data/local/tmp/chrome-command-line")
+        .status().await.unwrap().success());
+
+        assert!(
+            tokio::process::Command::new("adb")
+                .arg("shell")
+                .arg("rm -rf /data/local/tmp/tucan-plus-extension")
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
+        assert!(
+            tokio::process::Command::new("adb")
+                .arg("push")
+                .arg(unpacked_extension)
+                .arg("/data/local/tmp/tucan-plus-extension")
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
         // also start the webdriver here
         let mut cmd =
             tokio::process::Command::new("/home/moritz/Downloads/edgedriver_linux64/msedgedriver");
@@ -44,10 +137,10 @@ impl Browser for AndroidEdgeCanary {
             println!("child status was: {}", status);
         });
 
-        let mut port: Option<usize> = None;
+        let mut port: Option<u16> = None;
         while let Some(line) = reader.next_line().await.unwrap() {
             println!("Line: {}", line);
-            let PATTERN = " was started successfully on port ";
+            const PATTERN: &str = " was started successfully on port ";
             if let Some(index) = line.find(PATTERN) {
                 port = Some(
                     line[index + PATTERN.len()..line.len() - 1]
@@ -58,37 +151,11 @@ impl Browser for AndroidEdgeCanary {
                 break;
             }
         }
+        let port = port.unwrap();
         println!("port {:?}", port);
 
-        // bug/missing feature in chromedriver
-        assert!(tokio::process::Command::new("adb")
-        .arg("shell")
-        .arg("echo \"chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension --remote-debugging-pipe\" > /data/local/tmp/chrome-command-line")
-        .status().await.unwrap().success());
-
-        assert!(
-            tokio::process::Command::new("adb")
-                .arg("shell")
-                .arg("rm -r /data/local/tmp/tucan-plus-extension")
-                .status()
-                .await
-                .unwrap()
-                .success()
-        );
-
-        assert!(
-            tokio::process::Command::new("adb")
-                .arg("push")
-                .arg(unpacked_extension)
-                .arg("/data/local/tmp/tucan-plus-extension")
-                .status()
-                .await
-                .unwrap()
-                .success()
-        );
-
         let edge_options = json!({
-            "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension-0.49.0"],
+            "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension"],
             "androidPackage": "com.microsoft.emmx.canary",
             "androidActivity": "com.microsoft.ruby.Main",
             "androidExecName": "chrome",
@@ -103,7 +170,7 @@ impl Browser for AndroidEdgeCanary {
             ("ms:edgeOptions".to_owned(), edge_options),
         ]));
 
-        let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
+        let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
         session.start().await.unwrap();
         session
     }

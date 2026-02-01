@@ -33,7 +33,7 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
-use crate::browsers::{AndroidEdgeCanary, Browser};
+use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser};
 
 static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
@@ -43,63 +43,18 @@ static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
 async fn get_session() -> WebDriverBiDiSession {
     SESSION
-        .get_or_init(async || setup_session().await.unwrap())
+        .get_or_init(async || setup_session().await)
         .await
         .clone()
 }
 
-async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+async fn setup_session() -> WebDriverBiDiSession {
     let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
+    let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
-    // geckodriver -vv
     // chromedriver --port=4444 --enable-chrome-logs
-    // ./msedgedriver --port=4444 --enable-chrome-logs
 
-    // EXTENSION_FILE=tucan-plus-extension-0.49.0.crx cargo test --package tucan-plus-tests
-    // https://github.com/tucan-plus/tucan-plus/releases/download/v0.49.0/tucan-plus-extension-0.49.0.crx
-    let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
-        .await
-        .unwrap();
-    let extension_base64 = BASE64_STANDARD.encode(extension_base64);
-
-    // 02-01 19:09:46.837 24767 24767 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: We couldn't load the extension from: . Manifest file is missing or unreadable
-    // adb push /home/moritz/Downloads/tucan-plus-extension-0.49.0 /data/local/tmp/tucan-plus-extension-0.49.0
-
-    // /data/local/tmp/chrome-command-line
-    // chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension-0.49.0 --remote-debugging-pipe
-
-    // at least for edge on android we can't load the extension at runtime so need to do it here.
-
-    let mut capabilities = CapabilitiesRequest::default();
-   
-    // for simplicity also load unpacked with --load-extension here?
-    /*capabilities.add_first_match(HashMap::from([
-        ("browserName".to_owned(), json!("chrome")),
-        (
-            "goog:chromeOptions".to_owned(),
-            edge_options.clone(),
-        ),
-    ]));*/
-    // seems like the logic for the command line file fails for edge so we have to hack around with chromedriver?
-    // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc#64
-    // https://learn.microsoft.com/en-us/microsoft-edge/webdriver/capabilities-edge-options
-    // https://chromium.googlesource.com/chromium/src/+/master/chrome/test/chromedriver/capabilities.cc
-    // https://developer.chrome.com/docs/devtools/remote-debugging
-    // symlink not allowed:
-    // cp /data/local/tmp/chrome_devtools_remote /data/local/tmp/chrome-command-line
-    // /data/local/tmp/chrome_devtools_remote is the file that is written with the command line stuff
-    // @chrome_devtools_remote
-   
-    capabilities.add_first_match(HashMap::from([(
-        "browserName".to_owned(),
-        json!("firefox"),
-    ), ("moz:firefoxOptions".to_owned(), json!({
-        "androidPackage": "org.mozilla.firefox"
-    }))]));
-    let mut session = WebDriverBiDiSession::new("localhost".to_owned(), 4444, capabilities);
-    session.start().await?;
-    println!("started");
-    Ok(session)
+    browser
 }
 
 async fn navigate(
