@@ -19,6 +19,8 @@ concurrency:
 jobs:
   build-and-sign:
     runs-on: self-hosted
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
     steps:
     - name: Prerequisites
       run: |
@@ -46,29 +48,23 @@ jobs:
   release:
     runs-on: self-hosted
     needs: [build-and-sign]
-    steps:
-    - name: Extract version
-      id: version
-      run: |
-        VERSION=$(jq -r .version tucan-plus-extension/manifest.json)
-        echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
     - name: Download extension files
       uses: actions/download-artifact@v5
       with:
-        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-crx
+        name: tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}-crx
     - name: Download extension files
       uses: actions/download-artifact@v5
       with:
-        name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
+        name: tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}-xpi
     - run: |
         mkdir pages
-        cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/
-        cp out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi pages/
+        cp out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/
+        cp out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi pages/
         cat << EOF > pages/updates.xml
         <?xml version='1.0' encoding='UTF-8'?>
         <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
           <app appid='ohpjpeodokebaeilcpfejcaipbeeekkj'>
-            <updatecheck codebase='https://github.com/tucan-plus/tucan-plus/releases/latest/download/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx' version='${{ steps.version.outputs.VERSION }}' status='ok' />
+            <updatecheck codebase='https://github.com/tucan-plus/tucan-plus/releases/latest/download/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx' version='${{ needs.build-and-sign.outputs.version }}' status='ok' />
           </app>
         </gupdate>
         EOF
@@ -78,8 +74,8 @@ jobs:
             "tucant@selfmade4u.de": {
               "updates": [
                 {
-                  "version": "${{ steps.version.outputs.VERSION }}",
-                  "update_link": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi"
+                  "version": "${{ needs.build-and-sign.outputs.version }}",
+                  "update_link": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi"
                 }
               ]
             }
@@ -90,12 +86,12 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/updates.xml pages/updates.json
+        gh release create --generate-notes v${{ needs.build-and-sign.outputs.version }} out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/updates.xml pages/updates.json
     - if: ${{ !inputs.publish }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes --prerelease v${{ steps.version.outputs.VERSION }} out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.crx pages/updates.xml pages/updates.json
+        gh release create --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/updates.xml pages/updates.json
     - name: Setup Pages
       uses: actions/configure-pages@v5
     - name: Build with Jekyll
@@ -114,8 +110,6 @@ jobs:
     runs-on: self-hosted
     needs: [release]
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
