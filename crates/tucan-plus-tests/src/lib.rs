@@ -1,6 +1,7 @@
 use rustenium::{
     browsers::{ChromeCapabilities, ChromeConfig, create_chrome_browser},
     css,
+    nodes::Node,
     rustenium_bidi_commands::{
         CommandData, ResultData, WebExtensionCommand, WebExtensionResult,
         browsing_context::types::ReadinessState,
@@ -54,10 +55,15 @@ async fn open_browser() {
         )
         .await
         .unwrap();
-    let elements = browser
-        .find_nodes(css!("body"), None, None, None, None)
+    let element = browser
+        .wait_for_node(css!("h1"), None, None, None)
         .await
+        .unwrap()
         .unwrap();
-    sleep(Duration::from_secs(5)).await;
+    assert_eq!(
+        element.get_text_content().await,
+        "Willkommen bei TUCaN Plus!"
+    );
+    // Willkommen bei TUCaN Plus!
     browser.end_bidi_session().await.unwrap();
 }
