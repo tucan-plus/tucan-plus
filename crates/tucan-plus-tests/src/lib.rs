@@ -40,7 +40,10 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
-use crate::browsers::{ANDROID_MUTEX, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder};
+use crate::browsers::{
+    ANDROID_MUTEX, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder, DesktopChromium,
+    DesktopFirefox,
+};
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
@@ -181,6 +184,16 @@ async fn write_text(
         .await?;
 
     Ok(())
+}
+
+#[tokio::test]
+async fn desktop_firefox_main() {
+    it_works::<DesktopFirefox>().await
+}
+
+#[tokio::test]
+async fn desktop_chromium_main() {
+    it_works::<DesktopChromium>().await
 }
 
 #[tokio::test]

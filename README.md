@@ -65,6 +65,8 @@ nix build -L .#extension-unpacked && (cd result && npx web-ext run --target fire
 ### Running all tests
 
 ```
+EXTENSION_FILE=../../tucan-plus-extension cargo test --package tucan-plus-tests -- --nocapture
+
 cargo test
 ```
 
