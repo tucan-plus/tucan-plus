@@ -1,7 +1,14 @@
 use rustenium::{
-    browsers::{ChromeConfig, create_chrome_browser},
+    browsers::{ChromeCapabilities, ChromeConfig, create_chrome_browser},
     css,
-    rustenium_bidi_commands::browsing_context::types::ReadinessState,
+    rustenium_bidi_commands::{
+        CommandData, ResultData, WebExtensionCommand, WebExtensionResult,
+        browsing_context::types::ReadinessState,
+        web_extension::{
+            commands::{Install, InstallParameters, WebExtensionInstallMethod},
+            types::{ExtensionData, ExtensionPath, PathEnum},
+        },
+    },
 };
 use tokio::time::{Duration, sleep};
 
@@ -10,59 +17,46 @@ async fn open_browser() {
     let mut browser = create_chrome_browser(Some(ChromeConfig {
         chrome_executable_path: Some("chromium-browser".to_string()),
         driver_executable_path: "chromedriver".to_string(),
+        //remote_debugging_port: Some(0),
+        capabilities: ChromeCapabilities::default()
+            .add_args([
+                "--enable-unsafe-extension-debugging",
+                "--remote-debugging-pipe",
+            ])
+            .clone(),
         ..Default::default()
     }))
     .await;
+    let ResultData::WebExtensionResult(WebExtensionResult::InstallResult(result)) = browser
+        .send_bidi_command(CommandData::WebExtensionCommand(
+            WebExtensionCommand::Install(Install {
+                method: WebExtensionInstallMethod::WebExtensionInstall,
+                params: InstallParameters {
+                    extension_data: ExtensionData::ExtensionPath(ExtensionPath {
+                        r#type: PathEnum::Path,
+                        path: "./tucan-plus-extension".to_string(),
+                    }),
+                },
+            }),
+        ))
+        .await
+        .unwrap()
+    else {
+        panic!()
+    };
+    println!("{:?}", result);
     browser
-        .open_url("https://linkedin.com", Some(ReadinessState::Complete), None)
+        .open_url(
+            "https://www.tucan.tu-darmstadt.de/",
+            Some(ReadinessState::Complete),
+            None,
+        )
         .await
         .unwrap();
     let elements = browser
         .find_nodes(css!("body"), None, None, None, None)
         .await
         .unwrap();
-    //sleep(Duration::from_secs(13)).await;
-    browser.end_bidi_session().await.unwrap();
-}
-
-#[tokio::test]
-async fn test_auto_attach_mode() {
-    let mut config = ChromeConfig::default();
-    config.chrome_executable_path = Some("chromium-browser".to_string());
-    config.driver_executable_path = "chromedriver".to_string();
-    config.remote_debugging_port = Some(0); // Auto mode
-
-    let mut browser = create_chrome_browser(Some(config)).await;
-    browser
-        .open_url("https://example.com", Some(ReadinessState::Complete), None)
-        .await
-        .unwrap();
-
-    let nodes = browser
-        .find_nodes(css!("body"), None, None, None, None)
-        .await
-        .unwrap();
-    assert!(!nodes.is_empty());
-    browser.end_bidi_session().await.unwrap();
-}
-
-#[tokio::test]
-#[ignore] // Manual test - requires Chrome running with --remote-debugging-port=9222
-async fn test_manual_attach_mode() {
-    let mut config = ChromeConfig::default();
-    config.driver_executable_path = "chromedriver".to_string();
-    config.remote_debugging_port = Some(9222); // Connect to existing Chrome on port 9222
-
-    let mut browser = create_chrome_browser(Some(config)).await;
-    browser
-        .open_url("https://example.com", Some(ReadinessState::Complete), None)
-        .await
-        .unwrap();
-
-    let nodes = browser
-        .find_nodes(css!("body"), None, None, None, None)
-        .await
-        .unwrap();
-    assert!(!nodes.is_empty());
+    sleep(Duration::from_secs(5)).await;
     browser.end_bidi_session().await.unwrap();
 }
