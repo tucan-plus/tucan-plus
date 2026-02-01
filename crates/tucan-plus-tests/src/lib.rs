@@ -53,11 +53,16 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
             "goog:chromeOptions".to_owned(),
             json!({
                 "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
-                "androidPackage": "com.android.chrome",
+                "androidPackage": "com.microsoft.emmx.canary",
             }),
         ),
     ]));
+    // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc#64
+    // https://chromium.googlesource.com/chromium/src/+/refs/heads/main/chrome/test/chromedriver/chrome/device_manager.cc
     // https://learn.microsoft.com/en-us/microsoft-edge/webdriver/capabilities-edge-options
+    // https://chromium.googlesource.com/chromium/src/+/master/chrome/test/chromedriver/capabilities.cc
+    // https://developer.chrome.com/docs/devtools/remote-debugging
+    // @chrome_devtools_remote
     capabilities.add_first_match(HashMap::from([
         ("browserName".to_owned(), json!("msedge")),
         (
@@ -66,6 +71,8 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
                 "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
                 "androidPackage": "com.microsoft.emmx.canary",
                 "androidActivity": "com.microsoft.ruby.Main",
+                "androidExecName": "chrome",
+                "androidDeviceSocket": "chrome_devtools_remote",
             }),
         ),
     ]));
