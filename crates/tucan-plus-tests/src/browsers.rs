@@ -10,7 +10,7 @@ pub trait BrowserBuilder: Browser {
 }
 
 #[async_trait]
-pub trait Browser: Send + Deref<Target = WebDriverBiDiSession> {
+pub trait Browser: Send + Sync + Deref<Target = WebDriverBiDiSession> {
     async fn load_extension(&self, unpacked_extension: &Path) {}
 }
 

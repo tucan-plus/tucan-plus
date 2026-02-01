@@ -37,24 +37,24 @@ use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder
 
 static TEST_COUNT: AtomicUsize = AtomicUsize::new(1);
 
-static SESSION: OnceCell<Arc<tokio::sync::Mutex<dyn Browser>>> = OnceCell::const_new();
+static SESSION: OnceCell<Arc<dyn Browser>> = OnceCell::const_new();
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
-async fn get_session() -> Arc<tokio::sync::Mutex<dyn Browser>> {
+async fn get_session() -> Arc<dyn Browser> {
     SESSION
         .get_or_init(async || setup_session().await)
         .await
         .clone()
 }
 
-async fn setup_session() -> Arc<tokio::sync::Mutex<dyn Browser>> {
+async fn setup_session() -> Arc<dyn Browser> {
     let browser = AndroidEdgeCanary::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
     let browser = AndroidFirefox::start(Path::new(&std::env::var("EXTENSION_FILE").unwrap())).await;
 
     // chromedriver --port=4444 --enable-chrome-logs
 
-    Arc::new(tokio::sync::Mutex::new(browser))
+    Arc::new(browser)
 }
 
 async fn navigate(
