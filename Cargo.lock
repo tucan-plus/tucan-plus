@@ -6242,6 +6242,10 @@ dependencies = [
 name = "tucan-plus-tests"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
+ "dotenvy",
+ "env_logger",
+ "serde_json",
  "tokio",
  "webdriverbidi",
 ]
