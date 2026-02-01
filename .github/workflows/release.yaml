@@ -16,10 +16,6 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
-defaults:
-  run:
-    shell: bash
-
 jobs:
   build:
     runs-on: self-hosted
@@ -27,7 +23,9 @@ jobs:
     - uses: actions/checkout@v4
     - name: Extract version
       id: version
-      run: echo "VERSION=$(jq -r .version tucan-plus-extension/manifest.json)" >> "$GITHUB_OUTPUT"
+      run: |
+        VERSION=$(jq -r .version tucan-plus-extension/manifest.json)
+        echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
     - run: |
         echo ${{ secrets.CHROMIUM_EXTENSION_SIGNING_KEY }} | base64 --decode > cert.pem
         # https://addons.mozilla.org/en-US/developers/addon/api/key/
