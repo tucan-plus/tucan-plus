@@ -76,12 +76,13 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
         (
             "ms:edgeOptions".to_owned(),
             json!({
-                "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe"],
+                "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=./test.crx"],
                 "androidPackage": "com.microsoft.emmx.canary",
                 "androidActivity": "com.microsoft.ruby.Main",
                 "androidExecName": "chrome",
                 "androidDeviceSocket": "chrome_devtools_remote",
                 "extensions": [extension_base64],
+                "enableExtensionTargets": true
             }),
         ),
     ]));
@@ -299,7 +300,7 @@ async fn it_works() -> anyhow::Result<()> {
             navigate(&mut session, browsing_context.clone(), "https://www.tucan.tu-darmstadt.de/".to_owned()).await?;
 
             // we should do this better?
-            sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
+            sleep(Duration::from_secs(10)).await; // wait for frontend javascript to be executed
 
             println!("waited");
 
