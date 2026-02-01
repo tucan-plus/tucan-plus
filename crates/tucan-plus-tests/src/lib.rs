@@ -249,8 +249,15 @@ async fn it_works() -> anyhow::Result<()> {
 
     let try_catch: anyhow::Result<()> = async {
             sleep(Duration::from_secs(1)).await; // wait for frontend javascript to be executed
+
+             let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
+                .await
+                .unwrap();
+            let extension_base64 = BASE64_STANDARD.encode(extension_base64);
+
+            // for e.g. android this makes the most sense?
             session
-                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
+                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
                 .await.unwrap();
             sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
