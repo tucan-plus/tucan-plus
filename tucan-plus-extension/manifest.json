@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TUCaN Plus",
-    "version": "0.46.0",
+    "version": "0.49.0",
     "description": "Quality of life improvements for TUCaN",
     "update_url": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/updates.xml",
     "declarative_net_request": {
