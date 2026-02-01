@@ -298,4 +298,6 @@ Important: Enable "Require approval for all outside collaborators"
 
 https://docs.github.com/en/actions/reference/security/secure-use#hardening-for-self-hosted-runners
 
+Install jq and docker on the runner.
+
 Alternative: Run the self-hosted runner in a containerized environment and mount the nix store into it or something like that.
