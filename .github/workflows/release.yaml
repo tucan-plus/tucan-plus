@@ -44,7 +44,9 @@ jobs:
         name: tucan-plus-extension-${{ steps.version.outputs.VERSION }}-xpi
         path: out/tucan-plus-extension-${{ steps.version.outputs.VERSION }}.xpi
   release:
+    runs-on: self-hosted
     needs: [build-and-sign]
+    steps:
     - name: Extract version
       id: version
       run: |
@@ -109,8 +111,8 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-24.04
-    needs: [build]
+    runs-on: self-hosted
+    needs: [release]
     steps:
       - name: Checkout
         uses: actions/checkout@v4
