@@ -6243,6 +6243,7 @@ name = "tucan-plus-tests"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "dotenvy",
  "env_logger",
  "serde_json",

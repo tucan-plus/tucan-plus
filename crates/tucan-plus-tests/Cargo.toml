@@ -10,3 +10,4 @@ serde_json = "1"
 anyhow = "1.0.100"
 dotenvy.workspace = true
 env_logger.workspace = true
+base64 = "0.22.1"

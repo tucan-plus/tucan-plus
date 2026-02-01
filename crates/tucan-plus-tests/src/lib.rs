@@ -4,6 +4,7 @@ use std::{
     time::{Duration, Instant},
 };
 
+use base64::{Engine, prelude::BASE64_STANDARD};
 use serde_json::json;
 use tokio::{sync::OnceCell, time::sleep};
 use webdriverbidi::{
@@ -26,7 +27,7 @@ use webdriverbidi::{
             ResultOwnership, SerializationOptions, SharedReference, Target,
         },
         session::SubscriptionRequest,
-        web_extension::{ExtensionData, ExtensionPath, InstallParameters},
+        web_extension::{ExtensionBase64Encoded, ExtensionData, ExtensionPath, InstallParameters},
     },
     session::WebDriverBiDiSession,
     webdriver::capabilities::CapabilitiesRequest,
@@ -46,6 +47,13 @@ async fn get_session() -> WebDriverBiDiSession {
 }
 
 async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
+    // EXTENSION_FILE=tucan-plus-extension-0.49.0.crx cargo test --package tucan-plus-tests
+    // https://github.com/tucan-plus/tucan-plus/releases/download/v0.49.0/tucan-plus-extension-0.49.0.crx
+    let extension_base64 = tokio::fs::read(std::env::var("EXTENSION_FILE").unwrap())
+        .await
+        .unwrap();
+    let extension_base64 = BASE64_STANDARD.encode(extension_base64);
+
     let mut capabilities = CapabilitiesRequest::default();
     capabilities.add_first_match(HashMap::from([
         ("browserName".to_owned(), json!("chrome")),
@@ -73,6 +81,7 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
                 "androidActivity": "com.microsoft.ruby.Main",
                 "androidExecName": "chrome",
                 "androidDeviceSocket": "chrome_devtools_remote",
+                "extensions": [extension_base64],
             }),
         ),
     ]));
@@ -228,10 +237,10 @@ async fn it_works() -> anyhow::Result<()> {
     let mut session = get_session().await;
 
     let try_catch: anyhow::Result<()> = async {
-            session
-                .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
-                .await?;
-            sleep(Duration::from_secs(1)).await; // wait for extension to be installed
+            //session
+            //    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionPath(ExtensionPath::new(std::env::var("EXTENSION_DIR").unwrap()))))
+            //    .await?;
+            //sleep(Duration::from_secs(1)).await; // wait for extension to be installed
 
             let contexts = session.browsing_context_get_tree(GetTreeParameters { max_depth: None, root: None }).await?;
 
