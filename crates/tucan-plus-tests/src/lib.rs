@@ -63,7 +63,7 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
         "androidActivity": "com.microsoft.ruby.Main",
         "androidExecName": "chrome",
         "androidDeviceSocket": "chrome_devtools_remote",
-        "extensions": [extension_base64],
+        //"extensions": [extension_base64],
         "enableExtensionTargets": true
     });
     capabilities.add_first_match(HashMap::from([
@@ -78,7 +78,8 @@ async fn setup_session() -> anyhow::Result<WebDriverBiDiSession> {
     // https://learn.microsoft.com/en-us/microsoft-edge/webdriver/capabilities-edge-options
     // https://chromium.googlesource.com/chromium/src/+/master/chrome/test/chromedriver/capabilities.cc
     // https://developer.chrome.com/docs/devtools/remote-debugging
-    // ln -s /data/local/tmp/chrome_devtools_remote /data/local/tmp/chrome-command-line
+    // symlink not allowed:
+    // cp /data/local/tmp/chrome_devtools_remote /data/local/tmp/chrome-command-line
     // /data/local/tmp/chrome_devtools_remote is the file that is written with the command line stuff
     // @chrome_devtools_remote
     capabilities.add_first_match(HashMap::from([
