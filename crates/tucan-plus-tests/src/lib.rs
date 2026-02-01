@@ -39,7 +39,7 @@ use webdriverbidi::{
     webdriver::capabilities::CapabilitiesRequest,
 };
 
-use crate::browsers::{AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder};
+use crate::browsers::{ANDROID_MUTEX, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder};
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
 
@@ -183,8 +183,19 @@ async fn write_text(
 }
 
 #[tokio::test]
-async fn it_works() {
-    let mut session = setup_session::<AndroidEdgeCanary>().await;
+async fn android_edge_main() {
+    let guard = ANDROID_MUTEX.lock().await;
+    it_works::<AndroidEdgeCanary>().await
+}
+
+#[tokio::test]
+async fn android_firefox_main() {
+    let guard = ANDROID_MUTEX.lock().await;
+    it_works::<AndroidFirefox>().await
+}
+
+async fn it_works<B: BrowserBuilder>() {
+    let mut session = setup_session::<B>().await;
 
     let username = "";
     let password = "";

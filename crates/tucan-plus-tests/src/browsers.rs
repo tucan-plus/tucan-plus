@@ -3,6 +3,7 @@ use std::{
     ops::{Deref, DerefMut},
     path::Path,
     process::Stdio,
+    sync::LazyLock,
     time::Duration,
 };
 
@@ -10,6 +11,7 @@ use async_trait::async_trait;
 use serde_json::json;
 use tokio::{
     io::{AsyncBufReadExt as _, BufReader},
+    sync::Mutex,
     time::sleep,
 };
 use webdriverbidi::{
@@ -17,6 +19,8 @@ use webdriverbidi::{
     session::WebDriverBiDiSession,
     webdriver::capabilities::CapabilitiesRequest,
 };
+
+pub static ANDROID_MUTEX: tokio::sync::Mutex<()> = Mutex::const_new(());
 
 pub trait BrowserBuilder: Browser + 'static {
     async fn start(unpacked_extension: &Path) -> Self;
