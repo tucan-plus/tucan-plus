@@ -1,7 +1,5 @@
 [workspace]
-members = [
-    "./crates/*"
-, "crates/tucan-plus-tests"]
+members = ["./crates/*"]
 edition = "2024"
 resolver = "3"
 version = "0.1.0"
