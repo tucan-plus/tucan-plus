@@ -404,6 +404,14 @@
           text = ''
             set -ex
             NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
+            adb install ${pkgs.fetchzip {
+              url = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_x64%2F1579023%2Fchrome-android-desktop.zip?generation=1770157374116558&alt=media&.zip";
+              hash = "sha256-j+X0zE6cSfs0OHwqA/Z/LXYdB5zUxFree/XfXx+6eHA=";
+            }}
+            adb install ${pkgs.fetchurl {
+              url = "https://archive.mozilla.org/pub/fenix/releases/147.0.2/android/fenix-147.0.2-android/fenix-147.0.2.multi.android-universal.apk";
+              hash = "sha256-jcHD6We2Wwsx55ZXmmrZ4hbR7AH/ICU5RvWeOXE6eYk=";
+            }}
             EXTENSION_FILE=$(mktemp -d)
             export EXTENSION_FILE
             cp -r ${extension-unpacked}/. "$EXTENSION_FILE"/
