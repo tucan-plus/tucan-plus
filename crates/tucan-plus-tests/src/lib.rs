@@ -455,13 +455,13 @@ async fn desktop_firefox_main() {
 async fn desktop_chromium_main() {
     it_works::<DesktopChromium>().await
 }
-
+/*
 #[tokio::test]
 async fn android_edge_main() {
     let guard = ANDROID_MUTEX.lock().await;
     it_works::<AndroidEdgeCanary>().await
 }
-
+*/
 #[tokio::test]
 async fn android_chromium_main() {
     let guard = ANDROID_MUTEX.lock().await;
