@@ -28,6 +28,8 @@
       let
         pkgs = import nixpkgs {
           inherit system;
+          config.allowUnfree = true;
+          config.android_sdk.accept_license = true;
           overlays = [ (import rust-overlay) ];
         };
 
@@ -385,6 +387,14 @@
             pkgs.geckodriver
             pkgs.chromium
             pkgs.firefox
+            (
+              pkgs.androidenv.emulateApp {
+                name = "emulate-MyAndroidApp";
+                platformVersion = "28";
+                abiVersion = "x86"; # armeabi-v7a, mips, x86_64
+                systemImageType = "google_apis_playstore";
+              }
+            )
           ];
 
           text = ''
