@@ -397,6 +397,10 @@
             )
           ];
 
+          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_x64/
+          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_arm64/
+          # https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_arm64%2F1578993%2Fchrome-android-desktop.zip?generation=1770154620269384&alt=media
+          # https://archive.mozilla.org/pub/fenix/releases/147.0.2/android/fenix-147.0.2-android/fenix-147.0.2.multi.android-universal.apk
           text = ''
             set -ex
             NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
