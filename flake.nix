@@ -409,6 +409,7 @@
           # https://archive.mozilla.org/pub/fenix/releases/147.0.2/android/fenix-147.0.2-android/fenix-147.0.2.multi.android-universal.apk
           text = ''
             set -ex
+            whereis run-test-emulator
             NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
             adb install ${pkgs.fetchzip {
               url = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_x64%2F1579023%2Fchrome-android-desktop.zip?generation=1770157374116558&alt=media&.zip";
