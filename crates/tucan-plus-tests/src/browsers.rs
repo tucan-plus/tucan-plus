@@ -278,7 +278,9 @@ impl BrowserBuilder for AndroidFirefox {
             (
                 "moz:firefoxOptions".to_owned(),
                 json!({
-                    "androidPackage": "org.mozilla.firefox"
+                    "androidPackage": "org.mozilla.firefox",
+                    // DO NOT RUN ON PHYSICAL DEVICES AS IT WILL CLEAR YOUR DATA
+                    "androidDeviceSerial": "SAFE_EMULATOR",
                 }),
             ),
         ]));

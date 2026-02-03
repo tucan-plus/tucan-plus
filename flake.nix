@@ -2,7 +2,7 @@
   description = "Build a cargo project";
 
   inputs = {
-    nixpkgs.url = "github:mohe2015/nixpkgs/update-dogtail";
+    nixpkgs.url = "github:NixOS/nixpkgs";
 
     crane.url = "github:ipetkov/crane";
 
@@ -389,11 +389,11 @@
 
           text = ''
             set -ex
-            EXTENSION_DIR=$(mktemp -d)
-            export EXTENSION_DIR
-            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-            chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucan-plus-tests -- --nocapture
+            EXTENSION_FILE=$(mktemp -d)
+            export EXTENSION_FILE
+            cp -r ${extension-unpacked}/. "$EXTENSION_FILE"/
+            chmod -R ug+rw "$EXTENSION_FILE"
+            ${build-tests}/tucan_plus_tests
           '';
         };
 
