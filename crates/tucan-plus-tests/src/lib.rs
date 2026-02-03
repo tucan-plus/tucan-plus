@@ -41,8 +41,8 @@ use webdriverbidi::{
 };
 
 use crate::browsers::{
-    ANDROID_MUTEX, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder, DesktopChromium,
-    DesktopFirefox,
+    ANDROID_MUTEX, AndroidChromium, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder,
+    DesktopChromium, DesktopFirefox,
 };
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
@@ -460,6 +460,12 @@ async fn desktop_chromium_main() {
 async fn android_edge_main() {
     let guard = ANDROID_MUTEX.lock().await;
     it_works::<AndroidEdgeCanary>().await
+}
+
+#[tokio::test]
+async fn android_chromium_main() {
+    let guard = ANDROID_MUTEX.lock().await;
+    it_works::<AndroidChromium>().await
 }
 
 #[tokio::test]

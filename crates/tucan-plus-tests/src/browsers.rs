@@ -428,3 +428,117 @@ impl BrowserBuilder for AndroidEdgeCanary {
 }
 
 impl Browser for AndroidEdgeCanary {}
+
+pub struct AndroidChromium(WebDriverBiDiSession);
+
+impl Deref for AndroidChromium {
+    type Target = WebDriverBiDiSession;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl DerefMut for AndroidChromium {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.0
+    }
+}
+
+impl BrowserBuilder for AndroidChromium {
+    async fn start(unpacked_extension: &Path) -> Self {
+        // bug/missing feature in chromedriver
+        assert!(tokio::process::Command::new("adb")
+        .arg("shell")
+        .arg("echo \"chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension --remote-debugging-pipe\" > /data/local/tmp/chrome-command-line")
+        .status().await.unwrap().success());
+
+        assert!(
+            tokio::process::Command::new("adb")
+                .arg("shell")
+                .arg("rm -rf /data/local/tmp/tucan-plus-extension")
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
+        assert!(
+            tokio::process::Command::new("adb")
+                .arg("push")
+                .arg(unpacked_extension)
+                .arg("/data/local/tmp/tucan-plus-extension")
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
+        // also start the webdriver here
+        let mut cmd = tokio::process::Command::new("chromedriver");
+        cmd.kill_on_drop(true);
+
+        cmd.stdout(Stdio::piped());
+
+        let mut child = cmd.spawn().expect("failed to spawn command");
+
+        let stdout = child
+            .stdout
+            .take()
+            .expect("child did not have a handle to stdout");
+
+        let mut reader = BufReader::new(stdout).lines();
+
+        // Ensure the child process is spawned in the runtime so it can
+        // make progress on its own while we await for any output.
+        tokio::spawn(async move {
+            let status = child
+                .wait()
+                .await
+                .expect("child process encountered an error");
+
+            println!("child status was: {}", status);
+        });
+
+        let mut port: Option<u16> = None;
+        while let Some(line) = reader.next_line().await.unwrap() {
+            println!("Line: {}", line);
+            const PATTERN: &str = " was started successfully on port ";
+            if let Some(index) = line.find(PATTERN) {
+                port = Some(
+                    line[index + PATTERN.len()..line.len() - 1]
+                        .to_owned()
+                        .parse()
+                        .unwrap(),
+                );
+                break;
+            }
+        }
+        let port = port.unwrap();
+        println!("port {:?}", port);
+
+        cmd.stdout(Stdio::inherit());
+
+        let edge_options = json!({
+            "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension"],
+            "androidPackage": "org.chromium.chrome",
+            //"androidActivity": "com.microsoft.ruby.Main",
+            //"androidExecName": "chrome",
+            //"androidDeviceSocket": "chrome_devtools_remote",
+            "androidDeviceSerial": "emulator-5554",
+            "enableExtensionTargets": true
+        });
+        let mut capabilities = CapabilitiesRequest::default();
+
+        capabilities.add_first_match(HashMap::from([
+            ("browserName".to_owned(), json!("chrome")),
+            ("goog:chromeOptions".to_owned(), edge_options),
+        ]));
+
+        let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
+        session.start().await.unwrap();
+        Self(session)
+    }
+}
+
+impl Browser for AndroidChromium {}
