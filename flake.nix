@@ -383,7 +383,13 @@
           name = "test";
 
           runtimeInputs = [
-            pkgs.chromedriver
+            (pkgs.runCommand "chromedriver" {} ''
+              mkdir -p $out/bin
+              cp ${pkgs.fetchzip {
+                url = "https://storage.googleapis.com/chrome-for-testing-public/146.0.7668.0/linux64/chromedriver-linux64.zip";
+                hash = "sha256-AM4cabCzIPtKnEk7P54jkzj9KSafaG3NNaUGwk+eMGA=";
+              }}/chromedriver $out/bin
+            '')
             pkgs.geckodriver
             pkgs.chromium
             pkgs.firefox
