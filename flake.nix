@@ -165,6 +165,12 @@
           fileset-worker
         ];
 
+        fileset-tests = lib.fileset.unions [
+          ./Cargo.toml
+          ./Cargo.lock
+          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-tests)
+        ];
+
         api-server = craneLib.buildPackage {
           strictDeps = true;
           buildInputs = [
@@ -252,6 +258,23 @@
 
         client = cargoDioxus craneLib (client-args);
 
+        tests = craneLib.cargoTest {
+          cargoArtifacts = craneLib.buildDepsOnly {
+            cargoExtraArgs = "--package=tucan-plus-tests";
+            pname = "tucan-plus-tests";
+            src = lib.fileset.toSource {
+              root = ./.;
+              fileset = fileset-tests;
+            };
+          };
+          src = lib.fileset.toSource {
+            root = ./.;
+            fileset = fileset-tests;
+          };
+          cargoExtraArgs = "--package=tucan-plus-tests";
+          pname = "tucan-plus-tests";
+        };
+
         extension-unpacked = pkgs.stdenv.mkDerivation {
           pname = "tucan-plus-extension";
           version = (lib.importJSON ./tucan-plus-extension/manifest.json).version;
@@ -322,6 +345,8 @@
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
+
+        packages.tests = tests;
 
         apps.api-server = flake-utils.lib.mkApp {
           name = "api-server";
