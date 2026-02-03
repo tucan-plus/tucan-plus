@@ -390,8 +390,8 @@
             (
               pkgs.androidenv.emulateApp {
                 name = "emulate-MyAndroidApp";
-                platformVersion = "28";
-                abiVersion = "x86"; # armeabi-v7a, mips, x86_64
+                platformVersion = "36";
+                abiVersion = "x86_64"; # armeabi-v7a, mips, x86_64
                 systemImageType = "google_apis_playstore";
               }
             )
@@ -399,6 +399,7 @@
 
           text = ''
             set -ex
+            NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
             EXTENSION_FILE=$(mktemp -d)
             export EXTENSION_FILE
             cp -r ${extension-unpacked}/. "$EXTENSION_FILE"/

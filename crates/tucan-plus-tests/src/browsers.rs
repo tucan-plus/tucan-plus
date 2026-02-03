@@ -280,7 +280,7 @@ impl BrowserBuilder for AndroidFirefox {
                 json!({
                     "androidPackage": "org.mozilla.firefox",
                     // DO NOT RUN ON PHYSICAL DEVICES AS IT WILL CLEAR YOUR DATA
-                    "androidDeviceSerial": "SAFE_EMULATOR",
+                    "androidDeviceSerial": "emulator-5554",
                 }),
             ),
         ]));
@@ -411,7 +411,7 @@ impl BrowserBuilder for AndroidEdgeCanary {
             "androidActivity": "com.microsoft.ruby.Main",
             "androidExecName": "chrome",
             "androidDeviceSocket": "chrome_devtools_remote",
-            //"extensions": [extension_base64],
+            "androidDeviceSerial": "emulator-5554",
             "enableExtensionTargets": true
         });
         let mut capabilities = CapabilitiesRequest::default();
