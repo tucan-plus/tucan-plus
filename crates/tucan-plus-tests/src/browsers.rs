@@ -522,9 +522,6 @@ impl BrowserBuilder for AndroidChromium {
         let edge_options = json!({
             "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension"],
             "androidPackage": "org.chromium.chrome",
-            //"androidActivity": "com.microsoft.ruby.Main",
-            //"androidExecName": "chrome",
-            //"androidDeviceSocket": "chrome_devtools_remote",
             "androidDeviceSerial": "emulator-5554",
             "enableExtensionTargets": true
         });

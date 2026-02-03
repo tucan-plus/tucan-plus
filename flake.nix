@@ -403,14 +403,14 @@
             )
           ];
 
-          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_x64/
+          # 02-04 00:42:30.242  4120  4120 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: Failed to load extension from: /data/local/tmp/tucan-plus-extension. rules.json: Internal error while parsing rules.          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_x64/
           # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_arm64/
           # https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_arm64%2F1578993%2Fchrome-android-desktop.zip?generation=1770154620269384&alt=media
           # https://archive.mozilla.org/pub/fenix/releases/147.0.2/android/fenix-147.0.2-android/fenix-147.0.2.multi.android-universal.apk
           text = ''
             set -ex
-            whereis run-test-emulator
-            NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
+            #whereis run-test-emulator
+            #NIX_ANDROID_EMULATOR_FLAGS="-gpu swiftshader_indirect" run-test-emulator
             adb install ${pkgs.fetchzip {
               url = "https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_x64%2F1579023%2Fchrome-android-desktop.zip?generation=1770157374116558&alt=media&.zip";
               hash = "sha256-j+X0zE6cSfs0OHwqA/Z/LXYdB5zUxFree/XfXx+6eHA=";
