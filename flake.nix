@@ -258,20 +258,20 @@
 
         client = cargoDioxus craneLib (client-args);
 
-        tests = craneLib.cargoTest {
-          cargoArtifacts = craneLib.buildDepsOnly {
-            cargoExtraArgs = "--package=tucan-plus-tests";
-            pname = "tucan-plus-tests";
-            src = lib.fileset.toSource {
-              root = ./.;
-              fileset = fileset-tests;
-            };
-          };
+        build-tests = craneLib.buildPackage {
+          doCheck = false;
           src = lib.fileset.toSource {
             root = ./.;
             fileset = fileset-tests;
           };
-          cargoExtraArgs = "--package=tucan-plus-tests";
+          installPhaseCommand = ''
+            echo START CUSTOM CODE
+            mkdir $out
+            echo $cargoBuildLog
+            cat "$cargoBuildLog" | ${pkgs.jq}/bin/jq -r 'select(.reason == "compiler-artifact" and .profile.test == true) | .executable' | xargs -I '{}' install -C '{}' $out/tucan_plus_tests
+            echo END CUSTOM CODE
+          '';
+          cargoExtraArgs = "--package=tucan-plus-tests --tests";
           pname = "tucan-plus-tests";
         };
 
@@ -346,8 +346,6 @@
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
 
-        packages.tests = tests;
-
         apps.api-server = flake-utils.lib.mkApp {
           name = "api-server";
           drv = api-server;
@@ -378,6 +376,7 @@
             cp web-ext-artifacts/tucan_plus-${version}.xpi tucan-plus-extension-${version}.xpi
           '';
 
+        packages.build-tests = build-tests;
         packages.test = pkgs.writeShellApplication {
           name = "test";
 
@@ -387,19 +386,6 @@
             pkgs.chromium
             pkgs.firefox
           ];
-
-          text = ''
-            set -ex
-            EXTENSION_DIR=$(mktemp -d)
-            export EXTENSION_DIR
-            cp -r ${extension-unpacked}/. "$EXTENSION_DIR"/
-            chmod -R ug+rw "$EXTENSION_DIR"
-            cargo test --package tucan-plus-tests -- --nocapture
-          '';
-        };
-
-        packages.test-dev = pkgs.writeShellApplication {
-          name = "test-dev";
 
           text = ''
             set -ex

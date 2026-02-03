@@ -186,30 +186,8 @@ async fn write_text(
     Ok(())
 }
 
-#[tokio::test]
-async fn desktop_firefox_main() {
-    it_works::<DesktopFirefox>().await
-}
-
-#[tokio::test]
-async fn desktop_chromium_main() {
-    it_works::<DesktopChromium>().await
-}
-
-#[tokio::test]
-async fn android_edge_main() {
-    let guard = ANDROID_MUTEX.lock().await;
-    it_works::<AndroidEdgeCanary>().await
-}
-
-#[tokio::test]
-async fn android_firefox_main() {
-    let guard = ANDROID_MUTEX.lock().await;
-    it_works::<AndroidFirefox>().await
-}
-
-async fn it_works<B: BrowserBuilder>() {
-    env_logger::init();
+pub async fn it_works<B: BrowserBuilder>() {
+    let _ = env_logger::try_init();
     dotenv().unwrap();
 
     let mut session = setup_session::<B>().await;
@@ -466,4 +444,26 @@ async fn it_works<B: BrowserBuilder>() {
         })
         .await
         .unwrap();
+}
+
+#[tokio::test]
+async fn desktop_firefox_main() {
+    it_works::<DesktopFirefox>().await
+}
+
+#[tokio::test]
+async fn desktop_chromium_main() {
+    it_works::<DesktopChromium>().await
+}
+
+#[tokio::test]
+async fn android_edge_main() {
+    let guard = ANDROID_MUTEX.lock().await;
+    it_works::<AndroidEdgeCanary>().await
+}
+
+#[tokio::test]
+async fn android_firefox_main() {
+    let guard = ANDROID_MUTEX.lock().await;
+    it_works::<AndroidFirefox>().await
 }
