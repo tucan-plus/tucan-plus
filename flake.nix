@@ -403,6 +403,8 @@
             )
           ];
 
+
+          # 02-04 01:24:09.180  8676  8676 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: Failed to load extension from: /storage/emulated/0/Android/data/org.chromium.chrome/files/tucan-plus-extension. Manifest file is missing or unreadable
           # adb shell run-as org.chromium.chrome touch /data/local/tmp/tucan-plus-extension/a
           # I think the actual problem is that chromium does rule compilation sometimes and probably is not allowed to write there
           # 02-04 00:42:30.242  4120  4120 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: Failed to load extension from: /data/local/tmp/tucan-plus-extension. rules.json: Internal error while parsing rules.          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_x64/
