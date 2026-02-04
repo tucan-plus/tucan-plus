@@ -398,7 +398,7 @@
                 name = "emulate-MyAndroidApp";
                 platformVersion = "36";
                 abiVersion = "x86_64"; # armeabi-v7a, mips, x86_64
-                systemImageType = "aosp"; # aosp
+                systemImageType = "google_apis_playstore";
               }
             )
           ];

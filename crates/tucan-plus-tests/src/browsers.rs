@@ -450,13 +450,13 @@ impl BrowserBuilder for AndroidChromium {
         // bug/missing feature in chromedriver
         assert!(tokio::process::Command::new("adb")
         .arg("shell")
-        .arg("echo \"chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/data/local/tmp/tucan-plus-extension --remote-debugging-pipe\" > /data/local/tmp/chrome-command-line")
+        .arg("echo \"chrome --allow-pre-commit-input --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-features=IgnoreDuplicateNavs,Prewarm --disable-fre --disable-popup-blocking --enable-automation --enable-remote-debugging --enable-unsafe-extension-debugging --load-extension=/sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension --remote-debugging-pipe\" > /data/local/tmp/chrome-command-line")
         .status().await.unwrap().success());
 
         assert!(
             tokio::process::Command::new("adb")
                 .arg("shell")
-                .arg("rm -rf /data/local/tmp/tucan-plus-extension")
+                .arg("rm -rf /sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension")
                 .status()
                 .await
                 .unwrap()
@@ -467,7 +467,7 @@ impl BrowserBuilder for AndroidChromium {
             tokio::process::Command::new("adb")
                 .arg("push")
                 .arg(unpacked_extension)
-                .arg("/data/local/tmp/tucan-plus-extension")
+                .arg("/sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension")
                 .status()
                 .await
                 .unwrap()
@@ -481,7 +481,7 @@ impl BrowserBuilder for AndroidChromium {
                     "chmod",
                     "-R",
                     "0777",
-                    "/data/local/tmp/tucan-plus-extension"
+                    "/sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension"
                 ])
                 .status()
                 .await
@@ -535,7 +535,7 @@ impl BrowserBuilder for AndroidChromium {
         cmd.stdout(Stdio::inherit());
 
         let edge_options = json!({
-            "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/data/local/tmp/tucan-plus-extension"],
+            "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension"],
             "androidPackage": "org.chromium.chrome",
             "androidDeviceSerial": "emulator-5554",
             "enableExtensionTargets": true
