@@ -398,7 +398,7 @@
                 name = "emulate-MyAndroidApp";
                 platformVersion = "36";
                 abiVersion = "x86_64"; # armeabi-v7a, mips, x86_64
-                #systemImageType = "google_apis_playstore";
+                systemImageType = "aosp"; # aosp
               }
             )
           ];
@@ -406,7 +406,9 @@
           # adb shell run-as org.chromium.chrome touch /data/local/tmp/tucan-plus-extension/a
           # I think the actual problem is that chromium does rule compilation sometimes and probably is not allowed to write there
           # 02-04 00:42:30.242  4120  4120 W chromium: [WARNING:extensions/browser/load_error_reporter.cc:73] Extension error: Failed to load extension from: /data/local/tmp/tucan-plus-extension. rules.json: Internal error while parsing rules.          # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_x64/
-          
+          # 02-04 01:06:35.246  4003  4023 E chromium: [ERROR:sandbox/policy/linux/landlock_gpu_policy_android.cc:93] Ruleset creation failed: Function not implemented (38)
+
+
           # https://commondatastorage.googleapis.com/chromium-browser-snapshots/index.html?prefix=AndroidDesktop_arm64/
           # https://www.googleapis.com/download/storage/v1/b/chromium-browser-snapshots/o/AndroidDesktop_arm64%2F1578993%2Fchrome-android-desktop.zip?generation=1770154620269384&alt=media
           # https://archive.mozilla.org/pub/fenix/releases/147.0.2/android/fenix-147.0.2-android/fenix-147.0.2.multi.android-universal.apk

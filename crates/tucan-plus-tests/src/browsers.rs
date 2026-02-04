@@ -474,6 +474,21 @@ impl BrowserBuilder for AndroidChromium {
                 .success()
         );
 
+        assert!(
+            tokio::process::Command::new("adb")
+                .args([
+                    "shell",
+                    "chmod",
+                    "-R",
+                    "0777",
+                    "/data/local/tmp/tucan-plus-extension"
+                ])
+                .status()
+                .await
+                .unwrap()
+                .success()
+        );
+
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("chromedriver");
         cmd.kill_on_drop(true);
