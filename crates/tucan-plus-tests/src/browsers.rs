@@ -412,7 +412,7 @@ impl BrowserBuilder for AndroidEdgeCanary {
             "androidExecName": "chrome",
             "androidDeviceSocket": "chrome_devtools_remote",
             "androidDeviceSerial": "emulator-5554",
-            "enableExtensionTargets": true
+            "androidKeepAppDataDir": true,
         });
         let mut capabilities = CapabilitiesRequest::default();
 
@@ -463,6 +463,9 @@ impl BrowserBuilder for AndroidChromium {
                 .success()
         );
 
+        println!("pushing files");
+
+        // oh this directory is likely cleared when chromium is started as thats what is specified
         assert!(
             tokio::process::Command::new("adb")
                 .arg("push")
@@ -534,17 +537,17 @@ impl BrowserBuilder for AndroidChromium {
 
         cmd.stdout(Stdio::inherit());
 
-        let edge_options = json!({
+        let chrome_options = json!({
             "args": ["--enable-unsafe-extension-debugging", "--remote-debugging-pipe", "--load-extension=/sdcard/Android/data/org.chromium.chrome/files/tucan-plus-extension"],
             "androidPackage": "org.chromium.chrome",
             "androidDeviceSerial": "emulator-5554",
-            "enableExtensionTargets": true
+            "androidKeepAppDataDir": true,
         });
         let mut capabilities = CapabilitiesRequest::default();
 
         capabilities.add_first_match(HashMap::from([
             ("browserName".to_owned(), json!("chrome")),
-            ("goog:chromeOptions".to_owned(), edge_options),
+            ("goog:chromeOptions".to_owned(), chrome_options),
         ]));
 
         let mut session = WebDriverBiDiSession::new("localhost".to_owned(), port, capabilities);
