@@ -894,17 +894,8 @@ mod authenticated_tests {
 
     use crate::{
         Tucan,
-        courseresults::courseresults,
-        examresults::examresults,
-        gradeoverview::gradeoverview,
         login::login,
-        mlsstart::after_login,
-        mycourses::mycourses,
-        mydocuments::my_documents,
-        myexams::my_exams,
-        registration::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
-        student_result::student_result,
         tests::{get_tucan_connector, runtime},
     };
 
@@ -953,7 +944,8 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            after_login(&tucan, login_response, RevalidationStrategy::default())
+            tucan
+                .after_login(login_response, RevalidationStrategy::default())
                 .await
                 .unwrap();
         });
@@ -965,14 +957,14 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let _response = anmeldung(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                AnmeldungRequest::default(),
-            )
-            .await
-            .unwrap();
+            let _response = tucan
+                .anmeldung(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    AnmeldungRequest::default(),
+                )
+                .await
+                .unwrap();
         });
     }
 
@@ -1169,32 +1161,32 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            mycourses(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            let semesters = mycourses(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                mycourses(
-                    &tucan,
+            tucan
+                .my_courses(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            let semesters = tucan
+                .my_courses(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .my_courses(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1205,32 +1197,32 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_exams(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            let semesters = my_exams(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                my_exams(
-                    &tucan,
+            tucan
+                .my_exams(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            let semesters = tucan
+                .my_exams(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .my_exams(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1241,35 +1233,35 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let semesters = courseresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                let courseresults = courseresults(
-                    &tucan,
+            let semesters = tucan
+                .course_results(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::current(),
                 )
                 .await
-                .unwrap();
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                let courseresults = tucan
+                    .course_results(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
                 for result in courseresults.results {
                     if let Some(average_url) = result.average_url {
                         println!("{average_url}");
-                        let overview = gradeoverview(
-                            &tucan,
-                            login_response,
-                            RevalidationStrategy::cache(),
-                            average_url,
-                        )
-                        .await
-                        .unwrap();
+                        let overview = tucan
+                            .gradeoverview(
+                                login_response,
+                                RevalidationStrategy::cache(),
+                                average_url,
+                            )
+                            .await
+                            .unwrap();
                         println!("{overview:?}")
                     }
                 }
@@ -1283,46 +1275,42 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let result = examresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::cache(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            for result in result.results {
-                if let Some(average_url) = result.average_url {
-                    println!("{average_url}");
-                    let overview = gradeoverview(
-                        &tucan,
-                        login_response,
-                        RevalidationStrategy::cache(),
-                        average_url,
-                    )
-                    .await
-                    .unwrap();
-                    println!("{overview:?}")
-                }
-            }
-            let semesters = examresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                examresults(
-                    &tucan,
+            let result = tucan
+                .exam_results(
                     login_response,
-                    RevalidationStrategy::default(),
-                    semester.value,
+                    RevalidationStrategy::cache(),
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            for result in result.results {
+                if let Some(average_url) = result.average_url {
+                    println!("{average_url}");
+                    let overview = tucan
+                        .gradeoverview(login_response, RevalidationStrategy::cache(), average_url)
+                        .await
+                        .unwrap();
+                    println!("{overview:?}")
+                }
+            }
+            let semesters = tucan
+                .exam_results(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .exam_results(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1333,7 +1321,8 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_documents(&tucan, login_response, RevalidationStrategy::default())
+            tucan
+                .my_documents(login_response, RevalidationStrategy::default())
                 .await
                 .unwrap();
         });
@@ -1345,19 +1334,19 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let response =
-                student_result(&tucan, login_response, RevalidationStrategy::default(), 0)
-                    .await
-                    .unwrap();
-            for course_of_study in response.course_of_study {
-                let response = student_result(
-                    &tucan,
-                    login_response,
-                    RevalidationStrategy::default(),
-                    course_of_study.value,
-                )
+            let response = tucan
+                .student_result(login_response, RevalidationStrategy::default(), 0)
                 .await
                 .unwrap();
+            for course_of_study in response.course_of_study {
+                let response = tucan
+                    .student_result(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        course_of_study.value,
+                    )
+                    .await
+                    .unwrap();
                 println!("{response:#?}");
             }
         });
