@@ -41,7 +41,7 @@ proc-macro2 = "1"
 quote = "1"
 rand = "0.9.2"
 regex = { version = "1" }
-reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
+reqwest = { version = "0.12", default-features = false, features = ["rustls-tls", "http2", "charset"] }
 scraper = { git = "https://github.com/rust-scraper/scraper.git", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

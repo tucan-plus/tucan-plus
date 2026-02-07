@@ -6,7 +6,7 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-reqwest = { workspace = true, features = ["stream", "form"] }
+reqwest = { workspace = true, features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros", "time"] }
 thiserror.workspace = true
 futures-core.workspace = true

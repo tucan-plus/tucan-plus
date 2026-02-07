@@ -886,6 +886,11 @@ mod authenticated_tests {
 
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
+    use openidconnect::{
+        AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
+        OAuth2TokenResponse as _, PkceCodeChallenge, RedirectUrl, Scope, TokenResponse as _,
+        core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
+    };
     use tokio::sync::OnceCell;
     use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, SemesterId,
@@ -1352,6 +1357,106 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
-    pub fn test_openidconnect() {}
+    #[tokio::test]
+    pub async fn test_openidconnect() {
+        // https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3a%2f%2fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY
+
+        let http_client = reqwest::ClientBuilder::new()
+            // Following redirects opens the client up to SSRF vulnerabilities.
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .expect("Client should build");
+
+        // Use OpenID Connect Discovery to fetch the provider metadata.
+        let provider_metadata = CoreProviderMetadata::discover_async(
+            IssuerUrl::new(
+                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/.well-known/openid-configuration"
+                    .to_string(),
+            )
+            .unwrap(),
+            &http_client,
+        )
+        .await
+        .unwrap();
+
+        // Create an OpenID Connect client by specifying the client ID, client secret, authorization URL
+        // and token URL.
+        let client = CoreClient::from_provider_metadata(
+            provider_metadata,
+            ClientId::new("client_id".to_string()),
+            Some(ClientSecret::new("client_secret".to_string())),
+        )
+        // Set the URL the user will be redirected to after the authorization process.
+        .set_redirect_uri(RedirectUrl::new("http://redirect".to_string()).unwrap());
+
+        // Generate a PKCE challenge.
+        let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
+
+        // Generate the full authorization URL.
+        let (auth_url, csrf_token, nonce) = client
+            .authorize_url(
+                CoreAuthenticationFlow::AuthorizationCode,
+                CsrfToken::new_random,
+                Nonce::new_random,
+            )
+            // Set the desired scopes.
+            .add_scope(Scope::new("read".to_string()))
+            .add_scope(Scope::new("write".to_string()))
+            // Set the PKCE code challenge.
+            .set_pkce_challenge(pkce_challenge)
+            .url();
+
+        // This is the URL you should redirect the user to, in order to trigger the authorization
+        // process.
+        println!("Browse to: {}", auth_url);
+
+        // Once the user has been redirected to the redirect URL, you'll have access to the
+        // authorization code. For security reasons, your code should verify that the `state`
+        // parameter returned by the server matches `csrf_state`.
+
+        // Now you can exchange it for an access token and ID token.
+        let token_response = client
+            .exchange_code(AuthorizationCode::new(
+                "some authorization code".to_string(),
+            ))
+            .unwrap()
+            // Set the PKCE code verifier.
+            .set_pkce_verifier(pkce_verifier)
+            .request_async(&http_client)
+            .await
+            .unwrap();
+
+        // Extract the ID token claims after verifying its authenticity and nonce.
+        let id_token = token_response
+            .id_token()
+            .ok_or_else(|| panic!("Server did not return an ID token"))
+            .unwrap();
+        let id_token_verifier = client.id_token_verifier();
+        let claims = id_token.claims(&id_token_verifier, &nonce).unwrap();
+
+        // Verify the access token hash to ensure that the access token hasn't been substituted for
+        // another user's.
+        if let Some(expected_access_token_hash) = claims.access_token_hash() {
+            let actual_access_token_hash = AccessTokenHash::from_token(
+                token_response.access_token(),
+                id_token.signing_alg().unwrap(),
+                id_token.signing_key(&id_token_verifier).unwrap(),
+            )
+            .unwrap();
+            if actual_access_token_hash != *expected_access_token_hash {
+                panic!("Invalid access token");
+            }
+        }
+
+        // The authenticated user's identity is now available. See the IdTokenClaims struct for a
+        // complete listing of the available claims.
+        println!(
+            "User {} with e-mail address {} has authenticated successfully",
+            claims.subject().as_str(),
+            claims
+                .email()
+                .map(|email| email.as_str())
+                .unwrap_or("<not provided>"),
+        );
+    }
 }
