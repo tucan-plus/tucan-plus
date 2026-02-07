@@ -1380,13 +1380,10 @@ mod authenticated_tests {
         let client = CoreClient::from_provider_metadata(
             provider_metadata,
             ClientId::new("ClassicWeb".to_string()),
-            None,
+            Some(ClientSecret::new("wrong".to_string())),
         )
         // Set the URL the user will be redirected to after the authorization process.
         .set_redirect_uri(RedirectUrl::new("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&ARGUMENTS=-N000000000000001,ids_mode&ids_mode=Y".to_string()).unwrap());
-
-        // Generate a PKCE challenge.
-        let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
 
         // Generate the full authorization URL.
         let (auth_url, csrf_token, nonce) = client
@@ -1398,8 +1395,6 @@ mod authenticated_tests {
             // Set the desired scopes.
             .add_scope(Scope::new("email".to_string()))
             .add_scope(Scope::new("DSF".to_string()))
-            // Set the PKCE code challenge.
-            .set_pkce_challenge(pkce_challenge)
             .url();
 
         // This is the URL you should redirect the user to, in order to trigger the authorization
@@ -1417,7 +1412,6 @@ mod authenticated_tests {
             ))
             .unwrap()
             // Set the PKCE code verifier.
-            .set_pkce_verifier(pkce_verifier)
             .request_async(&http_client)
             .await
             .unwrap();
