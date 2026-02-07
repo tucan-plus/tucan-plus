@@ -1369,11 +1369,7 @@ mod authenticated_tests {
 
         // Use OpenID Connect Discovery to fetch the provider metadata.
         let provider_metadata = CoreProviderMetadata::discover_async(
-            IssuerUrl::new(
-                "https://dsf.tucan.tu-darmstadt.de/IdentityServer/.well-known/openid-configuration"
-                    .to_string(),
-            )
-            .unwrap(),
+            IssuerUrl::new("https://dsf.tucan.tu-darmstadt.de/identityserver".to_string()).unwrap(),
             &http_client,
         )
         .await
@@ -1383,11 +1379,11 @@ mod authenticated_tests {
         // and token URL.
         let client = CoreClient::from_provider_metadata(
             provider_metadata,
-            ClientId::new("client_id".to_string()),
-            Some(ClientSecret::new("client_secret".to_string())),
+            ClientId::new("ClassicWeb".to_string()),
+            None,
         )
         // Set the URL the user will be redirected to after the authorization process.
-        .set_redirect_uri(RedirectUrl::new("http://redirect".to_string()).unwrap());
+        .set_redirect_uri(RedirectUrl::new("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&ARGUMENTS=-N000000000000001,ids_mode&ids_mode=Y".to_string()).unwrap());
 
         // Generate a PKCE challenge.
         let (pkce_challenge, pkce_verifier) = PkceCodeChallenge::new_random_sha256();
@@ -1400,8 +1396,8 @@ mod authenticated_tests {
                 Nonce::new_random,
             )
             // Set the desired scopes.
-            .add_scope(Scope::new("read".to_string()))
-            .add_scope(Scope::new("write".to_string()))
+            .add_scope(Scope::new("email".to_string()))
+            .add_scope(Scope::new("DSF".to_string()))
             // Set the PKCE code challenge.
             .set_pkce_challenge(pkce_challenge)
             .url();
@@ -1417,7 +1413,7 @@ mod authenticated_tests {
         // Now you can exchange it for an access token and ID token.
         let token_response = client
             .exchange_code(AuthorizationCode::new(
-                "some authorization code".to_string(),
+                "4a1i70ZDg4FjZCCcT8S1CawVZqRNUN0RlaeKV4cN97E=".to_string(),
             ))
             .unwrap()
             // Set the PKCE code verifier.
