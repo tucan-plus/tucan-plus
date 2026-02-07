@@ -5,7 +5,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
     asyncClosure(async () => {
         console.log(`onBeforeRequest ${details.url}`)
         // TODO CHECK PRGNAME LOGINCHECK
-        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll") {
+        if (details.url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&")) {
             console.log("login attempt")
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
@@ -18,10 +18,10 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
 
 chrome.webRequest.onHeadersReceived.addListener((details) => {
     asyncClosure(async () => {
-        // TODO CHECK PRGNAME LOGINCHECK
         console.log(`onHeadersReceived ${details.url}`)
-        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll") {
-            const refreshHeader = details.responseHeaders?.find(v => v.name === "REFRESH")?.value ?? "";
+        if (details.url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&")) {
+            console.log(`extracting login ${details.responseHeaders}`)
+            const refreshHeader = details.responseHeaders?.find(v => v.name === "refresh")?.value ?? "";
             const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
             if (match !== null) {
                 const sessionId = match[1]
