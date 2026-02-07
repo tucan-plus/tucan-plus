@@ -26,9 +26,7 @@
         "keyword": "tucanplus"
     },
     "host_permissions": [
-        "https://www.tucan.tu-darmstadt.de/*",
-        "http://www.tucan.tu-darmstadt.de/*",
-        "https://tucan-plus.selfmade4u.de/*"
+        "https://www.tucan.tu-darmstadt.de/*"
     ],
     "content_scripts": [
         {

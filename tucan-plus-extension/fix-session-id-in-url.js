@@ -1,8 +1,11 @@
 import { asyncClosure } from "./utils.js";
 
+console.log("BACKGROUND FIX_SESSION-ID")
 chrome.webRequest.onBeforeRequest.addListener((details) => {
     asyncClosure(async () => {
-        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
+        console.log(`onBeforeRequest ${details.url}`)
+        // TODO CHECK PRGNAME LOGINCHECK
+        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll") {
             console.log("login attempt")
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
@@ -11,11 +14,13 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
         }
     });
     return undefined
-}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll"] })
+}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&*"] })
 
 chrome.webRequest.onHeadersReceived.addListener((details) => {
     asyncClosure(async () => {
-        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll" && details.method === "POST") {
+        // TODO CHECK PRGNAME LOGINCHECK
+        console.log(`onHeadersReceived ${details.url}`)
+        if (details.url === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll") {
             const refreshHeader = details.responseHeaders?.find(v => v.name === "REFRESH")?.value ?? "";
             const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
             if (match !== null) {
@@ -39,7 +44,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
         }
     });
     return undefined
-}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);
+}, { urls: ["https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&*", "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGOUT&*"] }, ["responseHeaders"]);
 
 chrome.cookies.onChanged.addListener((changeInfo) => {
     asyncClosure(async () => {
