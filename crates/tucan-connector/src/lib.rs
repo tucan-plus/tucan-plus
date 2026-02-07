@@ -1351,4 +1351,7 @@ mod authenticated_tests {
             }
         });
     }
+
+    #[test]
+    pub fn test_openidconnect() {}
 }

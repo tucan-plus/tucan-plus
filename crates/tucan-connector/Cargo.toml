@@ -29,6 +29,7 @@ tucan-types.workspace = true
 log.workspace = true
 time.workspace = true
 tucan-plus-worker.workspace = true
+openidconnect = "4.0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys.workspace = true
