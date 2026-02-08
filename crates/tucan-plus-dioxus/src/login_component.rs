@@ -8,16 +8,16 @@ pub fn LoginComponent() -> Element {
     tracing::error!("login component");
     let tucan: RcTucanType = use_context();
 
-    let mut username = use_signal(|| "".to_string());
+    let username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
     let mut error_message = use_signal(|| None);
     let mut loading = use_signal(|| false);
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
-    let anonymize = use_context::<Anonymize>().0;
+    let _anonymize = use_context::<Anonymize>().0;
 
-    let on_submit = move |e: FormEvent| {
+    let _on_submit = move |e: FormEvent| {
         e.prevent_default();
         let tucan = tucan.clone();
         spawn(async move {
@@ -131,13 +131,14 @@ pub fn LoginComponent() -> Element {
         }
     };
 
-    let is_invalid = if error_message().is_some() {
+    let _is_invalid = if error_message().is_some() {
         "is-invalid"
     } else {
         ""
     };
     rsx! {
         a {
+            id: "login-button",
             class: "btn btn-primary",
             role: "button",
             href: "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY",

@@ -3,12 +3,10 @@ pub mod load_semesters;
 
 use std::collections::{HashMap, HashSet};
 
-use diesel::Identifiable;
 use dioxus::html::FileData;
 use dioxus::prelude::*;
-use itertools::Itertools;
 use log::info;
-use tucan_plus_worker::models::{AnmeldungEntry, Semester, State};
+use tucan_plus_worker::models::{Semester, State};
 use tucan_plus_worker::{
     AnmeldungEntryWithMoveInformation, AnmeldungenEntriesNoSemester, AnmeldungenEntriesPerSemester,
     MyDatabase, RecursiveAnmeldungenRequest, RecursiveAnmeldungenResponse, UpdateAnmeldungEntry,
@@ -97,7 +95,7 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
-    let mut failed: Signal<Vec<AnmeldungEntryWithMoveInformation>> = use_signal(|| Vec::new());
+    let mut failed: Signal<Vec<AnmeldungEntryWithMoveInformation>> = use_signal(Vec::new);
     let mut future: MyResource = {
         let course_of_study = course_of_study.clone();
         let worker = worker.clone();
@@ -399,7 +397,7 @@ fn AnmeldungenEntries(
                                     let entry = entry.clone();
                                     let worker = worker.clone();
                                     move |event| {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
                                             let mut new_entry = entry.clone();
@@ -428,7 +426,7 @@ fn AnmeldungenEntries(
                                     let entry = entry.clone();
                                     let worker = worker.clone();
                                     move |event| {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
                                             let mut new_entry = entry.clone();
@@ -472,7 +470,7 @@ fn AnmeldungenEntries(
                                     let entry = entry.clone();
                                     let worker = worker.clone();
                                     move |event| {
-                                        let mut entry = entry.clone();
+                                        let entry = entry.clone();
                                         let worker = worker.clone();
                                         async move {
                                             let mut new_entry = entry.clone();

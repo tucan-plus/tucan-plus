@@ -15,27 +15,28 @@ pub fn ExportDatabase() -> Element {
                 .expect("export timed out")
         }
     });
+    #[cfg(target_arch = "wasm32")]
     rsx! {
         if let Some(database) = database() {
             a {
                 href: {
-                    #[cfg(target_arch = "wasm32")]
-                    {
-                        // data:text/plain;charset=utf-8,?
-                        let blob_properties = web_sys::BlobPropertyBag::new();
-                        blob_properties.set_type("octet/stream");
-                        let bytes = js_sys::Array::new();
-                        bytes.push(&js_sys::Uint8Array::from(&database[..]));
-                        let blob =
-                            web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
-                        web_sys::Url::create_object_url_with_blob(&blob).unwrap()
-                    }
-                    #[cfg(not(target_arch = "wasm32"))]
-                    "/todo"
+                    let blob_properties = web_sys::BlobPropertyBag::new();
+                    blob_properties.set_type("octet/stream");
+                    let bytes = js_sys::Array::new();
+                    bytes.push(&js_sys::Uint8Array::from(&database[..]));
+                    let blob =
+                        web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
+                    web_sys::Url::create_object_url_with_blob(&blob).unwrap()
                 },
                 download: "tucan-plus.db",
                 "Download database"
             }
+        }
+    }
+    #[cfg(not(target_arch = "wasm32"))]
+    rsx! {
+        p {
+            "Not implemented in non-browser environment"
         }
     }
 }

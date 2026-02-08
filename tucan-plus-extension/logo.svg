@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="TUCaN Plus logo">
+  <text x="510" y="250"
+        text-anchor="end"
+        font-family="Helvetica, Arial, sans-serif"
+        font-weight="700"
+        font-size="150"
+        >
+    <tspan fill="#93999e">TU</tspan><tspan fill="#99a604">CaN</tspan>
+  </text>
+
+  <text x="510" y="280"
+        dominant-baseline="hanging"
+        text-anchor="end"
+        font-family="Helvetica, Arial, sans-serif"
+        font-weight="700"
+        font-size="150"
+        fill="#A60448">
+    Plus
+  </text>
+</svg>

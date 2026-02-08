@@ -65,8 +65,7 @@ nix build -L .#extension-unpacked && (cd result && npx web-ext run --target fire
 ### Running all tests
 
 ```
-EXTENSION_FILE=../../tucan-plus-extension cargo test --package tucan-plus-tests -- --nocapture
-
+PATH=$PATH:~/Downloads/chromedriver-linux64/:~/Downloads/chrome-linux64 EXTENSION_FILE=$PWD/tucan-plus-extension cargo test --package tucan-plus-tests desktop_chromium_main -- --nocapture
 cargo test
 ```
 
@@ -75,7 +74,7 @@ cargo test
 **Important: Do NOT run in `nix develop` environment**
 
 ```
-nix run .#test-dev
+nix run .#test
 ```
 
 ### Formatting
@@ -221,14 +220,6 @@ https://editor-next.swagger.io/
 
 ## tucan-connector
 
-.env
-```
-TUCAN_USERNAME=
-TUCAN_PASSWORD=
-SESSION_ID=
-SESSION_KEY=
-```
-
 ## Debugging
 
 https://chromewebstore.google.com/detail/cc++-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb
@@ -250,38 +241,6 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
     -show-instantiations
 
 xdg-open target/coverage/index.html 
-```
-
-## Android
-
-```
-sudo systemctl stop firewalld.service
-adb connect 172.18.61.176:43109
-adb uninstall de.selfmade4u.tucanplus
-dx serve --device --platform android --hotpatch --verbose
-
-adb logcat -c
-adb shell run-as de.selfmade4u.tucanplus logcat
-
-dx bundle --platform android --device
-/home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk
-
-dx serve --platform android --hotpatch --verbose
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --platform android --verbose
-# grep for RustStdoutStderr
-
-dx bundle --platform android --release
-adb install target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
-
-
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml build --platform android
-```
-
-## Linux
-
-```
-dx serve --platform linux --hotpatch --verbose
-
 ```
 
 ```

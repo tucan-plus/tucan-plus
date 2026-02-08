@@ -4,24 +4,26 @@ use std::{
     collections::HashMap,
     path::Path,
     sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
+        Arc, OnceLock,
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
     time::{Duration, Instant},
 };
 
-use base64::{Engine, prelude::BASE64_STANDARD};
 use dotenvy::dotenv;
-use serde_json::json;
-use tokio::{process::Command, sync::OnceCell, time::sleep};
+use secret_service::{EncryptionType, Item, SecretService};
+use tokio::{
+    sync::{Notify, OnceCell},
+    time::sleep,
+};
 use webdriverbidi::{
     events::EventType,
     model::{
         browsing_context::{
             BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters,
-            Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport,
+            Locator, NavigateParameters, ReadinessState,
         },
-        common::Extensible,
+        common::{EmptyParams, Extensible},
         input::{
             ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin,
             PerformActionsParameters, PointerCommonProperties, PointerDownAction,
@@ -34,15 +36,14 @@ use webdriverbidi::{
             ResultOwnership, SerializationOptions, SharedReference, Target,
         },
         session::SubscriptionRequest,
-        web_extension::{ExtensionBase64Encoded, ExtensionData, ExtensionPath, InstallParameters},
     },
     session::WebDriverBiDiSession,
-    webdriver::capabilities::CapabilitiesRequest,
 };
+use zbus::zvariant::OwnedObjectPath;
 
 use crate::browsers::{
-    ANDROID_MUTEX, AndroidChromium, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder,
-    DesktopChromium, DesktopFirefox,
+    ANDROID_MUTEX, AndroidChromium, AndroidFirefox, Browser, BrowserBuilder, DesktopChromium,
+    DesktopFirefox,
 };
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
@@ -81,37 +82,43 @@ fn generate_keypresses(input: &str) -> Vec<KeySourceAction> {
 async fn click_element(
     session: &mut WebDriverBiDiSession,
     browsing_context: String,
-    node: &NodeRemoteValue,
+    nodes: &[NodeRemoteValue],
 ) -> anyhow::Result<()> {
-    let a: Box<[PointerSourceAction]> = Box::new([
-        PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
-            5.0,
-            5.0,
-            None,
-            Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference {
-                shared_id: node.shared_id.clone().unwrap(),
-                handle: node.handle.clone(),
-                extensible: Extensible::new(),
-            }))),
-            PointerCommonProperties::new(None, None, None, None, None, None, None),
-        )),
-        PointerSourceAction::PointerDownAction(PointerDownAction::new(
-            0,
-            PointerCommonProperties::new(None, None, None, None, None, None, None),
-        )),
-        PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
-    ]);
-    let a = a.into_vec();
+    let a: Vec<PointerSourceAction> = nodes
+        .into_iter()
+        .flat_map(|node| {
+            [
+                PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
+                    0.0,
+                    0.0,
+                    None,
+                    Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference {
+                        shared_id: node.shared_id.clone().unwrap(),
+                        handle: node.handle.clone(),
+                        extensible: Extensible::new(),
+                    }))),
+                    PointerCommonProperties::new(None, None, None, None, None, None, None),
+                )),
+                PointerSourceAction::PointerDownAction(PointerDownAction::new(
+                    0,
+                    PointerCommonProperties::new(None, None, None, None, None, None, None),
+                )),
+                PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
+            ]
+        })
+        .collect();
 
     let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-    let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(
-        PointerSourceActions::new(
-            id.to_string(),
-            Some(PointerParameters::new(Some(PointerType::Mouse))),
-            a,
-        ),
-    )]);
-    let b = b.into_vec();
+    let b: Vec<SourceActions> = Vec::from_iter(
+        [SourceActions::PointerSourceActions(
+            PointerSourceActions::new(
+                id.to_string(),
+                Some(PointerParameters::new(Some(PointerType::Mouse))),
+                a,
+            ),
+        )]
+        .into_iter(),
+    );
 
     session
         .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b))
@@ -127,7 +134,7 @@ async fn write_text(
 ) -> anyhow::Result<()> {
     println!("locating");
 
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new(element.to_owned())),
@@ -136,7 +143,7 @@ async fn write_text(
             None,
         ))
         .await?;
-    let node = &node.nodes[0];
+    let node = node.nodes.remove(0);
 
     println!("located");
 
@@ -171,7 +178,7 @@ async fn write_text(
     // TODO FIXME webdriver bidi library fails to deserialize object
     println!("function evaluation {result:?}");
 
-    click_element(session, browsing_context.clone(), node).await?;
+    click_element(session, browsing_context.clone(), &[node]).await?;
 
     let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
     let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(
@@ -188,18 +195,27 @@ async fn write_text(
 
 pub async fn it_works<B: BrowserBuilder>() {
     let _ = env_logger::try_init();
-    dotenv().unwrap();
+
+    let secret_service = get_secret_service().await;
+    // TODO do this once
+
+    let item = secret_service
+        .get_item_by_path(
+            OwnedObjectPath::try_from(
+                "/org/freedesktop/secrets/collection/Passwords/620b653db40547b7902b498512bfea30",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+    let attributes = item.get_attributes().await.unwrap();
+    let username = attributes["UserName"].clone();
+    let totp = attributes["TOTP"].clone();
+    let password = item.get_secret().await.unwrap();
+    let password = str::from_utf8(&password).unwrap();
 
     let mut session = setup_session::<B>().await;
 
-    let username = std::env::var("TUCAN_USERNAME").unwrap();
-    let password = std::env::var("TUCAN_PASSWORD").unwrap();
-
-    // for e.g. android this makes the most sense?
-    /*session
-    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
-    .await.unwrap();*/
-    // chrome only supports unpacked path
     session
         .load_extension(Path::new(&std::env::var("EXTENSION_FILE").unwrap()))
         .await;
@@ -292,8 +308,8 @@ pub async fn it_works<B: BrowserBuilder>() {
     .await
     .unwrap();
 
-    // we should do this better?
-    sleep(Duration::from_secs(5)).await; // wait for frontend javascript to be executed
+    // we should do this better?, wait for what we need. domcontentloaded or so?
+    //sleep(Duration::from_secs(2)).await; // wait for frontend javascript to be executed
 
     session
         .script_evaluate(EvaluateParameters::new(
@@ -312,32 +328,35 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
+    // wait for animation would be nice
     sleep(Duration::from_secs(1)).await;
 
     println!("waited");
 
-    write_text(
-        &mut session,
-        browsing_context.clone(),
-        "#login-username",
-        &username,
-    )
-    .await
-    .unwrap();
+    let navigated = Arc::new(Notify::const_new());
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_one();
+                }
+            }
+        })
+        .await;
 
-    // TODO get the area of the login field so we can visualize it
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
 
-    println!("input_login_username {:?}", start.elapsed());
-    write_text(
-        &mut session,
-        browsing_context.clone(),
-        "#login-password",
-        &password,
-    )
-    .await
-    .unwrap();
-
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
@@ -347,13 +366,246 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
-    let node = &node.nodes[0];
-    click_element(&mut session, browsing_context.clone(), node)
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
+    // well SSO
+
+    // #username
+    // #password
+    // button[type=submit]
+
+    println!("waiting for page load");
+    navigated.notified().await;
+    session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
+
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#username",
+        &username,
+    )
+    .await
+    .unwrap();
+
+    println!("input_login_username {:?}", start.elapsed());
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#password",
+        &password,
+    )
+    .await
+    .unwrap();
+
+    let navigated = Arc::new(Notify::const_new());
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_one();
+                }
+            }
+        })
+        .await;
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
+
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
+    navigated.notified().await;
+    session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
+
+    // select[id=fudis_selected_token_ids_input]
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new(
+                "#fudis_selected_token_ids_input".to_owned(),
+            )),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node1 = node.nodes.remove(0);
+
+    // https://github.com/puppeteer/puppeteer/blob/b163ce4593a8f014b86d67d53825fbeb679045ca/packages/puppeteer-core/src/api/ElementHandle.ts#L1008
+    session
+        .script_evaluate(EvaluateParameters::new(
+            r##"
+                    (() => {
+                        const selectElement = document.querySelector('#fudis_selected_token_ids_input');
+                        if (selectElement) {
+                            selectElement.value = 'TOTP33027D68';
+                            
+                            // Manually trigger events so the site reacts to the change
+                            selectElement.dispatchEvent(new Event('input', { bubbles: true }));
+                            selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                            return true;
+                        }
+                        return false;
+                    })();
+                    "##
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
+            None,
+            None,
+            Some(true),
+        ))
         .await
         .unwrap();
 
     // time not implemented on this platform
 
+    let navigated = Arc::new(Notify::const_new());
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_one();
+                }
+            }
+        })
+        .await;
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
+
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
+    // id
+    // TODO wait here
+    navigated.notified().await;
+    session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
+
+    session
+        .script_evaluate(EvaluateParameters::new(
+            format!(
+                r##"
+                (() => {{
+                    const el = document.querySelector('#fudis_otp_input');
+                    el.value = '{totp}';
+                    el.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                }})();
+                    "##,
+            )
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
+            None,
+            None,
+            Some(true),
+        ))
+        .await
+        .unwrap();
+
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = node.nodes.remove(0);
+
+    let (tx, mut rx) = tokio::sync::watch::channel(String::new());
+    session
+        .register_event_handler(EventType::BrowsingContextNavigationCommitted, {
+            move |event| {
+                let tx = tx.clone();
+                async move {
+                    println!("navigationcommitted {event}");
+                    tx.send(
+                        event.as_object().unwrap()["params"].as_object().unwrap()["url"]
+                            .to_string(),
+                    )
+                    .unwrap();
+                }
+            }
+        })
+        .await;
+    // https://github.com/puppeteer/puppeteer/issues/14314
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.navigationCommitted".to_owned()],
+            None, // also extension context?
+            None,
+        ))
+        .await
+        .unwrap();
+
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
+    println!("waiting for nav");
+    rx.wait_for(|elem| elem.contains("-extension://"))
+        .await
+        .unwrap();
+    session
+        .unregister_event_handler(EventType::BrowsingContextNavigationCommitted)
+        .await;
+    // TODO unsubscribe
+    println!("waited for nav");
+
+    println!("waiting for logout button");
     session
         .script_evaluate(EvaluateParameters::new(
             r##"
@@ -381,6 +633,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
+    println!("waited for logout button");
 
     let realms = session
         .script_get_realms(GetRealmsParameters::new(
@@ -394,6 +647,9 @@ pub async fn it_works<B: BrowserBuilder>() {
         panic!();
     };
 
+    println!("SENDING MESSAGE");
+
+    // TODO verify this did something
     session
         .script_evaluate(EvaluateParameters::new(
             r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(),
@@ -408,7 +664,7 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     sleep(Duration::from_secs(5)).await;
 
-    let realms = session
+    let _realms = session
         .script_get_realms(GetRealmsParameters::new(
             Some(browsing_context.clone()),
             None,
@@ -416,7 +672,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
-    let contexts = session
+    let _contexts = session
         .browsing_context_get_tree(GetTreeParameters {
             max_depth: None,
             root: Some(browsing_context.clone()),
@@ -437,13 +693,46 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     sleep(Duration::from_secs(5)).await;
 
-    session
-        .browsing_context_close(CloseParameters {
-            context: browsing_context,
-            prompt_unload: None,
-        })
+    /*session
+    .browsing_context_close(CloseParameters {
+        context: browsing_context,
+        prompt_unload: None,
+    })
+    .await
+    .unwrap();*/
+
+    //session.browser_close(EmptyParams::new()).await.unwrap();
+}
+
+static ONCE_SECRET_SERVICE: OnceCell<SecretService> = OnceCell::const_new();
+
+pub async fn get_secret_service() -> &'static SecretService<'static> {
+    ONCE_SECRET_SERVICE
+        .get_or_init(async || {
+            let ss = SecretService::connect(EncryptionType::Dh).await.unwrap();
+            let result = ss.search_items(HashMap::default()).await.unwrap();
+            println!("entries");
+            for item in result.unlocked {
+                println!("{:?} {:?}", item.item_path, item.get_label().await);
+            }
+            for item in result.locked {
+                println!("{:?} {:?}", item.item_path, item.get_label().await);
+            }
+            let item = ss
+        .get_item_by_path(
+            OwnedObjectPath::try_from(
+                "/org/freedesktop/secrets/collection/Passwords/620b653db40547b7902b498512bfea30",
+            )
+            .unwrap(),
+        )
         .await
         .unwrap();
+            if item.is_locked().await.unwrap() {
+                println!("unlock result {:?}", item.unlock().await);
+            }
+            ss
+        })
+        .await
 }
 
 #[tokio::test]
@@ -470,6 +759,6 @@ async fn android_chromium_main() {
 
 #[tokio::test]
 async fn android_firefox_main() {
-    let guard = ANDROID_MUTEX.lock().await;
+    let guard = ANDROID_MUTEX.lock().await; // panicking poisons this
     it_works::<AndroidFirefox>().await
 }

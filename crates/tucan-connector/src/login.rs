@@ -96,13 +96,13 @@ pub async fn login(
     if next_url.is_none() {
         // login failed
         let content = response.text().await?;
-        if (content
-            .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."))
+        if content
+            .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten.") 
         {
             return Err(TucanError::InvalidCredentials);
         }
-        if (content
-            .contains("Aufgrund einer Häufung fehlgeschlagener Einloggversuche ist dieses Benutzerkonto vorübergehend gesperrt."))
+        if content
+            .contains("Aufgrund einer Häufung fehlgeschlagener Einloggversuche ist dieses Benutzerkonto vorübergehend gesperrt.") 
         {
             return Err(TucanError::AccessDenied);
         }

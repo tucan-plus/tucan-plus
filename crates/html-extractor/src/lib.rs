@@ -249,7 +249,7 @@ impl Parse for DashOrColon {
 enum StringLiteralOrVariable {
     Literal(LitStr),
     Variable(Ident),
-    Clousure(Brace, ExprClosure),
+    Clousure(Brace, Box<ExprClosure>),
 }
 
 impl StringLiteralOrVariable {

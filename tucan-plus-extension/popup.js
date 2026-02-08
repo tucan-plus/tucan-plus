@@ -83,6 +83,29 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
     })
 });
 
+/** @type {HTMLElement} */(document.querySelector("#extract-tucan-session")).addEventListener("click", () => {
+    asyncClosure(async () => {
+        console.log("copying");
+        const idCookie = await chrome.cookies.get({
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
+            name: "id",
+        })
+        const cnscCookie = await chrome.cookies.get({
+            url: "https://www.tucan.tu-darmstadt.de/scripts",
+            name: "cnsc",
+        })
+        await navigator.clipboard.writeText(`SESSION_ID=${idCookie?.value}
+SESSION_KEY=${cnscCookie?.value}
+`)
+        await chrome.notifications.create({
+            type: "basic",
+            iconUrl: chrome.runtime.getURL("/logo.png"),
+            title: "Copied to clipboard",
+            message: "Credentials copied to clipboard. Take care.",
+        });
+    })
+});
+
 if (!await chrome.permissions.contains({
     origins: ['https://www.tucan.tu-darmstadt.de/']
 })) {

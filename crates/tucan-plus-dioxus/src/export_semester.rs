@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
-use crate::{RcTucanType, decompress};
+use crate::RcTucanType;
 use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
@@ -13,6 +13,7 @@ use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
 use time::{Month, macros::offset};
 use tokio::io::AsyncWriteExt as _;
+use tucan_plus_planning::decompress;
 use tucan_types::{
     DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -111,8 +112,6 @@ pub fn FetchAnmeldung() -> Element {
                 spawn({
                     let mut result = result;
                     let tucan = tucan.clone();
-                    let atomic_current = atomic_current;
-                    let atomic_total = atomic_total;
                     async move {
                         let mut atomic_current = atomic_current;
                         let atomic_total = atomic_total;
@@ -294,15 +293,12 @@ pub fn MigrateV0ToV1() -> Element {
                 .unwrap()
                 .clone();
             let session = current_session_handle().unwrap();
-            let atomic_current = use_signal_sync(BigRational::zero);
+            let mut atomic_current = use_signal_sync(BigRational::zero);
             let atomic_total = use_signal_sync(BigRational::one);
             spawn({
                 let mut result = result;
                 let tucan = tucan.clone();
-                let atomic_current = atomic_current;
                 async move {
-                    let mut atomic_current = atomic_current;
-
                     let modules: HashSet<_> = anmeldung_response
                         .iter()
                         .flat_map(|anmeldung| anmeldung.entries.iter())
