@@ -488,6 +488,28 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     // time not implemented on this platform
 
+    let navigated = Arc::new(Notify::const_new());
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_one();
+                }
+            }
+        })
+        .await;
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
+
     let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
@@ -504,6 +526,11 @@ pub async fn it_works<B: BrowserBuilder>() {
         .unwrap();
 
     // id
+    // TODO wait here
+    navigated.notified().await;
+    session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
 
     session
         .script_evaluate(EvaluateParameters::new(
@@ -537,13 +564,42 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
     let node = node.nodes.remove(0);
+
+    let navigated = Arc::new(Notify::const_new());
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_one();
+                }
+            }
+        })
+        .await;
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
+
     click_element(&mut session, browsing_context.clone(), &[node])
         .await
         .unwrap();
 
-    sleep(Duration::from_secs(100)).await;
-
+    println!("waiting for nav");
+    navigated.notified().await;
     session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
+    println!("waited for nav");
+
+    println!("waiting for logout button");
+    let result = session
         .script_evaluate(EvaluateParameters::new(
             r##"
                     new Promise((resolve) => {
@@ -570,6 +626,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
+    println!("waited for logout button");
 
     let realms = session
         .script_get_realms(GetRealmsParameters::new(
