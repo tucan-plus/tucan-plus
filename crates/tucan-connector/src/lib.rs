@@ -903,17 +903,34 @@ mod authenticated_tests {
 
     async fn get_login_session() -> &'static LoginResponse {
         ONCE.get_or_init(|| async {
-            login(
-                &get_tucan_connector().await.client,
-                &LoginRequest {
+            let tucan = get_tucan_connector().await;
+            if let (Ok(session_id), Ok(session_key)) =
+                (std::env::var("SESSION_ID"), std::env::var("SESSION_KEY"))
+            {
+                let login_response = LoginResponse {
+                    id: session_id.parse().unwrap(),
+                    cookie_cnsc: session_key,
+                };
+                if redirect_after_login(&tucan, login_response.clone())
+                    .await
+                    .is_ok()
+                {
+                    println!("Using existing TUCaN session");
+                    return login_response;
+                } else {
+                    println!("TUCaN session not valid anymore. Falling back.")
+                }
+            }
+
+            tucan
+                .login(LoginRequest {
                     username: std::env::var("TUCAN_USERNAME")
                         .expect("env variable TUCAN_USERNAME missing"),
                     password: std::env::var("TUCAN_PASSWORD")
                         .expect("env variable TUCAN_PASSWORD missing"),
-                },
-            )
-            .await
-            .unwrap()
+                })
+                .await
+                .unwrap()
         })
         .await
     }
