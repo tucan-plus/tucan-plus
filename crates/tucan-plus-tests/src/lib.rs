@@ -328,7 +328,6 @@ pub async fn it_works<B: BrowserBuilder>() {
     println!("waited");
 
     let navigated = Arc::new(Notify::const_new());
-
     session
         .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
             let navigated = navigated.clone();
@@ -341,6 +340,15 @@ pub async fn it_works<B: BrowserBuilder>() {
             }
         })
         .await;
+
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
 
     let node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
@@ -389,7 +397,6 @@ pub async fn it_works<B: BrowserBuilder>() {
     .unwrap();
 
     let navigated = Arc::new(Notify::const_new());
-
     session
         .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
             let navigated = navigated.clone();
@@ -402,6 +409,14 @@ pub async fn it_works<B: BrowserBuilder>() {
             }
         })
         .await;
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
 
     let node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
@@ -441,7 +456,23 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
+    sleep(Duration::from_secs(100)).await;
+
     // value TOTP33027D68
+    let node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("option[value=\"TOTP33027D68\"]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = &node.nodes[0];
+    click_element(&mut session, browsing_context.clone(), node)
+        .await
+        .unwrap();
 
     // time not implemented on this platform
 
