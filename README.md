@@ -168,6 +168,7 @@ EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plu
 ```
 cd crates/tucan-plus-dioxus/
 dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --features direct --release
+sed -i 's/importMeta.url/import.meta.url/g' ../../tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
 ```
 
 Go to Firefox Extensions, click settings, debug addons. Then click load temporary add-on and select ./tucan-plus-extension/manifest.json
