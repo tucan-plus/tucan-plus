@@ -336,7 +336,7 @@ pub async fn it_works<B: BrowserBuilder>() {
                 let navigated = navigated.clone();
                 async move {
                     println!("domcontentloaded {event}");
-                    navigated.notify_waiters();
+                    navigated.notify_one();
                 }
             }
         })
@@ -363,6 +363,7 @@ pub async fn it_works<B: BrowserBuilder>() {
     // #password
     // button[type=submit]
 
+    println!("waiting for page load");
     navigated.notified().await;
     session
         .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
@@ -396,7 +397,7 @@ pub async fn it_works<B: BrowserBuilder>() {
                 let navigated = navigated.clone();
                 async move {
                     println!("domcontentloaded {event}");
-                    navigated.notify_waiters();
+                    navigated.notify_one();
                 }
             }
         })

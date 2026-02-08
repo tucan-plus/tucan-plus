@@ -65,8 +65,7 @@ nix build -L .#extension-unpacked && (cd result && npx web-ext run --target fire
 ### Running all tests
 
 ```
-PATH=$PATH:~/Downloads/chromedriver-linux64/:~/Downloads/chrome-linux64 EXTENSION_FILE=$PWD/tucan-plus-extension cargo test --package tucan-plus-tests desktop_chromium_main
-
+PATH=$PATH:~/Downloads/chromedriver-linux64/:~/Downloads/chrome-linux64 EXTENSION_FILE=$PWD/tucan-plus-extension cargo test --package tucan-plus-tests desktop_chromium_main -- --nocapture
 cargo test
 ```
 
