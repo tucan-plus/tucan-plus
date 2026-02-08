@@ -488,6 +488,59 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     // time not implemented on this platform
 
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
+    // id
+
+    session
+        .script_evaluate(EvaluateParameters::new(
+            format!(
+                r##"
+                (() => {{
+                    const el = document.querySelector('#fudis_otp_input');
+                    el.value = '{totp}';
+                    el.dispatchEvent(new Event('input', {{ bubbles: true }}));
+                }})();
+                    "##,
+            )
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
+            None,
+            None,
+            Some(true),
+        ))
+        .await
+        .unwrap();
+
+    let mut node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
+        .await
+        .unwrap();
+
     sleep(Duration::from_secs(100)).await;
 
     session
