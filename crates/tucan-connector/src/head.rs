@@ -10,6 +10,8 @@ use tucan_types::{
 
 use html_handler::{InElement, InRoot, Root};
 
+use crate::InElement5;
+
 // 275 means "Meine Module" is selected in menu
 // 311 means "Anmeldung" is selected in menu
 
@@ -145,9 +147,6 @@ pub fn html_head<'a>(
     }
     Ok(html_handler)
 }
-
-type InElement5<'a, T> =
-    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, T>>>>>;
 
 #[must_use]
 pub fn page_start<'a>(

@@ -112,8 +112,6 @@ pub fn FetchAnmeldung() -> Element {
                 spawn({
                     let mut result = result;
                     let tucan = tucan.clone();
-                    let atomic_current = atomic_current;
-                    let atomic_total = atomic_total;
                     async move {
                         let mut atomic_current = atomic_current;
                         let atomic_total = atomic_total;
@@ -295,15 +293,12 @@ pub fn MigrateV0ToV1() -> Element {
                 .unwrap()
                 .clone();
             let session = current_session_handle().unwrap();
-            let atomic_current = use_signal_sync(BigRational::zero);
+            let mut atomic_current = use_signal_sync(BigRational::zero);
             let atomic_total = use_signal_sync(BigRational::one);
             spawn({
                 let mut result = result;
                 let tucan = tucan.clone();
-                let atomic_current = atomic_current;
                 async move {
-                    let mut atomic_current = atomic_current;
-
                     let modules: HashSet<_> = anmeldung_response
                         .iter()
                         .flat_map(|anmeldung| anmeldung.entries.iter())

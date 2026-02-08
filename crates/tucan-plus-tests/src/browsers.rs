@@ -22,7 +22,7 @@ use webdriverbidi::{
 pub static ANDROID_MUTEX: tokio::sync::Mutex<()> = Mutex::const_new(());
 
 pub trait BrowserBuilder: Browser + 'static {
-    async fn start(unpacked_extension: &Path) -> Self;
+    fn start(unpacked_extension: &Path) -> impl std::future::Future<Output = Self> + Send;
 }
 
 #[async_trait]

@@ -211,7 +211,7 @@ impl Semesterauswahl {
     pub fn year(&self) -> i32 {
         self.name[5..9].parse::<i32>().unwrap()
     }
-    pub fn active(value: &Vec<Semesterauswahl>) -> &Semesterauswahl {
+    pub fn active(value: &[Semesterauswahl]) -> &Semesterauswahl {
         value.iter().find(|value| value.selected).unwrap()
     }
 }

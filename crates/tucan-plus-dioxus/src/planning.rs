@@ -3,10 +3,8 @@ pub mod load_semesters;
 
 use std::collections::{HashMap, HashSet};
 
-use diesel::Identifiable;
 use dioxus::html::FileData;
 use dioxus::prelude::*;
-use itertools::Itertools;
 use log::info;
 use tucan_plus_worker::models::{Semester, State};
 use tucan_plus_worker::{

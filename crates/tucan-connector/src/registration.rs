@@ -13,7 +13,7 @@ use tucan_types::{
 };
 
 use crate::{
-    COURSEDETAILS_REGEX, TucanError,
+    COURSEDETAILS_REGEX, InElement5, TucanError,
     head::{footer, html_head, logged_in_head},
 };
 use html_handler::{InElement, InRoot, MyElementRef, MyNode, Root, parse_document};
@@ -28,19 +28,7 @@ pub static MODULEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 fn is_tbsubhead(
     html_handler: &InElement<
         '_,
-        InElement<
-            '_,
-            InElement<
-                '_,
-                InElement<
-                    '_,
-                    InElement<
-                        '_,
-                        InElement<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
-                    >,
-                >,
-            >,
-        >,
+        InElement5<'_, InElement<'_, InElement<'_, InRoot<'_, Root<'_>>>>>,
     >,
 ) -> bool {
     html_handler

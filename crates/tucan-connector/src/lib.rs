@@ -4,6 +4,7 @@ use std::{
 };
 
 use externalpages::welcome::welcome;
+use html_handler::InElement;
 use login::{login, logout};
 use regex::Regex;
 use reqwest::header;
@@ -45,6 +46,9 @@ pub mod root;
 pub mod startpage_dispatch;
 pub mod student_result;
 pub mod vv;
+
+pub type InElement5<'a, T> =
+    InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, T>>>>>;
 
 pub async fn fetch_with_cache<Request, Response>(
     tucan: &TucanConnector,

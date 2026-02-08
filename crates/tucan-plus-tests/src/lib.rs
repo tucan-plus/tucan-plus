@@ -34,7 +34,8 @@ use webdriverbidi::{
 };
 
 use crate::browsers::{
-    Browser, BrowserBuilder,
+    ANDROID_MUTEX, AndroidChromium, AndroidFirefox, Browser, BrowserBuilder, DesktopChromium,
+    DesktopFirefox,
 };
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
