@@ -584,7 +584,7 @@ pub async fn it_works<B: BrowserBuilder>() {
     session
         .session_subscribe(SubscriptionRequest::new(
             vec!["browsingContext.domContentLoaded".to_owned()],
-            Some(vec![browsing_context.clone()]),
+            None, // also extension context?
             None,
         ))
         .await
