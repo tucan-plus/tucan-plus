@@ -1408,9 +1408,7 @@ mod authenticated_tests {
 
         // Now you can exchange it for an access token and ID token.
         let token_response = client
-            .exchange_code(AuthorizationCode::new(
-                "4a1i70ZDg4FjZCCcT8S1CawVZqRNUN0RlaeKV4cN97E=".to_string(),
-            ))
+            .exchange_code(AuthorizationCode::new("".to_string()))
             .unwrap()
             // Set the PKCE code verifier.
             .request_async(&http_client)
