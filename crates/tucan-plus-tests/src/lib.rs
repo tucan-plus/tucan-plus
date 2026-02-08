@@ -565,15 +565,18 @@ pub async fn it_works<B: BrowserBuilder>() {
         .unwrap();
     let node = node.nodes.remove(0);
 
-    let navigated = Arc::new(Notify::const_new());
+    let (tx, mut rx) = tokio::sync::watch::channel(String::new());
     session
         .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
-            let navigated = navigated.clone();
             move |event| {
-                let navigated = navigated.clone();
+                let tx = tx.clone();
                 async move {
                     println!("domcontentloaded {event}");
-                    navigated.notify_one();
+                    tx.send(
+                        event.as_object().unwrap()["params"].as_object().unwrap()["url"]
+                            .to_string(),
+                    )
+                    .unwrap();
                 }
             }
         })
@@ -592,7 +595,9 @@ pub async fn it_works<B: BrowserBuilder>() {
         .unwrap();
 
     println!("waiting for nav");
-    navigated.notified().await;
+    rx.wait_for(|elem| elem.contains("-extension://"))
+        .await
+        .unwrap();
     session
         .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
         .await;
