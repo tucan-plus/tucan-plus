@@ -75,7 +75,7 @@ cargo test
 **Important: Do NOT run in `nix develop` environment**
 
 ```
-nix run .#test-dev
+nix run .#test
 ```
 
 ### Formatting
