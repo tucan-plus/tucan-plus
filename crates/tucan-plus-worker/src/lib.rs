@@ -12,7 +12,6 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 use itertools::Itertools as _;
-use log::info;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 #[cfg(target_arch = "wasm32")]
@@ -25,7 +24,7 @@ use crate::{
     schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
 use tucan_types::{
-    Semesterauswahl, courseresults::ModuleResult, registration::AnmeldungRequest,
+    registration::AnmeldungRequest,
     student_result::StudentResultLevel,
 };
 

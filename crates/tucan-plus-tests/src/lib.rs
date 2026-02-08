@@ -3,23 +3,18 @@ pub mod browsers;
 use std::{
     collections::HashMap,
     path::Path,
-    sync::{
-        Arc,
-        atomic::{AtomicUsize, Ordering},
-    },
+    sync::atomic::{AtomicUsize, Ordering},
     time::{Duration, Instant},
 };
 
-use base64::{Engine, prelude::BASE64_STANDARD};
 use dotenvy::dotenv;
-use serde_json::json;
-use tokio::{process::Command, sync::OnceCell, time::sleep};
+use tokio::time::sleep;
 use webdriverbidi::{
     events::EventType,
     model::{
         browsing_context::{
             BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters,
-            Locator, NavigateParameters, ReadinessState, SetViewportParameters, Viewport,
+            Locator, NavigateParameters, ReadinessState,
         },
         common::Extensible,
         input::{
@@ -34,15 +29,12 @@ use webdriverbidi::{
             ResultOwnership, SerializationOptions, SharedReference, Target,
         },
         session::SubscriptionRequest,
-        web_extension::{ExtensionBase64Encoded, ExtensionData, ExtensionPath, InstallParameters},
     },
     session::WebDriverBiDiSession,
-    webdriver::capabilities::CapabilitiesRequest,
 };
 
 use crate::browsers::{
-    ANDROID_MUTEX, AndroidChromium, AndroidEdgeCanary, AndroidFirefox, Browser, BrowserBuilder,
-    DesktopChromium, DesktopFirefox,
+    Browser, BrowserBuilder,
 };
 
 static ACTION_ID: AtomicUsize = AtomicUsize::new(1);
@@ -408,7 +400,7 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     sleep(Duration::from_secs(5)).await;
 
-    let realms = session
+    let _realms = session
         .script_get_realms(GetRealmsParameters::new(
             Some(browsing_context.clone()),
             None,
@@ -416,7 +408,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
-    let contexts = session
+    let _contexts = session
         .browsing_context_get_tree(GetTreeParameters {
             max_depth: None,
             root: Some(browsing_context.clone()),

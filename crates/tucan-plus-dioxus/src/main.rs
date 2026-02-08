@@ -42,7 +42,6 @@ use std::ops::Deref;
 use std::sync::Arc;
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
-use tokio::io::AsyncWriteExt as _;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
 use tucan_types::{

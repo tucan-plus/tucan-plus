@@ -1,4 +1,3 @@
-use log::info;
 use time::OffsetDateTime;
 use tucan_plus_worker::{CacheRequest, StoreCacheRequest, models::CacheEntry};
 use tucan_types::{

@@ -4,7 +4,6 @@ use std::{
 };
 
 use externalpages::welcome::welcome;
-use log::info;
 use login::{login, logout};
 use regex::Regex;
 use reqwest::header;

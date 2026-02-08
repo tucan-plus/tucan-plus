@@ -8,16 +8,16 @@ pub fn LoginComponent() -> Element {
     tracing::error!("login component");
     let tucan: RcTucanType = use_context();
 
-    let mut username = use_signal(|| "".to_string());
+    let username = use_signal(|| "".to_string());
     let mut password = use_signal(|| "".to_string());
     let mut error_message = use_signal(|| None);
     let mut loading = use_signal(|| false);
 
     let mut current_session = use_context::<Signal<Option<LoginResponse>>>();
 
-    let anonymize = use_context::<Anonymize>().0;
+    let _anonymize = use_context::<Anonymize>().0;
 
-    let on_submit = move |e: FormEvent| {
+    let _on_submit = move |e: FormEvent| {
         e.prevent_default();
         let tucan = tucan.clone();
         spawn(async move {
@@ -131,7 +131,7 @@ pub fn LoginComponent() -> Element {
         }
     };
 
-    let is_invalid = if error_message().is_some() {
+    let _is_invalid = if error_message().is_some() {
         "is-invalid"
     } else {
         ""

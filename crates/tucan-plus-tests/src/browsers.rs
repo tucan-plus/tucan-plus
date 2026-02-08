@@ -3,7 +3,6 @@ use std::{
     ops::{Deref, DerefMut},
     path::Path,
     process::Stdio,
-    sync::LazyLock,
     time::Duration,
 };
 
@@ -28,7 +27,7 @@ pub trait BrowserBuilder: Browser + 'static {
 
 #[async_trait]
 pub trait Browser: Send + Sync + DerefMut<Target = WebDriverBiDiSession> {
-    async fn load_extension(&mut self, unpacked_extension: &Path) {}
+    async fn load_extension(&mut self, _unpacked_extension: &Path) {}
 }
 
 pub struct DesktopFirefox(WebDriverBiDiSession);
@@ -48,7 +47,7 @@ impl DerefMut for DesktopFirefox {
 }
 
 impl BrowserBuilder for DesktopFirefox {
-    async fn start(unpacked_extension: &Path) -> Self {
+    async fn start(_unpacked_extension: &Path) -> Self {
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("/home/moritz/Downloads/geckodriver");
         cmd.kill_on_drop(true);
@@ -222,7 +221,7 @@ impl DerefMut for AndroidFirefox {
 }
 
 impl BrowserBuilder for AndroidFirefox {
-    async fn start(unpacked_extension: &Path) -> Self {
+    async fn start(_unpacked_extension: &Path) -> Self {
         // also start the webdriver here
         let mut cmd = tokio::process::Command::new("/home/moritz/Downloads/geckodriver");
         cmd.kill_on_drop(true);

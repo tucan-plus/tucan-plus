@@ -16,7 +16,7 @@ pub fn ExportDatabase() -> Element {
         }
     });
     rsx! {
-        if let Some(database) = database() {
+        if let Some(_database) = database() {
             a {
                 href: {
                     #[cfg(target_arch = "wasm32")]

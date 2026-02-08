@@ -156,7 +156,7 @@ impl AnmeldungEntry {
         std::string::String,
     ) {
         let (a, b, c, d) = self.id();
-        (a.clone(), b.clone(), c.clone(), d.clone())
+        (a.clone(), *b, c.clone(), d.clone())
     }
 }
 

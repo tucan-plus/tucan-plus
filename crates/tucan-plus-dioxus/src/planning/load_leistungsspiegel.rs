@@ -1,15 +1,12 @@
 use std::{collections::HashMap, sync::LazyLock};
 
-use log::info;
 use tucan_plus_worker::{
     AnmeldungEntryWithMoveInformation, InsertEntrySomewhereBelow, MyDatabase, SetCpAndModuleCount,
-    models::{AnmeldungEntry, Semester, State},
+    models::{AnmeldungEntry, State},
 };
 use tucan_types::{
     LeistungsspiegelGrade, LoginResponse, RevalidationStrategy, SemesterId, Tucan as _,
-    courseresults::ModuleResult,
     enhanced_module_results::EnhancedModuleResult,
-    mymodules::Module,
     student_result::{StudentResultLevel, StudentResultResponse, StudentResultRules},
 };
 
@@ -156,7 +153,7 @@ pub async fn recursive_update(
              AnmeldungEntry {
             course_of_study: course_of_study.to_owned(),
             available_semester: module_result
-                .map(|m| m.semester.clone())
+                .map(|m| m.semester)
                 .unwrap_or(tucan_types::Semester::Wintersemester)
                 .into(),
             anmeldung: this_url.clone(),
