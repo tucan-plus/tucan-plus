@@ -188,11 +188,6 @@ pub async fn it_works<B: BrowserBuilder>() {
     let username = std::env::var("TUCAN_USERNAME").unwrap();
     let password = std::env::var("TUCAN_PASSWORD").unwrap();
 
-    // for e.g. android this makes the most sense?
-    /*session
-    .web_extension_install(InstallParameters::new(ExtensionData::ExtensionBase64Encoded(ExtensionBase64Encoded::new(extension_base64))))
-    .await.unwrap();*/
-    // chrome only supports unpacked path
     session
         .load_extension(Path::new(&std::env::var("EXTENSION_FILE").unwrap()))
         .await;
@@ -285,8 +280,8 @@ pub async fn it_works<B: BrowserBuilder>() {
     .await
     .unwrap();
 
-    // we should do this better?
-    sleep(Duration::from_secs(5)).await; // wait for frontend javascript to be executed
+    // we should do this better?, wait for what we need. domcontentloaded or so?
+    //sleep(Duration::from_secs(2)).await; // wait for frontend javascript to be executed
 
     session
         .script_evaluate(EvaluateParameters::new(
@@ -305,30 +300,16 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
+    // wait for animation would be nice
     sleep(Duration::from_secs(1)).await;
 
     println!("waited");
 
-    write_text(
-        &mut session,
-        browsing_context.clone(),
-        "#login-username",
-        &username,
-    )
-    .await
-    .unwrap();
-
-    // TODO get the area of the login field so we can visualize it
-
-    println!("input_login_username {:?}", start.elapsed());
-    write_text(
-        &mut session,
-        browsing_context.clone(),
-        "#login-password",
-        &password,
-    )
-    .await
-    .unwrap();
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, async |event| {
+            println!("domcontentloaded {event}");
+        })
+        .await;
 
     let node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
@@ -345,7 +326,54 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
+    // well SSO
+
+    // #username
+    // #password
+    // button[type=submit]
+
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#username",
+        &username,
+    )
+    .await
+    .unwrap();
+
+    println!("input_login_username {:?}", start.elapsed());
+    write_text(
+        &mut session,
+        browsing_context.clone(),
+        "#password",
+        &password,
+    )
+    .await
+    .unwrap();
+
+    let node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = &node.nodes[0];
+    click_element(&mut session, browsing_context.clone(), node)
+        .await
+        .unwrap();
+
+    // 2fa
+
+    // select[id=fudis_selected_token_ids_input]
+    // value TOTP21665900
+
     // time not implemented on this platform
+
+    sleep(Duration::from_secs(100)).await;
 
     session
         .script_evaluate(EvaluateParameters::new(

@@ -252,38 +252,6 @@ llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Document
 xdg-open target/coverage/index.html 
 ```
 
-## Android
-
-```
-sudo systemctl stop firewalld.service
-adb connect 172.18.61.176:43109
-adb uninstall de.selfmade4u.tucanplus
-dx serve --device --platform android --hotpatch --verbose
-
-adb logcat -c
-adb shell run-as de.selfmade4u.tucanplus logcat
-
-dx bundle --platform android --device
-/home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/android/app/app/build/outputs/apk/debug/app-debug.apk
-
-dx serve --platform android --hotpatch --verbose
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --platform android --verbose
-# grep for RustStdoutStderr
-
-dx bundle --platform android --release
-adb install target/dx/tucan-plus-dioxus/release/android/app/app/build/outputs/apk/release/app-release.apk
-
-
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml build --platform android
-```
-
-## Linux
-
-```
-dx serve --platform linux --hotpatch --verbose
-
-```
-
 ```
 
 cat *_registration-N383703888296780\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link) | del(.[].entries.[].courses.[].[1].location_or_additional_info) | del(.[].entries.[].courses.[].[1].limit_and_size)' > a
