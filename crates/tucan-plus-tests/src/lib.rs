@@ -12,7 +12,10 @@ use std::{
 
 use dotenvy::dotenv;
 use secret_service::{EncryptionType, Item, SecretService};
-use tokio::{sync::{Notify, OnceCell}, time::sleep};
+use tokio::{
+    sync::{Notify, OnceCell},
+    time::sleep,
+};
 use webdriverbidi::{
     events::EventType,
     model::{
@@ -324,11 +327,13 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     println!("waited");
 
-    let navigated = Notify::const_new();
+    let navigated = Arc::new(Notify::const_new());
 
     session
         .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
             move |event| {
+                let navigated = navigated.clone();
                 async move {
                     println!("domcontentloaded {event}");
                     navigated.notify_waiters();
@@ -359,7 +364,9 @@ pub async fn it_works<B: BrowserBuilder>() {
     // button[type=submit]
 
     navigated.notified().await;
-    session.unregister_event_handler(EventType::BrowsingContextDomContentLoaded).await;
+    session
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
 
     write_text(
         &mut session,
@@ -380,6 +387,21 @@ pub async fn it_works<B: BrowserBuilder>() {
     .await
     .unwrap();
 
+    let navigated = Arc::new(Notify::const_new());
+
+    session
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            let navigated = navigated.clone();
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.notify_waiters();
+                }
+            }
+        })
+        .await;
+
     let node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
@@ -395,19 +417,10 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
-    // 2fa
-
-    // wait for page load
+    navigated.notified().await;
     session
-        .session_subscribe(SubscriptionRequest::new(
-            vec!["browsingContext.domContentLoaded".to_owned()],
-            Some(vec![browsing_context.clone()]),
-            None,
-        ))
-        .await
-        .unwrap();
-
-    navigated.
+        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .await;
 
     // select[id=fudis_selected_token_ids_input]
     let node = session
