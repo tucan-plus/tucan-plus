@@ -12,7 +12,7 @@ use std::{
 
 use dotenvy::dotenv;
 use secret_service::{EncryptionType, Item, SecretService};
-use tokio::{sync::OnceCell, time::sleep};
+use tokio::{sync::{Notify, OnceCell}, time::sleep};
 use webdriverbidi::{
     events::EventType,
     model::{
@@ -324,15 +324,14 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     println!("waited");
 
-    let navigated = Arc::new(AtomicBool::new(false));
+    let navigated = Notify::const_new();
 
     session
         .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
             move |event| {
-                let navigated = navigated.clone();
                 async move {
                     println!("domcontentloaded {event}");
-                    navigated.store(true, Ordering::Relaxed);
+                    navigated.notify_waiters();
                 }
             }
         })
@@ -358,6 +357,9 @@ pub async fn it_works<B: BrowserBuilder>() {
     // #username
     // #password
     // button[type=submit]
+
+    navigated.notified().await;
+    session.unregister_event_handler(EventType::BrowsingContextDomContentLoaded).await;
 
     write_text(
         &mut session,
@@ -404,6 +406,8 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
+
+    navigated.
 
     // select[id=fudis_selected_token_ids_input]
     let node = session
