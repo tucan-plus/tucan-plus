@@ -62,7 +62,7 @@ pub fn html_head<'a>(
             content="Datenlotsen,Datenlotsen Informationssysteme GmbH,CampusNet,Campus Management"
         ></meta>
         <link rel="shortcut icon" type="image/x-icon" href="/gfx/tuda/icons/favicon.ico"></link>
-        <script src="/js/jquery-3.6.0.min.js" type="text/javascript">
+        <script src="/js/jquery.js" type="text/javascript">
         </script>
         <script src="/js/checkDate.js" type="text/javascript">
         </script>
@@ -71,6 +71,9 @@ pub fn html_head<'a>(
         <script src="/js/skripts.js" type="text/javascript">
         </script>
         <script src="/js/x.js" type="text/javascript">
+        </script>
+        <script type="text/javascript">
+            _sso_script
         </script>
         <link
             id="defLayout"
@@ -1142,73 +1145,13 @@ fn logged_out_head_internal<'a>(
                         "English"
                     </a>
                 </div>
-                <form
-                    name="cn_loginForm"
-                    id="cn_loginForm"
-                    action="/scripts/mgrqispi.dll"
-                    method="post"
-                    class="pageElementRight"
-                >
+                <div id="cn_loginForm">
                     <div>
-                        <fieldset id="fieldSet_login">
-                            <legend>
-                                "Anmeldung"
-                            </legend>
-                            <div class="formRow nb">
-                                <div class="inputFieldLabel">
-                                    <label for="field_user">
-                                        "TU-ID:"
-                                    </label>
-                                    <input
-                                        type="text"
-                                        id="field_user"
-                                        name="usrname"
-                                        size="15"
-                                        class="login"
-                                        maxlength="255"
-                                        accesskey="n"
-                                        autofocus=""
-                                    ></input>
-                                </div>
-                                <div class="inputFieldLabel">
-                                    <label for="field_pass">
-                                        "Passwort:"
-                                    </label>
-                                    <input
-                                        type="password"
-                                        id="field_pass"
-                                        name="pass"
-                                        value=""
-                                        size="15"
-                                        class="login"
-                                        maxlength="255"
-                                        accesskey="p"
-                                    ></input>
-                                </div>
-                            </div>
-                        </fieldset>
-                        <input
-                            class="img img_arrowSubmit login_btn"
-                            type="submit"
-                            id="logIn_btn"
-                            value="Anmelden"
-                            onclick="return checkform('cn_loginForm','usrname:TU-ID,pass:Passwort','\
-                         000000000000001');"
-                        ></input>
-                        <input name="APPNAME" type="hidden" value="CampusNet"></input>
-                        <input name="PRGNAME" type="hidden" value="LOGINCHECK"></input>
-                        <input
-                            name="ARGUMENTS"
-                            type="hidden"
-                            value="clino,usrname,pass,menuno,menu_type,browser,platform"
-                        ></input>
-                        <input name="clino" type="hidden" value="000000000000001"></input>
-                        <input name="menuno" type="hidden" value=_value></input>
-                        <input name="menu_type" type="hidden" value="classic"></input>
-                        <input name="browser" type="hidden" value=""></input>
-                        <input name="platform" type="hidden" value=""></input>
+                        <a id="logIn_btn" class="img img_arrowSubmit" title="Anmelden" href="https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3a%2f%2fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY">
+                            "Anmelden"
+                        </a>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
         <div id="pageContentContainer" class="pageElementTop">

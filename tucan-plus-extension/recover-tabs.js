@@ -12,7 +12,7 @@ export async function recoverTabs() {
                 resourceTypes: [
     /** @type {chrome.declarativeNetRequest.ResourceType} */ ("main_frame")
                 ],
-                urlFilter: `|https://tucan-plus.selfmade4u.de/public/index.html*`
+                urlFilter: `|https://www.tucan.tu-darmstadt.de/public/index.html*`
             },
             action: {
                 type: /** @type {chrome.declarativeNetRequest.RuleActionType} */ ('redirect'),
@@ -30,7 +30,7 @@ export async function recoverTabs() {
     console.log(chrome.runtime.lastError)
 
     let tabs = await chrome.tabs.query({
-        url: `https://tucan-plus.selfmade4u.de/*`
+        url: `https://www.tucan.tu-darmstadt.de/public/index.html*`
     })
 
     await Promise.all(tabs.map(async tab => {

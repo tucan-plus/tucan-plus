@@ -6,7 +6,7 @@ version = "0.1.2"
 rust-version = "1.87"
 
 [dependencies]
-reqwest = { workspace = true, features = ["stream", "form"] }
+reqwest = { workspace = true, features = ["stream"] }
 tokio = { workspace = true, features = ["rt", "macros", "time"] }
 thiserror.workspace = true
 futures-core.workspace = true
@@ -29,6 +29,7 @@ tucan-types.workspace = true
 log.workspace = true
 time.workspace = true
 tucan-plus-worker.workspace = true
+openidconnect = "4.0.1"
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys.workspace = true

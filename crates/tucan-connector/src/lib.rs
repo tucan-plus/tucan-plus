@@ -886,6 +886,11 @@ mod authenticated_tests {
 
 #[cfg(all(test, feature = "authenticated_tests"))]
 mod authenticated_tests {
+    use openidconnect::{
+        AccessTokenHash, AuthorizationCode, ClientId, ClientSecret, CsrfToken, IssuerUrl, Nonce,
+        OAuth2TokenResponse as _, PkceCodeChallenge, RedirectUrl, Scope, TokenResponse as _,
+        core::{CoreAuthenticationFlow, CoreClient, CoreProviderMetadata},
+    };
     use tokio::sync::OnceCell;
     use tucan_types::{
         LoginRequest, LoginResponse, RevalidationStrategy, SemesterId,
@@ -894,17 +899,8 @@ mod authenticated_tests {
 
     use crate::{
         Tucan,
-        courseresults::courseresults,
-        examresults::examresults,
-        gradeoverview::gradeoverview,
         login::login,
-        mlsstart::after_login,
-        mycourses::mycourses,
-        mydocuments::my_documents,
-        myexams::my_exams,
-        registration::anmeldung,
         startpage_dispatch::after_login::redirect_after_login,
-        student_result::student_result,
         tests::{get_tucan_connector, runtime},
     };
 
@@ -953,7 +949,8 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            after_login(&tucan, login_response, RevalidationStrategy::default())
+            tucan
+                .after_login(login_response, RevalidationStrategy::default())
                 .await
                 .unwrap();
         });
@@ -965,14 +962,14 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let _response = anmeldung(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                AnmeldungRequest::default(),
-            )
-            .await
-            .unwrap();
+            let _response = tucan
+                .anmeldung(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    AnmeldungRequest::default(),
+                )
+                .await
+                .unwrap();
         });
     }
 
@@ -1169,32 +1166,32 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            mycourses(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            let semesters = mycourses(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                mycourses(
-                    &tucan,
+            tucan
+                .my_courses(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            let semesters = tucan
+                .my_courses(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .my_courses(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1205,32 +1202,32 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_exams(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            let semesters = my_exams(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                my_exams(
-                    &tucan,
+            tucan
+                .my_exams(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            let semesters = tucan
+                .my_exams(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .my_exams(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1241,35 +1238,35 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let semesters = courseresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                let courseresults = courseresults(
-                    &tucan,
+            let semesters = tucan
+                .course_results(
                     login_response,
                     RevalidationStrategy::default(),
-                    semester.value,
+                    SemesterId::current(),
                 )
                 .await
-                .unwrap();
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                let courseresults = tucan
+                    .course_results(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
                 for result in courseresults.results {
                     if let Some(average_url) = result.average_url {
                         println!("{average_url}");
-                        let overview = gradeoverview(
-                            &tucan,
-                            login_response,
-                            RevalidationStrategy::cache(),
-                            average_url,
-                        )
-                        .await
-                        .unwrap();
+                        let overview = tucan
+                            .gradeoverview(
+                                login_response,
+                                RevalidationStrategy::cache(),
+                                average_url,
+                            )
+                            .await
+                            .unwrap();
                         println!("{overview:?}")
                     }
                 }
@@ -1283,46 +1280,42 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let result = examresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::cache(),
-                SemesterId::all(),
-            )
-            .await
-            .unwrap();
-            for result in result.results {
-                if let Some(average_url) = result.average_url {
-                    println!("{average_url}");
-                    let overview = gradeoverview(
-                        &tucan,
-                        login_response,
-                        RevalidationStrategy::cache(),
-                        average_url,
-                    )
-                    .await
-                    .unwrap();
-                    println!("{overview:?}")
-                }
-            }
-            let semesters = examresults(
-                &tucan,
-                login_response,
-                RevalidationStrategy::default(),
-                SemesterId::current(),
-            )
-            .await
-            .unwrap()
-            .semester;
-            for semester in semesters {
-                examresults(
-                    &tucan,
+            let result = tucan
+                .exam_results(
                     login_response,
-                    RevalidationStrategy::default(),
-                    semester.value,
+                    RevalidationStrategy::cache(),
+                    SemesterId::all(),
                 )
                 .await
                 .unwrap();
+            for result in result.results {
+                if let Some(average_url) = result.average_url {
+                    println!("{average_url}");
+                    let overview = tucan
+                        .gradeoverview(login_response, RevalidationStrategy::cache(), average_url)
+                        .await
+                        .unwrap();
+                    println!("{overview:?}")
+                }
+            }
+            let semesters = tucan
+                .exam_results(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    SemesterId::current(),
+                )
+                .await
+                .unwrap()
+                .semester;
+            for semester in semesters {
+                tucan
+                    .exam_results(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        semester.value,
+                    )
+                    .await
+                    .unwrap();
             }
         });
     }
@@ -1333,7 +1326,8 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            my_documents(&tucan, login_response, RevalidationStrategy::default())
+            tucan
+                .my_documents(login_response, RevalidationStrategy::default())
                 .await
                 .unwrap();
         });
@@ -1345,21 +1339,113 @@ mod authenticated_tests {
             dotenvy::dotenv().unwrap();
             let tucan = get_tucan_connector().await;
             let login_response = get_login_session().await;
-            let response =
-                student_result(&tucan, login_response, RevalidationStrategy::default(), 0)
-                    .await
-                    .unwrap();
-            for course_of_study in response.course_of_study {
-                let response = student_result(
-                    &tucan,
-                    login_response,
-                    RevalidationStrategy::default(),
-                    course_of_study.value,
-                )
+            let response = tucan
+                .student_result(login_response, RevalidationStrategy::default(), 0)
                 .await
                 .unwrap();
+            for course_of_study in response.course_of_study {
+                let response = tucan
+                    .student_result(
+                        login_response,
+                        RevalidationStrategy::default(),
+                        course_of_study.value,
+                    )
+                    .await
+                    .unwrap();
                 println!("{response:#?}");
             }
         });
+    }
+
+    #[ignore]
+    #[tokio::test]
+    pub async fn test_openidconnect() {
+        // https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3a%2f%2fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY
+
+        let http_client = reqwest::ClientBuilder::new()
+            // Following redirects opens the client up to SSRF vulnerabilities.
+            .redirect(reqwest::redirect::Policy::none())
+            .build()
+            .expect("Client should build");
+
+        // Use OpenID Connect Discovery to fetch the provider metadata.
+        let provider_metadata = CoreProviderMetadata::discover_async(
+            IssuerUrl::new("https://dsf.tucan.tu-darmstadt.de/identityserver".to_string()).unwrap(),
+            &http_client,
+        )
+        .await
+        .unwrap();
+
+        // Create an OpenID Connect client by specifying the client ID, client secret, authorization URL
+        // and token URL.
+        let client = CoreClient::from_provider_metadata(
+            provider_metadata,
+            ClientId::new("ClassicWeb".to_string()),
+            Some(ClientSecret::new("wrong".to_string())),
+        )
+        // Set the URL the user will be redirected to after the authorization process.
+        .set_redirect_uri(RedirectUrl::new("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&ARGUMENTS=-N000000000000001,ids_mode&ids_mode=Y".to_string()).unwrap());
+
+        // Generate the full authorization URL.
+        let (auth_url, csrf_token, nonce) = client
+            .authorize_url(
+                CoreAuthenticationFlow::AuthorizationCode,
+                CsrfToken::new_random,
+                Nonce::new_random,
+            )
+            // Set the desired scopes.
+            .add_scope(Scope::new("email".to_string()))
+            .add_scope(Scope::new("DSF".to_string()))
+            .url();
+
+        // This is the URL you should redirect the user to, in order to trigger the authorization
+        // process.
+        println!("Browse to: {}", auth_url);
+
+        // Once the user has been redirected to the redirect URL, you'll have access to the
+        // authorization code. For security reasons, your code should verify that the `state`
+        // parameter returned by the server matches `csrf_state`.
+
+        // Now you can exchange it for an access token and ID token.
+        let token_response = client
+            .exchange_code(AuthorizationCode::new("".to_string()))
+            .unwrap()
+            // Set the PKCE code verifier.
+            .request_async(&http_client)
+            .await
+            .unwrap();
+
+        // Extract the ID token claims after verifying its authenticity and nonce.
+        let id_token = token_response
+            .id_token()
+            .ok_or_else(|| panic!("Server did not return an ID token"))
+            .unwrap();
+        let id_token_verifier = client.id_token_verifier();
+        let claims = id_token.claims(&id_token_verifier, &nonce).unwrap();
+
+        // Verify the access token hash to ensure that the access token hasn't been substituted for
+        // another user's.
+        if let Some(expected_access_token_hash) = claims.access_token_hash() {
+            let actual_access_token_hash = AccessTokenHash::from_token(
+                token_response.access_token(),
+                id_token.signing_alg().unwrap(),
+                id_token.signing_key(&id_token_verifier).unwrap(),
+            )
+            .unwrap();
+            if actual_access_token_hash != *expected_access_token_hash {
+                panic!("Invalid access token");
+            }
+        }
+
+        // The authenticated user's identity is now available. See the IdTokenClaims struct for a
+        // complete listing of the available claims.
+        println!(
+            "User {} with e-mail address {} has authenticated successfully",
+            claims.subject().as_str(),
+            claims
+                .email()
+                .map(|email| email.as_str())
+                .unwrap_or("<not provided>"),
+        );
     }
 }

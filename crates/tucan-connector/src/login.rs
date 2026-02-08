@@ -86,8 +86,7 @@ pub async fn login(
     assert_eq!(
         response.headers_mut().remove("content-security-policy"),
         Some(HeaderValue::from_static(
-            "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' \
-             'unsafe-inline' 'unsafe-eval';"
+            "frame-src https://dsf.tucan.tu-darmstadt.de; frame-ancestors 'self' https://dsf.tucan.tu-darmstadt.de;"
         ))
     );
     response.headers_mut().remove("x-powered-by"); // this header randomly appears and disappears. DO NOT ASK
@@ -97,11 +96,17 @@ pub async fn login(
     if next_url.is_none() {
         // login failed
         let content = response.text().await?;
-        assert!(
-            content
-                .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten.")
-        );
-        return Err(TucanError::InvalidCredentials);
+        if (content
+            .contains("Bitte versuchen Sie es erneut. Überprüfen Sie ggf. Ihre Zugangsdaten."))
+        {
+            return Err(TucanError::InvalidCredentials);
+        }
+        if (content
+            .contains("Aufgrund einer Häufung fehlgeschlagener Einloggversuche ist dieses Benutzerkonto vorübergehend gesperrt."))
+        {
+            return Err(TucanError::AccessDenied);
+        }
+        panic!("{}", content);
     }
     let next_url = next_url.unwrap();
     let next_url = next_url.to_str().unwrap();

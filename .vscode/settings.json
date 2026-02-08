@@ -1,9 +1,11 @@
 {
     "editor.formatOnSave": true,
+    "[nix]": {
+        "editor.formatOnSave": false
+    },
     //"rust-analyzer.cargo.target": "wasm32-unknown-unknown",
     "rust-analyzer.cargo.features": [
         //"api"
-        "desktop"
+        "authenticated_tests",
     ],
-    "terminal.integrated.scrollback": 1000000
 }

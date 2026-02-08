@@ -62,7 +62,7 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
                 return;
             }
             let url = new URL(tab.documentUrl);
-            await updateTab(tab.tabId, "https://tucan-plus.selfmade4u.de" + url.pathname + url.hash)
+            await updateTab(tab.tabId, "https://www.tucan.tu-darmstadt.de" + url.pathname + url.hash)
         }));
 
         await new Promise(r => setTimeout(r, 2000));
@@ -76,7 +76,7 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
 /** @type {HTMLElement} */(document.querySelector('#grant-permission')).addEventListener('click', () => {
     asyncClosure(async () => {
         if (await chrome.permissions.request({
-            origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucan-plus.selfmade4u.de/']
+            origins: ['https://www.tucan.tu-darmstadt.de/']
         })) {
         /** @type {HTMLElement} */ (document.querySelector("#grant-permission-area")).style.display = "none";
         }
@@ -84,7 +84,7 @@ document.querySelector("#update-extension")?.addEventListener('click', function 
 });
 
 if (!await chrome.permissions.contains({
-    origins: ['https://www.tucan.tu-darmstadt.de/', 'http://www.tucan.tu-darmstadt.de/', 'https://tucan-plus.selfmade4u.de/']
+    origins: ['https://www.tucan.tu-darmstadt.de/']
 })) {
     console.log("no host permissions");
     /** @type {HTMLElement} */(document.querySelector("#grant-permission-area")).style.display = "block";
