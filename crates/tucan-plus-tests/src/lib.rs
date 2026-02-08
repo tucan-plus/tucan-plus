@@ -23,7 +23,7 @@ use webdriverbidi::{
             BrowsingContext, CloseParameters, CssLocator, GetTreeParameters, LocateNodesParameters,
             Locator, NavigateParameters, ReadinessState,
         },
-        common::Extensible,
+        common::{EmptyParams, Extensible},
         input::{
             ElementOrigin, KeyDownAction, KeySourceAction, KeySourceActions, KeyUpAction, Origin,
             PerformActionsParameters, PointerCommonProperties, PointerDownAction,
@@ -690,13 +690,15 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     sleep(Duration::from_secs(5)).await;
 
-    session
-        .browsing_context_close(CloseParameters {
-            context: browsing_context,
-            prompt_unload: None,
-        })
-        .await
-        .unwrap();
+    /*session
+    .browsing_context_close(CloseParameters {
+        context: browsing_context,
+        prompt_unload: None,
+    })
+    .await
+    .unwrap();*/
+
+    session.browser_close(EmptyParams::new()).await.unwrap();
 }
 
 static ONCE_SECRET_SERVICE: OnceCell<SecretService> = OnceCell::const_new();
