@@ -221,14 +221,6 @@ https://editor-next.swagger.io/
 
 ## tucan-connector
 
-.env
-```
-TUCAN_USERNAME=
-TUCAN_PASSWORD=
-SESSION_ID=
-SESSION_KEY=
-```
-
 ## Debugging
 
 https://chromewebstore.google.com/detail/cc++-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb
@@ -270,13 +262,6 @@ inkscape -w 512 ../crates/tucan-plus-dioxus/assets/logo.svg -o logo.png
 ```
 
 ## CI
-
-Run tests on CI:
-```bash
-source .env
-gh secret set SESSION_ID --body $SESSION_ID
-gh secret set SESSION_KEY --body $SESSION_KEY
-```
 
 Use a GitHub self-hosted runner with e.g. Ubuntu and Nix installed (so no NixOS).
 

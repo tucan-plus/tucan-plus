@@ -12,3 +12,6 @@ dotenvy.workspace = true
 env_logger.workspace = true
 base64 = "0.22.1"
 async-trait = "0.1.89"
+secret-service = { version = "5.1.0", features = ["rt-tokio-crypto-rust"] }
+zbus = "5.13.2"
+zvariant = "5.9.2"

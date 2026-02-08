@@ -3,12 +3,16 @@ pub mod browsers;
 use std::{
     collections::HashMap,
     path::Path,
-    sync::atomic::{AtomicUsize, Ordering},
+    sync::{
+        Arc, OnceLock,
+        atomic::{AtomicUsize, Ordering},
+    },
     time::{Duration, Instant},
 };
 
 use dotenvy::dotenv;
-use tokio::time::sleep;
+use secret_service::{EncryptionType, SecretService};
+use tokio::{sync::OnceCell, time::sleep};
 use webdriverbidi::{
     events::EventType,
     model::{
@@ -32,6 +36,7 @@ use webdriverbidi::{
     },
     session::WebDriverBiDiSession,
 };
+use zbus::zvariant::OwnedObjectPath;
 
 use crate::browsers::{
     ANDROID_MUTEX, AndroidChromium, AndroidFirefox, Browser, BrowserBuilder, DesktopChromium,
@@ -181,12 +186,30 @@ async fn write_text(
 
 pub async fn it_works<B: BrowserBuilder>() {
     let _ = env_logger::try_init();
-    dotenv().unwrap();
 
-    let mut session = setup_session::<B>().await;
+    let secret_service = get_secret_service().await;
+    let item = secret_service
+        .get_item_by_path(
+            OwnedObjectPath::try_from(
+                "/org/freedesktop/secrets/collection/Passwords/620b653db40547b7902b498512bfea30",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+    println!("locked {:?}", item.is_locked().await);
+    println!("unlock result {:?}", item.unlock().await);
+    println!("secret {:?}", item.get_secret().await);
+    println!(
+        "attributes {:?}",
+        item.get_attributes().await.unwrap().get("TOTP").unwrap()
+    );
 
     let username = std::env::var("TUCAN_USERNAME").unwrap();
     let password = std::env::var("TUCAN_PASSWORD").unwrap();
+    let totp_secret = std::env::var("TUCAN_TOTP_SECRET").unwrap();
+
+    let mut session = setup_session::<B>().await;
 
     session
         .load_extension(Path::new(&std::env::var("EXTENSION_FILE").unwrap()))
@@ -369,7 +392,7 @@ pub async fn it_works<B: BrowserBuilder>() {
     // 2fa
 
     // select[id=fudis_selected_token_ids_input]
-    // value TOTP21665900
+    // value TOTP33027D68
 
     // time not implemented on this platform
 
@@ -467,6 +490,28 @@ pub async fn it_works<B: BrowserBuilder>() {
         .unwrap();
 }
 
+static ONCE_SECRET_SERVICE: OnceCell<SecretService> = OnceCell::const_new();
+
+pub async fn get_secret_service() -> &'static SecretService<'static> {
+    ONCE_SECRET_SERVICE
+        .get_or_init(async || {
+            let ss = SecretService::connect(EncryptionType::Dh).await.unwrap();
+            let result = ss
+                .search_items(HashMap::from_iter([("UserName", "mh58hyqa")]))
+                .await
+                .unwrap();
+            println!("entries");
+            for item in result.unlocked {
+                println!("{:?} {:?}", item.item_path, item.get_label().await);
+            }
+            for item in result.locked {
+                println!("{:?} {:?}", item.item_path, item.get_label().await);
+            }
+            ss
+        })
+        .await
+}
+
 #[tokio::test]
 async fn desktop_firefox_main() {
     it_works::<DesktopFirefox>().await
@@ -491,6 +536,6 @@ async fn android_chromium_main() {
 
 #[tokio::test]
 async fn android_firefox_main() {
-    let guard = ANDROID_MUTEX.lock().await;
+    let guard = ANDROID_MUTEX.lock().await; // panicking poisons this
     it_works::<AndroidFirefox>().await
 }
