@@ -89,8 +89,8 @@ async fn click_element(
         .flat_map(|node| {
             [
                 PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
-                    1.0,
-                    1.0,
+                    0.0,
+                    0.0,
                     None,
                     Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference {
                         shared_id: node.shared_id.clone().unwrap(),
@@ -459,20 +459,30 @@ pub async fn it_works<B: BrowserBuilder>() {
         .unwrap();
     let node1 = node.nodes.remove(0);
 
-    // value TOTP33027D68
-    let mut node = session
-        .browsing_context_locate_nodes(LocateNodesParameters::new(
-            browsing_context.clone(),
-            Locator::CssLocator(CssLocator::new("option[value=\"TOTP33027D68\"]".to_owned())),
+    // https://github.com/puppeteer/puppeteer/blob/b163ce4593a8f014b86d67d53825fbeb679045ca/packages/puppeteer-core/src/api/ElementHandle.ts#L1008
+    session
+        .script_evaluate(EvaluateParameters::new(
+            r##"
+                    (() => {
+                        const selectElement = document.querySelector('#fudis_selected_token_ids_input');
+                        if (selectElement) {
+                            selectElement.value = 'TOTP33027D68';
+                            
+                            // Manually trigger events so the site reacts to the change
+                            selectElement.dispatchEvent(new Event('input', { bubbles: true }));
+                            selectElement.dispatchEvent(new Event('change', { bubbles: true }));
+                            return true;
+                        }
+                        return false;
+                    })();
+                    "##
+            .to_owned(),
+            Target::ContextTarget(ContextTarget::new(browsing_context.clone(), None)),
+            true,
             None,
             None,
-            None,
+            Some(true),
         ))
-        .await
-        .unwrap();
-    assert_eq!(node.nodes.len(), 1);
-    let node2 = node.nodes.remove(0);
-    click_element(&mut session, browsing_context.clone(), &[node1, node2])
         .await
         .unwrap();
 
