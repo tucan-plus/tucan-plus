@@ -9,7 +9,7 @@ pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
     for chunk in in_data.chunks(10 * 1024).enumerate() {
         encoder.write_all(chunk.1).await?; // hangs, move to worker?
         #[cfg(target_arch = "wasm32")]
-        sleep(std::time::Duration::from_millis(0)).await;
+        tokio::time::sleep(std::time::Duration::from_millis(0)).await;
     }
     encoder.shutdown().await?;
     Ok(encoder.into_inner())
