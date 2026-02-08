@@ -82,37 +82,43 @@ fn generate_keypresses(input: &str) -> Vec<KeySourceAction> {
 async fn click_element(
     session: &mut WebDriverBiDiSession,
     browsing_context: String,
-    node: &NodeRemoteValue,
+    nodes: &[NodeRemoteValue],
 ) -> anyhow::Result<()> {
-    let a: Box<[PointerSourceAction]> = Box::new([
-        PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
-            5.0,
-            5.0,
-            None,
-            Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference {
-                shared_id: node.shared_id.clone().unwrap(),
-                handle: node.handle.clone(),
-                extensible: Extensible::new(),
-            }))),
-            PointerCommonProperties::new(None, None, None, None, None, None, None),
-        )),
-        PointerSourceAction::PointerDownAction(PointerDownAction::new(
-            0,
-            PointerCommonProperties::new(None, None, None, None, None, None, None),
-        )),
-        PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
-    ]);
-    let a = a.into_vec();
+    let a: Vec<PointerSourceAction> = nodes
+        .into_iter()
+        .flat_map(|node| {
+            [
+                PointerSourceAction::PointerMoveAction(PointerMoveAction::new(
+                    1.0,
+                    1.0,
+                    None,
+                    Some(Origin::ElementOrigin(ElementOrigin::new(SharedReference {
+                        shared_id: node.shared_id.clone().unwrap(),
+                        handle: node.handle.clone(),
+                        extensible: Extensible::new(),
+                    }))),
+                    PointerCommonProperties::new(None, None, None, None, None, None, None),
+                )),
+                PointerSourceAction::PointerDownAction(PointerDownAction::new(
+                    0,
+                    PointerCommonProperties::new(None, None, None, None, None, None, None),
+                )),
+                PointerSourceAction::PointerUpAction(PointerUpAction::new(0)),
+            ]
+        })
+        .collect();
 
     let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
-    let b: Box<[SourceActions]> = Box::new([SourceActions::PointerSourceActions(
-        PointerSourceActions::new(
-            id.to_string(),
-            Some(PointerParameters::new(Some(PointerType::Mouse))),
-            a,
-        ),
-    )]);
-    let b = b.into_vec();
+    let b: Vec<SourceActions> = Vec::from_iter(
+        [SourceActions::PointerSourceActions(
+            PointerSourceActions::new(
+                id.to_string(),
+                Some(PointerParameters::new(Some(PointerType::Mouse))),
+                a,
+            ),
+        )]
+        .into_iter(),
+    );
 
     session
         .input_perform_actions(PerformActionsParameters::new(browsing_context.clone(), b))
@@ -128,7 +134,7 @@ async fn write_text(
 ) -> anyhow::Result<()> {
     println!("locating");
 
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new(element.to_owned())),
@@ -137,7 +143,7 @@ async fn write_text(
             None,
         ))
         .await?;
-    let node = &node.nodes[0];
+    let node = node.nodes.remove(0);
 
     println!("located");
 
@@ -172,7 +178,7 @@ async fn write_text(
     // TODO FIXME webdriver bidi library fails to deserialize object
     println!("function evaluation {result:?}");
 
-    click_element(session, browsing_context.clone(), node).await?;
+    click_element(session, browsing_context.clone(), &[node]).await?;
 
     let id = ACTION_ID.fetch_add(1, Ordering::Relaxed);
     let e: Box<[SourceActions]> = Box::new([SourceActions::KeySourceActions(
@@ -350,7 +356,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new("#login-button".to_owned())),
@@ -360,8 +366,8 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
-    let node = &node.nodes[0];
-    click_element(&mut session, browsing_context.clone(), node)
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
         .await
         .unwrap();
 
@@ -418,7 +424,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
 
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new("button[name=_eventId_proceed]".to_owned())),
@@ -428,8 +434,8 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
-    let node = &node.nodes[0];
-    click_element(&mut session, browsing_context.clone(), node)
+    let node = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node])
         .await
         .unwrap();
 
@@ -439,7 +445,7 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await;
 
     // select[id=fudis_selected_token_ids_input]
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new(
@@ -451,15 +457,10 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
-    let node = &node.nodes[0];
-    click_element(&mut session, browsing_context.clone(), node)
-        .await
-        .unwrap();
-
-    sleep(Duration::from_secs(100)).await;
+    let node1 = node.nodes.remove(0);
 
     // value TOTP33027D68
-    let node = session
+    let mut node = session
         .browsing_context_locate_nodes(LocateNodesParameters::new(
             browsing_context.clone(),
             Locator::CssLocator(CssLocator::new("option[value=\"TOTP33027D68\"]".to_owned())),
@@ -469,8 +470,9 @@ pub async fn it_works<B: BrowserBuilder>() {
         ))
         .await
         .unwrap();
-    let node = &node.nodes[0];
-    click_element(&mut session, browsing_context.clone(), node)
+    assert_eq!(node.nodes.len(), 1);
+    let node2 = node.nodes.remove(0);
+    click_element(&mut session, browsing_context.clone(), &[node1, node2])
         .await
         .unwrap();
 
