@@ -99,7 +99,7 @@ SESSION_KEY=${cnscCookie?.value}
 `)
         await chrome.notifications.create({
             type: "basic",
-            iconUrl: chrome.runtime.getURL("/logo.svg"),
+            iconUrl: chrome.runtime.getURL("/logo.png"),
             title: "Copied to clipboard",
             message: "Credentials copied to clipboard. Take care.",
         });

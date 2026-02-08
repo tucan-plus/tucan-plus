@@ -606,7 +606,7 @@ pub async fn it_works<B: BrowserBuilder>() {
     println!("waited for nav");
 
     println!("waiting for logout button");
-    let result = session
+    session
         .script_evaluate(EvaluateParameters::new(
             r##"
                     new Promise((resolve) => {
@@ -647,6 +647,9 @@ pub async fn it_works<B: BrowserBuilder>() {
         panic!();
     };
 
+    println!("SENDING MESSAGE");
+
+    // TODO verify this did something
     session
         .script_evaluate(EvaluateParameters::new(
             r#"chrome.runtime.sendMessage("open-in-tucan-page")"#.to_owned(),
@@ -698,7 +701,7 @@ pub async fn it_works<B: BrowserBuilder>() {
     .await
     .unwrap();*/
 
-    session.browser_close(EmptyParams::new()).await.unwrap();
+    //session.browser_close(EmptyParams::new()).await.unwrap();
 }
 
 static ONCE_SECRET_SERVICE: OnceCell<SecretService> = OnceCell::const_new();

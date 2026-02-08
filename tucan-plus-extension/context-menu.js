@@ -72,7 +72,7 @@ if (chrome.contextMenus) {
             if (info.menuItemId === "shareable-link-page" || info.menuItemId === "shareable-link") {
                 await chrome.notifications.create({
                     type: "basic",
-                    iconUrl: chrome.runtime.getURL("/logo.svg"),
+                    iconUrl: chrome.runtime.getURL("/logo.png"),
                     title: "Sharing this URL is not supported",
                     message: "Unfortunately sharing this URL is not supported (yet). We welcome any contribution",
                 });
@@ -81,7 +81,7 @@ if (chrome.contextMenus) {
 
             await chrome.notifications.create({
                 type: "basic",
-                iconUrl: chrome.runtime.getURL("/logo.svg"),
+                iconUrl: chrome.runtime.getURL("/logo.png"),
                 title: "Context menu action not supported",
                 message: "Unfortunately this context menu action is not supported yet. We welcome any contribution",
             });

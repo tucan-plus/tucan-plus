@@ -7,7 +7,7 @@ export function asyncClosure(closure) {
         console.error(error)
         chrome.notifications.create({
             type: "basic",
-            iconUrl: chrome.runtime.getURL("/logo.svg"),
+            iconUrl: chrome.runtime.getURL("/logo.png"),
             title: "TUCaN Plus extension error",
             message: String(error),
         });
