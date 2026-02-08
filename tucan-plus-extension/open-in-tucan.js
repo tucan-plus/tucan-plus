@@ -66,7 +66,7 @@ export async function handleOpenInTucan(id, tabId, url) {
     if (!id) {
         await chrome.notifications.create({
             type: "basic",
-            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            iconUrl: chrome.runtime.getURL("/logo.svg"),
             title: "Not logged in",
             message: "Could not detect session, please login again",
         });
@@ -75,7 +75,7 @@ export async function handleOpenInTucan(id, tabId, url) {
 
     await chrome.notifications.create({
         type: "basic",
-        iconUrl: chrome.runtime.getURL("/icon-512.png"),
+        iconUrl: chrome.runtime.getURL("/logo.svg"),
         title: "URL not supported",
         message: "Unfortunately this URL is not supported yet. We welcome any contribution",
     });

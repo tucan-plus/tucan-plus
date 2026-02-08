@@ -13,7 +13,7 @@ chrome.runtime.onMessage.addListener((message, sender) => {
 
         await chrome.notifications.create({
             type: "basic",
-            iconUrl: chrome.runtime.getURL("/icon-512.png"),
+            iconUrl: chrome.runtime.getURL("/logo.svg"),
             title: "TUCaN Plus extension message",
             message: String(message),
         });
