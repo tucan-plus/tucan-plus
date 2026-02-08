@@ -11,7 +11,7 @@ use std::{
 };
 
 use dotenvy::dotenv;
-use secret_service::{EncryptionType, SecretService};
+use secret_service::{EncryptionType, Item, SecretService};
 use tokio::{sync::OnceCell, time::sleep};
 use webdriverbidi::{
     events::EventType,
@@ -188,6 +188,8 @@ pub async fn it_works<B: BrowserBuilder>() {
     let _ = env_logger::try_init();
 
     let secret_service = get_secret_service().await;
+    // TODO do this once
+
     let item = secret_service
         .get_item_by_path(
             OwnedObjectPath::try_from(
@@ -197,17 +199,11 @@ pub async fn it_works<B: BrowserBuilder>() {
         )
         .await
         .unwrap();
-    println!("locked {:?}", item.is_locked().await);
-    println!("unlock result {:?}", item.unlock().await);
-    println!("secret {:?}", item.get_secret().await);
-    println!(
-        "attributes {:?}",
-        item.get_attributes().await.unwrap().get("TOTP").unwrap()
-    );
-
-    let username = std::env::var("TUCAN_USERNAME").unwrap();
-    let password = std::env::var("TUCAN_PASSWORD").unwrap();
-    let totp_secret = std::env::var("TUCAN_TOTP_SECRET").unwrap();
+    let attributes = item.get_attributes().await.unwrap();
+    let username = attributes["UserName"].clone();
+    let totp = attributes["TOTP"].clone();
+    let password = item.get_secret().await.unwrap();
+    let password = str::from_utf8(&password).unwrap();
 
     let mut session = setup_session::<B>().await;
 
@@ -496,16 +492,25 @@ pub async fn get_secret_service() -> &'static SecretService<'static> {
     ONCE_SECRET_SERVICE
         .get_or_init(async || {
             let ss = SecretService::connect(EncryptionType::Dh).await.unwrap();
-            let result = ss
-                .search_items(HashMap::from_iter([("UserName", "mh58hyqa")]))
-                .await
-                .unwrap();
+            let result = ss.search_items(HashMap::default()).await.unwrap();
             println!("entries");
             for item in result.unlocked {
                 println!("{:?} {:?}", item.item_path, item.get_label().await);
             }
             for item in result.locked {
                 println!("{:?} {:?}", item.item_path, item.get_label().await);
+            }
+            let item = ss
+        .get_item_by_path(
+            OwnedObjectPath::try_from(
+                "/org/freedesktop/secrets/collection/Passwords/620b653db40547b7902b498512bfea30",
+            )
+            .unwrap(),
+        )
+        .await
+        .unwrap();
+            if item.is_locked().await.unwrap() {
+                println!("unlock result {:?}", item.unlock().await);
             }
             ss
         })
