@@ -303,6 +303,13 @@ inkscape -w 512 ../crates/tucan-plus-dioxus/assets/logo.svg -o logo.png
 
 ## CI
 
+Run tests on CI:
+```bash
+source .env
+gh secret set SESSION_ID --body $SESSION_ID
+gh secret set SESSION_KEY --body $SESSION_KEY
+```
+
 Use a GitHub self-hosted runner with e.g. Ubuntu and Nix installed (so no NixOS).
 
 Important: Enable "Require approval for all outside collaborators"
