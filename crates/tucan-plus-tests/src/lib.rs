@@ -5,7 +5,7 @@ use std::{
     path::Path,
     sync::{
         Arc, OnceLock,
-        atomic::{AtomicUsize, Ordering},
+        atomic::{AtomicBool, AtomicUsize, Ordering},
     },
     time::{Duration, Instant},
 };
@@ -324,9 +324,17 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     println!("waited");
 
+    let navigated = Arc::new(AtomicBool::new(false));
+
     session
-        .register_event_handler(EventType::BrowsingContextDomContentLoaded, async |event| {
-            println!("domcontentloaded {event}");
+        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+            move |event| {
+                let navigated = navigated.clone();
+                async move {
+                    println!("domcontentloaded {event}");
+                    navigated.store(true, Ordering::Relaxed);
+                }
+            }
         })
         .await;
 
@@ -387,7 +395,34 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     // 2fa
 
+    // wait for page load
+    session
+        .session_subscribe(SubscriptionRequest::new(
+            vec!["browsingContext.domContentLoaded".to_owned()],
+            Some(vec![browsing_context.clone()]),
+            None,
+        ))
+        .await
+        .unwrap();
+
     // select[id=fudis_selected_token_ids_input]
+    let node = session
+        .browsing_context_locate_nodes(LocateNodesParameters::new(
+            browsing_context.clone(),
+            Locator::CssLocator(CssLocator::new(
+                "#fudis_selected_token_ids_input".to_owned(),
+            )),
+            None,
+            None,
+            None,
+        ))
+        .await
+        .unwrap();
+    let node = &node.nodes[0];
+    click_element(&mut session, browsing_context.clone(), node)
+        .await
+        .unwrap();
+
     // value TOTP33027D68
 
     // time not implemented on this platform
