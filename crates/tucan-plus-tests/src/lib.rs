@@ -567,11 +567,11 @@ pub async fn it_works<B: BrowserBuilder>() {
 
     let (tx, mut rx) = tokio::sync::watch::channel(String::new());
     session
-        .register_event_handler(EventType::BrowsingContextDomContentLoaded, {
+        .register_event_handler(EventType::BrowsingContextNavigationCommitted, {
             move |event| {
                 let tx = tx.clone();
                 async move {
-                    println!("domcontentloaded {event}");
+                    println!("navigationcommitted {event}");
                     tx.send(
                         event.as_object().unwrap()["params"].as_object().unwrap()["url"]
                             .to_string(),
@@ -581,9 +581,10 @@ pub async fn it_works<B: BrowserBuilder>() {
             }
         })
         .await;
+    // https://github.com/puppeteer/puppeteer/issues/14314
     session
         .session_subscribe(SubscriptionRequest::new(
-            vec!["browsingContext.domContentLoaded".to_owned()],
+            vec!["browsingContext.navigationCommitted".to_owned()],
             None, // also extension context?
             None,
         ))
@@ -599,8 +600,9 @@ pub async fn it_works<B: BrowserBuilder>() {
         .await
         .unwrap();
     session
-        .unregister_event_handler(EventType::BrowsingContextDomContentLoaded)
+        .unregister_event_handler(EventType::BrowsingContextNavigationCommitted)
         .await;
+    // TODO unsubscribe
     println!("waited for nav");
 
     println!("waiting for logout button");
