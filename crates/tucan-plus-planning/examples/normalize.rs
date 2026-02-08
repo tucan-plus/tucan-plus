@@ -5,8 +5,6 @@ use futures_util::stream::{FuturesOrdered, FuturesUnordered};
 #[cfg(not(target_arch = "wasm32"))]
 use tucan_connector::TucanConnector;
 #[cfg(not(target_arch = "wasm32"))]
-use tucan_plus_planning::{compress, recursive_anmeldung};
-#[cfg(not(target_arch = "wasm32"))]
 use tucan_types::TucanError;
 #[cfg(not(target_arch = "wasm32"))]
 use tucan_types::registration::{AnmeldungRequest, AnmeldungResponse};

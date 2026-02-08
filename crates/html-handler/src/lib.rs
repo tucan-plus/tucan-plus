@@ -256,6 +256,7 @@ pub(crate) fn myserialize<S: Serializer>(
 }
 
 pub fn parse_document(content: &str) -> Tree<MyNode> {
+    println!("{content}");
     let html = Html::parse_document(content);
     let mut tree = Tree::new(MyNode::Document);
     assert!(html.tree.root().value().is_document());
