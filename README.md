@@ -97,14 +97,15 @@ cargo install dioxus-cli
 cargo install --git https://github.com/DioxusLabs/dioxus.git --branch jk/workspace-hotpatch dioxus-cli
 cargo install --path /home/moritz/Documents/dioxus/packages/cli dioxus-cli
 
+cd crates/tucan-plus-dioxus/
+dx serve --web --features api --verbose
+
 ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ public
 cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --features direct --hot-patch --verbose
 dx serve --web --features direct --verbose
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
 
-cd crates/tucan-plus-dioxus/
-dx serve --web --features api --verbose
 
 # in second tab
 cargo install bacon
