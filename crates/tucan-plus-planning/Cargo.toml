@@ -11,7 +11,7 @@ futures-util.workspace = true
 serde_json.workspace = true
 serde.workspace = true
 async-compression.workspace = true
-tokio = { workspace = true, features = ["io-util"] }
+tokio = { workspace = true, features = ["io-util", "time"] }
 log.workspace = true
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
