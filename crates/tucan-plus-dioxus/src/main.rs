@@ -73,18 +73,23 @@ pub static LOGO_PNG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
-/*
-#[cfg(target_arch = "wasm32")]
 #[used]
-pub static SERVICE_WORKER_JS: Asset = asset!(
-    env!("SERVICE_WORKER_JS_PATH"),
+pub static WORKER_JS: Asset = asset!(
+    "/assets/worker.js",
     AssetOptions::builder().with_hash_suffix(false)
 );
-*/
 
-pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
+#[used]
+pub static BOOTSTRAP_JS: Asset = asset!(
+    "/assets/bootstrap.bundle.min.js",
+    AssetOptions::builder().with_hash_suffix(false)
+);
 
-pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
+#[used]
+pub static BOOTSTRAP_PATCH_JS: Asset = asset!(
+    "/assets/bootstrap.patch.js",
+    AssetOptions::builder().with_hash_suffix(false)
+);
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
@@ -537,10 +542,10 @@ fn App() -> Element {
         Router::<Route> {
         }
         script {
-            src: BOOTSTRAP_JS,
+            src: "http://127.0.0.1:8080/assets/bootstrap.bundle.min.js",
         }
         script {
-            src: BOOTSTRAP_PATCH_JS,
+            src: "http://127.0.0.1:8080/assets/bootstrap.patch.js",
         }
     }
 }
