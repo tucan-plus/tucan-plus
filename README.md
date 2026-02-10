@@ -97,9 +97,10 @@ cargo install dioxus-cli
 cargo install --git https://github.com/DioxusLabs/dioxus.git --branch jk/workspace-hotpatch dioxus-cli
 cargo install --path /home/moritz/Documents/dioxus/packages/cli dioxus-cli
 
-
 ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ public
 dx serve --web --features direct --verbose --base-path http://127.0.0.1:8080
+
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
 
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
