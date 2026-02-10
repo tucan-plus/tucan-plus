@@ -91,6 +91,18 @@ pub static BOOTSTRAP_PATCH_JS: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
+#[used]
+pub static DEV_JS: Asset = asset!(
+    "/assets/dev.js",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
+#[used]
+pub static DEV_CSS: Asset = asset!(
+    "/assets/dev.css",
+    AssetOptions::builder().with_hash_suffix(false)
+);
+
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 
