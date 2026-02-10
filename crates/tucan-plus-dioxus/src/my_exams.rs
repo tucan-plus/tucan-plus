@@ -127,7 +127,7 @@ pub fn MyExams(semester: ReadSignal<SemesterId>) -> Element {
                                                     td {
                                                         if let Some(examunreg_url) = &exam.examunreg_url {
                                                             a { href: format!("https://www.tucan.tu-darmstadt.de{}", examunreg_url),
-                                                                "Wden"
+                                                                "Abmelden"
                                                             }
                                                         } else {
                                                             "Du musst"
