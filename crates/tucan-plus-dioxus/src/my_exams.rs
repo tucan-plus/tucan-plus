@@ -76,10 +76,11 @@ pub fn MyExams(semester: ReadSignal<SemesterId>) -> Element {
                         table { class: "table",
                             thead {
                                 tr {
-                                    th { scope: "col", {"NR"} }
-                                    th { scope: "col", {"Name"} }
-                                    th { scope: "col", {"Prüfungsart"} }
-                                    th { scope: "col", {"Termin"} }
+                                    th { scope: "col", "NR" }
+                                    th { scope: "col", "Name" }
+                                    th { scope: "col", "Prüfungsart" }
+                                    th { scope: "col", "Termin" }
+                                    th { scope: "col", "Anmeldung" }
                                 }
                             }
                             tbody {
