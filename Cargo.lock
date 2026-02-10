@@ -5368,7 +5368,7 @@ checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 [[package]]
 name = "scraper"
 version = "0.25.0"
-source = "git+https://github.com/mohe2015/scraper.git?branch=copilot%2Fupdate-html5ever-dependency#7f1e7649a84213da7fb0da5d1b3e7bdba923870c"
+source = "git+https://github.com/rust-scraper/scraper.git#f3132d9e06e652e2a4b3031bf7fc3ec3c6a817ce"
 dependencies = [
  "cssparser 0.36.0",
  "ego-tree",
