@@ -35,7 +35,7 @@ pub(crate) fn exam_registration_internal(
                         "-ssflzGzRRKnVffWx8j8K20KtkmS7AKd-Cy1Z2bkiyM"
                     </style>
                 </head>
-                <body class="myexams">
+                <body class="exam_registration">
                     use logged_in_head(html_handler, login_response.id).0;
                     <script type="text/javascript">
                     </script>
@@ -81,7 +81,7 @@ pub(crate) fn exam_registration_internal(
                                     </div>
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>
-                                <input name="PRGNAME" type="hidden" value="MYEXAMS"></input>
+                                <input name="PRGNAME" type="hidden" value="EXAMREGISTRATION"></input>
                                 <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,semester"></input>
                                 <input name="sessionno" type="hidden" value=_session_id></input>
                                 <input name="menuno" type="hidden" value="000318"></input>

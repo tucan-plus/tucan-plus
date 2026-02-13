@@ -896,10 +896,8 @@ mod authenticated_tests {
     };
 
     use crate::{
-        Tucan,
-        login::login,
-        startpage_dispatch::after_login::redirect_after_login,
-        tests::{get_tucan_connector, runtime},
+        Tucan, login::login, startpage_dispatch::after_login::redirect_after_login,
+        tests::get_tucan_connector,
     };
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();
@@ -907,33 +905,15 @@ mod authenticated_tests {
     async fn get_login_session() -> &'static LoginResponse {
         ONCE.get_or_init(|| async {
             let tucan = get_tucan_connector().await;
-            if let (Ok(session_id), Ok(session_key)) =
+            let (Ok(session_id), Ok(session_key)) =
                 (std::env::var("SESSION_ID"), std::env::var("SESSION_KEY"))
-            {
-                let login_response = LoginResponse {
-                    id: session_id.parse().unwrap(),
-                    cookie_cnsc: session_key,
-                };
-                if redirect_after_login(&tucan, login_response.clone())
-                    .await
-                    .is_ok()
-                {
-                    println!("Using existing TUCaN session");
-                    return login_response;
-                } else {
-                    println!("TUCaN session not valid anymore. Falling back.")
-                }
+            else {
+                panic!();
+            };
+            LoginResponse {
+                id: session_id.parse().unwrap(),
+                cookie_cnsc: session_key,
             }
-
-            tucan
-                .login(LoginRequest {
-                    username: std::env::var("TUCAN_USERNAME")
-                        .expect("env variable TUCAN_USERNAME missing"),
-                    password: std::env::var("TUCAN_PASSWORD")
-                        .expect("env variable TUCAN_PASSWORD missing"),
-                })
-                .await
-                .unwrap()
         })
         .await
     }
@@ -1226,6 +1206,33 @@ mod authenticated_tests {
         for semester in semesters {
             tucan
                 .my_exams(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    semester.value,
+                )
+                .await
+                .unwrap();
+        }
+    }
+
+    #[tokio::test]
+
+    pub async fn test_examregistration() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let semesters = tucan
+            .exam_registration(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
+            tucan
+                .exam_registration(
                     login_response,
                     RevalidationStrategy::default(),
                     semester.value,
