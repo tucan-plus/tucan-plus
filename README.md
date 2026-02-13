@@ -70,10 +70,7 @@ cargo test
 
 cd crates/tucan-connector
 
-# unfortunately workers are not easily available in node
-NODE_OPTIONS="--inspect-brk" WASM_BINDGEN_USE_NODE_EXPERIMENTAL=1 cargo test --target wasm32-unknown-unknown
-
-NO_HEADLESS=1 cargo test --target wasm32-unknown-unknown
+# because of FileSystemDirectoryHandle we need to run in browsers
 WASM_BINDGEN_USE_BROWSER=1 cargo test --target wasm32-unknown-unknown
 ```
 

@@ -667,16 +667,6 @@ mod tests {
 
     static ONCE_CONNECTOR: OnceCell<(Client, Arc<Semaphore>)> = OnceCell::const_new();
 
-    pub fn runtime() -> &'static Runtime {
-        static RUNTIME: OnceLock<Runtime> = OnceLock::new();
-        RUNTIME.get_or_init(|| {
-            tokio::runtime::Builder::new_current_thread()
-                .enable_all()
-                .build()
-                .unwrap()
-        })
-    }
-
     pub async fn get_tucan_connector() -> TucanConnector {
         let (client, semaphore) = ONCE_CONNECTOR
             .get_or_init(|| async {
@@ -709,30 +699,26 @@ mod tests {
 
     #[wasm_bindgen_test]
 
-    pub fn login_incorrect() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            assert!(matches!(
-                login(
-                    &tucan.client,
-                    &LoginRequest {
-                        username: "not_found".to_owned(),
-                        password: "not_correct".to_owned()
-                    },
-                )
-                .await,
-                Err(TucanError::InvalidCredentials)
-            ));
-        });
+    pub async fn login_incorrect() {
+        let tucan = get_tucan_connector().await;
+        assert!(matches!(
+            login(
+                &tucan.client,
+                &LoginRequest {
+                    username: "not_found".to_owned(),
+                    password: "not_correct".to_owned()
+                },
+            )
+            .await,
+            Err(TucanError::InvalidCredentials)
+        ));
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_root_page() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            root(&tucan).await.unwrap();
-        });
+    pub async fn test_root_page() {
+        let tucan = get_tucan_connector().await;
+        root(&tucan).await.unwrap();
     }
 
     /// /
@@ -741,11 +727,9 @@ mod tests {
     /// ARGUMENTS=-N000000000000001
     #[wasm_bindgen_test]
 
-    pub fn test_startpage_dispatch_1() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            startpage_dispatch_1(&tucan).await.unwrap();
-        });
+    pub async fn test_startpage_dispatch_1() {
+        let tucan = get_tucan_connector().await;
+        startpage_dispatch_1(&tucan).await.unwrap();
     }
 
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&
@@ -754,175 +738,145 @@ mod tests {
     /// ARGUMENTS=-N000000000000001,-N000344,-Awelcome
     #[wasm_bindgen_test]
 
-    pub fn test_welcome() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            welcome(&tucan).await.unwrap();
-        });
+    pub async fn test_welcome() {
+        let tucan = get_tucan_connector().await;
+        welcome(&tucan).await.unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn module_keine_leistungskombination() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .module_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    ModuleDetailsRequest::parse("-N383723477792938"),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn module_keine_leistungskombination() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .module_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                ModuleDetailsRequest::parse("-N383723477792938"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn module_leistungskombination() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .module_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    ModuleDetailsRequest::parse("-N374884241922478"),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn module_leistungskombination() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .module_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                ModuleDetailsRequest::parse("-N374884241922478"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_1() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_1() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N389955196599934,-N389955196524935,-N0,-N0,-N3"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_2() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_2() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N389955196291846,-N389955196210847,-N0,-N0,-N3"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_3() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_3() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N389947398808423,-N389947398839424,-N0,-N0,-N3"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_4() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_4() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N389043269698095,-N389043269646096,-N0,-N0,-N3"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_5() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_5() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N392125895008100,-N392125895040101,-N0,-N0,-N3"),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn course_6() {
-        runtime().block_on(async {
-            let tucan = get_tucan_connector().await;
-            let _result = tucan
-                .course_details(
-                    &LoginResponse {
-                        id: 1,
-                        cookie_cnsc: String::new(),
-                    },
-                    RevalidationStrategy::default(),
-                    CourseDetailsRequest::parse(
-                        "-N0,-N391415618587221,-N391415618615224,-N0,-N0,-N0",
-                    ),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn course_6() {
+        let tucan = get_tucan_connector().await;
+        let _result = tucan
+            .course_details(
+                &LoginResponse {
+                    id: 1,
+                    cookie_cnsc: String::new(),
+                },
+                RevalidationStrategy::default(),
+                CourseDetailsRequest::parse("-N0,-N391415618587221,-N391415618615224,-N0,-N0,-N0"),
+            )
+            .await
+            .unwrap();
     }
 }
 
@@ -988,71 +942,185 @@ mod authenticated_tests {
 
     #[wasm_bindgen_test]
 
-    pub fn test_login() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            get_login_session().await;
-        });
+    pub async fn test_login() {
+        dotenvy::dotenv().unwrap();
+        get_login_session().await;
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_redirect_after_login() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            redirect_after_login(&tucan, login_response.clone())
-                .await
-                .unwrap();
-        });
+    pub async fn test_redirect_after_login() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        redirect_after_login(&tucan, login_response.clone())
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_mlsstart() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap();
-        });
+    pub async fn test_mlsstart() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_registration() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let _response = tucan
-                .anmeldung(
-                    login_response,
-                    RevalidationStrategy::default(),
-                    AnmeldungRequest::default(),
-                )
-                .await
-                .unwrap();
-        });
+    pub async fn test_registration() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let _response = tucan
+            .anmeldung(
+                login_response,
+                RevalidationStrategy::default(),
+                AnmeldungRequest::default(),
+            )
+            .await
+            .unwrap();
     }
 
     #[wasm_bindgen_test]
 
-    pub fn vv_top_level() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let action = tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap()
-                .logged_in_head
-                .vorlesungsverzeichnis_url;
+    pub async fn vv_top_level() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let action = tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap()
+            .logged_in_head
+            .vorlesungsverzeichnis_url;
+        let _result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                action,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn vv_archiv_top_level() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let action = tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap()
+            .logged_in_head
+            .vv
+            .archiv_links[0]
+            .1
+            .clone();
+        let _result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                action,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn vv_first_level() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let action = tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap()
+            .logged_in_head
+            .vorlesungsverzeichnis_url;
+        let result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                action,
+            )
+            .await
+            .unwrap()
+            .entries[0]
+            .clone()
+            .1;
+        let _result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                result,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn vv_first_level_4_courses() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let action = tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap()
+            .logged_in_head
+            .vorlesungsverzeichnis_url;
+        let result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                action,
+            )
+            .await
+            .unwrap()
+            .entries[4]
+            .clone()
+            .1;
+        let _result = tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                result,
+            )
+            .await
+            .unwrap();
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn vv_first_level_all() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let action = tucan
+            .after_login(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap()
+            .logged_in_head
+            .vorlesungsverzeichnis_url;
+        for (_title, action) in tucan
+            .vv(
+                Some(login_response),
+                RevalidationStrategy::default(),
+                action,
+            )
+            .await
+            .unwrap()
+            .entries
+        {
             let _result = tucan
                 .vv(
                     Some(login_response),
@@ -1061,311 +1129,139 @@ mod authenticated_tests {
                 )
                 .await
                 .unwrap();
-        });
+        }
     }
 
     #[wasm_bindgen_test]
 
-    pub fn vv_archiv_top_level() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let action = tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap()
-                .logged_in_head
-                .vv
-                .archiv_links[0]
-                .1
-                .clone();
-            let _result = tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    action,
-                )
-                .await
-                .unwrap();
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn vv_first_level() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let action = tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap()
-                .logged_in_head
-                .vorlesungsverzeichnis_url;
-            let result = tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    action,
-                )
-                .await
-                .unwrap()
-                .entries[0]
-                .clone()
-                .1;
-            let _result = tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    result,
-                )
-                .await
-                .unwrap();
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn vv_first_level_4_courses() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let action = tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap()
-                .logged_in_head
-                .vorlesungsverzeichnis_url;
-            let result = tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    action,
-                )
-                .await
-                .unwrap()
-                .entries[4]
-                .clone()
-                .1;
-            let _result = tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    result,
-                )
-                .await
-                .unwrap();
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn vv_first_level_all() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let action = tucan
-                .after_login(login_response, RevalidationStrategy::default())
-                .await
-                .unwrap()
-                .logged_in_head
-                .vorlesungsverzeichnis_url;
-            for (_title, action) in tucan
-                .vv(
-                    Some(login_response),
-                    RevalidationStrategy::default(),
-                    action,
-                )
-                .await
-                .unwrap()
-                .entries
-            {
-                let _result = tucan
-                    .vv(
-                        Some(login_response),
-                        RevalidationStrategy::default(),
-                        action,
-                    )
-                    .await
-                    .unwrap();
-            }
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn test_mymodules() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
+    pub async fn test_mymodules() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        tucan
+            .my_modules(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::all(),
+            )
+            .await
+            .unwrap();
+        let semesters = tucan
+            .my_modules(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
             tucan
                 .my_modules(
                     login_response,
                     RevalidationStrategy::default(),
-                    SemesterId::all(),
+                    semester.value,
                 )
                 .await
                 .unwrap();
-            let semesters = tucan
-                .my_modules(
-                    login_response,
-                    RevalidationStrategy::default(),
-                    SemesterId::current(),
-                )
-                .await
-                .unwrap()
-                .semester;
-            for semester in semesters {
-                tucan
-                    .my_modules(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        semester.value,
-                    )
-                    .await
-                    .unwrap();
-            }
-        });
+        }
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_mycourses() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
+    pub async fn test_mycourses() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        tucan
+            .my_courses(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::all(),
+            )
+            .await
+            .unwrap();
+        let semesters = tucan
+            .my_courses(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
             tucan
                 .my_courses(
                     login_response,
                     RevalidationStrategy::default(),
-                    SemesterId::all(),
+                    semester.value,
                 )
                 .await
                 .unwrap();
-            let semesters = tucan
-                .my_courses(
-                    login_response,
-                    RevalidationStrategy::default(),
-                    SemesterId::current(),
-                )
-                .await
-                .unwrap()
-                .semester;
-            for semester in semesters {
-                tucan
-                    .my_courses(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        semester.value,
-                    )
-                    .await
-                    .unwrap();
-            }
-        });
+        }
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_myexams() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
+    pub async fn test_myexams() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        tucan
+            .my_exams(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::all(),
+            )
+            .await
+            .unwrap();
+        let semesters = tucan
+            .my_exams(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
             tucan
                 .my_exams(
                     login_response,
                     RevalidationStrategy::default(),
-                    SemesterId::all(),
+                    semester.value,
                 )
                 .await
                 .unwrap();
-            let semesters = tucan
-                .my_exams(
-                    login_response,
-                    RevalidationStrategy::default(),
-                    SemesterId::current(),
-                )
-                .await
-                .unwrap()
-                .semester;
-            for semester in semesters {
-                tucan
-                    .my_exams(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        semester.value,
-                    )
-                    .await
-                    .unwrap();
-            }
-        });
+        }
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_courseresults() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let semesters = tucan
+    pub async fn test_courseresults() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let semesters = tucan
+            .course_results(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
+            let courseresults = tucan
                 .course_results(
                     login_response,
                     RevalidationStrategy::default(),
-                    SemesterId::current(),
-                )
-                .await
-                .unwrap()
-                .semester;
-            for semester in semesters {
-                let courseresults = tucan
-                    .course_results(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        semester.value,
-                    )
-                    .await
-                    .unwrap();
-                for result in courseresults.results {
-                    if let Some(average_url) = result.average_url {
-                        println!("{average_url}");
-                        let overview = tucan
-                            .gradeoverview(
-                                login_response,
-                                RevalidationStrategy::cache(),
-                                average_url,
-                            )
-                            .await
-                            .unwrap();
-                        println!("{overview:?}")
-                    }
-                }
-            }
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn test_examresults() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            let result = tucan
-                .exam_results(
-                    login_response,
-                    RevalidationStrategy::cache(),
-                    SemesterId::all(),
+                    semester.value,
                 )
                 .await
                 .unwrap();
-            for result in result.results {
+            for result in courseresults.results {
                 if let Some(average_url) = result.average_url {
                     println!("{average_url}");
                     let overview = tucan
@@ -1375,64 +1271,86 @@ mod authenticated_tests {
                     println!("{overview:?}")
                 }
             }
-            let semesters = tucan
+        }
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn test_examresults() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let result = tucan
+            .exam_results(
+                login_response,
+                RevalidationStrategy::cache(),
+                SemesterId::all(),
+            )
+            .await
+            .unwrap();
+        for result in result.results {
+            if let Some(average_url) = result.average_url {
+                println!("{average_url}");
+                let overview = tucan
+                    .gradeoverview(login_response, RevalidationStrategy::cache(), average_url)
+                    .await
+                    .unwrap();
+                println!("{overview:?}")
+            }
+        }
+        let semesters = tucan
+            .exam_results(
+                login_response,
+                RevalidationStrategy::default(),
+                SemesterId::current(),
+            )
+            .await
+            .unwrap()
+            .semester;
+        for semester in semesters {
+            tucan
                 .exam_results(
                     login_response,
                     RevalidationStrategy::default(),
-                    SemesterId::current(),
+                    semester.value,
                 )
                 .await
-                .unwrap()
-                .semester;
-            for semester in semesters {
-                tucan
-                    .exam_results(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        semester.value,
-                    )
-                    .await
-                    .unwrap();
-            }
-        });
-    }
-
-    #[wasm_bindgen_test]
-
-    pub fn test_mydocuments() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
-            tucan
-                .my_documents(login_response, RevalidationStrategy::default())
-                .await
                 .unwrap();
-        });
+        }
     }
 
     #[wasm_bindgen_test]
 
-    pub fn test_student_result() {
-        runtime().block_on(async {
-            dotenvy::dotenv().unwrap();
-            let tucan = get_tucan_connector().await;
-            let login_response = get_login_session().await;
+    pub async fn test_mydocuments() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        tucan
+            .my_documents(login_response, RevalidationStrategy::default())
+            .await
+            .unwrap();
+    }
+
+    #[wasm_bindgen_test]
+
+    pub async fn test_student_result() {
+        dotenvy::dotenv().unwrap();
+        let tucan = get_tucan_connector().await;
+        let login_response = get_login_session().await;
+        let response = tucan
+            .student_result(login_response, RevalidationStrategy::default(), 0)
+            .await
+            .unwrap();
+        for course_of_study in response.course_of_study {
             let response = tucan
-                .student_result(login_response, RevalidationStrategy::default(), 0)
+                .student_result(
+                    login_response,
+                    RevalidationStrategy::default(),
+                    course_of_study.value,
+                )
                 .await
                 .unwrap();
-            for course_of_study in response.course_of_study {
-                let response = tucan
-                    .student_result(
-                        login_response,
-                        RevalidationStrategy::default(),
-                        course_of_study.value,
-                    )
-                    .await
-                    .unwrap();
-                println!("{response:#?}");
-            }
-        });
+            println!("{response:#?}");
+        }
     }
 }
