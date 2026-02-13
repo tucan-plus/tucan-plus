@@ -82,16 +82,17 @@ pub(crate) fn exam_registration_internal(
                                 </div>
                                 <input name="APPNAME" type="hidden" value="CampusNet"></input>
                                 <input name="PRGNAME" type="hidden" value="EXAMREGISTRATION"></input>
-                                <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,semester"></input>
+                                <input name="ARGUMENTS" type="hidden" value="sessionno,menuno,semester,extendedlist"></input>
                                 <input name="sessionno" type="hidden" value=_session_id></input>
                                 <input name="menuno" type="hidden" value="000318"></input>
+                                <input name="extendedlist" type="hidden" value="0"></input>
                             </div>
                         </form>
                         <table class="nb list">
                             <thead>
                                 <tr class="tbcontrol">
                                     <td colspan="5">
-                                        <a href=_examregistration_url class="arrow">
+                                        <a href=_examregistration_url class="img">
                                             "Anmeldung zu Prüfungen"
                                         </a>
                                     </td>
