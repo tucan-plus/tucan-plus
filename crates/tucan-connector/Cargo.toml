@@ -7,7 +7,7 @@ rust-version = "1.87"
 
 [dependencies]
 reqwest = { workspace = true, features = ["stream", "form"] }
-tokio = { workspace = true, features = ["rt", "macros", "time"] }
+tokio = { workspace = true, features = ["rt", "macros"] }
 thiserror.workspace = true
 futures-core.workspace = true
 bytes.workspace = true
@@ -29,6 +29,12 @@ tucan-types.workspace = true
 log.workspace = true
 time.workspace = true
 tucan-plus-worker.workspace = true
+
+[dev-dependencies]
+wasm-bindgen-test = "0.3.0"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tokio = { workspace = true, features = ["time"] }
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 web-sys.workspace = true

@@ -29,6 +29,7 @@ use vv::vv;
 pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
+pub mod examregistration;
 pub mod examresults;
 pub mod externalpages;
 pub mod gradeoverview;
@@ -70,6 +71,7 @@ pub async fn fetch_with_cache<Request, Response>(
             updated: date,
         }) = &old_content_and_date
         {
+            // probably here
             if OffsetDateTime::now_utc() - *date
                 < time::Duration::seconds(revalidation_strategy.max_age)
             {
@@ -127,11 +129,11 @@ use tokio::time::sleep;
 
 use crate::{
     coursedetails::course_details_internal, courseresults::course_results_internal,
-    examresults::exam_results_internal, gradeoverview::gradeoverview_internal,
-    mlsstart::after_login_internal, moduledetails::module_details_internal,
-    mycourses::my_courses_internal, mydocuments::my_documents_internal, myexams::my_exams_internal,
-    mymodules::my_modules_internal, registration::anmeldung_internal,
-    student_result::student_result_internal,
+    examregistration::exam_registration_internal, examresults::exam_results_internal,
+    gradeoverview::gradeoverview_internal, mlsstart::after_login_internal,
+    moduledetails::module_details_internal, mycourses::my_courses_internal,
+    mydocuments::my_documents_internal, myexams::my_exams_internal, mymodules::my_modules_internal,
+    registration::anmeldung_internal, student_result::student_result_internal,
 };
 
 static COURSEDETAILS_REGEX: LazyLock<Regex> = LazyLock::new(|| {
@@ -233,7 +235,6 @@ impl TucanConnector {
         })
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     pub async fn new_test(
         client: reqwest::Client,
         database: MyDatabase,
@@ -264,6 +265,7 @@ impl Tucan for TucanConnector {
         login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
     ) -> Result<MlsStart, TucanError> {
+        // here
         let datetime = time::OffsetDateTime::now_utc();
         let datetime = datetime.to_offset(offset!(+2));
         let date = datetime.date();
@@ -378,6 +380,36 @@ impl Tucan for TucanConnector {
         .await
     }
 
+    async fn exam_registration(
+        &self,
+        login_response: &tucan_types::LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> Result<MyExamsResponse, TucanError> {
+        let key = format!("unparsed_myexams.{}", semester.inner());
+        let url = format!(
+            "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N{:015},-N000318,{}",
+            login_response.id,
+            if semester == SemesterId::current() {
+                String::new()
+            } else if semester == SemesterId::all() {
+                "-N999".to_owned()
+            } else {
+                format!("-N{}", semester.inner())
+            }
+        );
+        fetch_with_cache(
+            self,
+            login_response,
+            revalidation_strategy,
+            &(),
+            key,
+            url,
+            exam_registration_internal,
+        )
+        .await
+    }
+
     async fn exam_results(
         &self,
         login_response: &tucan_types::LoginResponse,
@@ -467,6 +499,7 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         request: tucan_types::registration::AnmeldungRequest,
     ) -> Result<tucan_types::registration::AnmeldungResponse, TucanError> {
+        // here
         let datetime = time::OffsetDateTime::now_utc();
         let datetime = datetime.to_offset(offset!(+2));
         let date = datetime.date();
@@ -610,9 +643,9 @@ impl Tucan for TucanConnector {
 }
 
 #[cfg(test)]
-#[cfg(not(target_arch = "wasm32"))]
 mod tests {
     use std::sync::{Arc, OnceLock};
+    use wasm_bindgen_test::*;
 
     use reqwest::{Client, header};
     use tokio::{
@@ -672,7 +705,8 @@ mod tests {
         .unwrap()
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn login_incorrect() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -690,7 +724,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_root_page() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -702,7 +737,8 @@ mod tests {
     /// redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&
     /// ARGUMENTS=-N000000000000001
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_startpage_dispatch_1() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -714,7 +750,8 @@ mod tests {
     /// ARGUMENTS=-N000000000000001 redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&
     /// ARGUMENTS=-N000000000000001,-N000344,-Awelcome
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_welcome() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -722,7 +759,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn module_keine_leistungskombination() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -740,7 +778,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn module_leistungskombination() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -758,7 +797,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_1() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -778,7 +818,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_2() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -798,7 +839,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_3() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -818,7 +860,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_4() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -838,7 +881,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_5() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -858,7 +902,8 @@ mod tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn course_6() {
         runtime().block_on(async {
             let tucan = get_tucan_connector().await;
@@ -881,8 +926,9 @@ mod tests {
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]
 mod authenticated_tests {
+    use wasm_bindgen_test::*;
 
-    #[test]
+    #[wasm_bindgen_test]
     #[ignore = "feature authenticated_tests disabled"]
     pub const fn authenticated_tests() {}
 }
@@ -938,7 +984,8 @@ mod authenticated_tests {
         .await
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_login() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -946,7 +993,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_redirect_after_login() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -958,7 +1006,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_mlsstart() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -971,7 +1020,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_registration() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -988,7 +1038,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn vv_top_level() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1011,7 +1062,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn vv_archiv_top_level() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1037,7 +1089,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn vv_first_level() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1071,7 +1124,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn vv_first_level_4_courses() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1105,7 +1159,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn vv_first_level_all() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1139,7 +1194,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_mymodules() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1175,7 +1231,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_mycourses() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1211,7 +1268,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_myexams() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1247,7 +1305,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_courseresults() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1289,7 +1348,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_examresults() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1335,7 +1395,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_mydocuments() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();
@@ -1348,7 +1409,8 @@ mod authenticated_tests {
         });
     }
 
-    #[test]
+    #[wasm_bindgen_test]
+
     pub fn test_student_result() {
         runtime().block_on(async {
             dotenvy::dotenv().unwrap();

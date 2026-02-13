@@ -67,6 +67,9 @@ nix build -L .#extension-unpacked && (cd result && npx web-ext run --target fire
 ```
 PATH=$PATH:~/Downloads/chromedriver-linux64/:~/Downloads/chrome-linux64 EXTENSION_FILE=$PWD/tucan-plus-extension cargo test --package tucan-plus-tests desktop_chromium_main -- --nocapture
 cargo test
+
+cd crates/tucan-connector
+NODE_OPTIONS="--inspect-brk" WASM_BINDGEN_USE_NODE_EXPERIMENTAL=1 cargo test --target wasm32-unknown-unknown
 ```
 
 ### Running UI tests

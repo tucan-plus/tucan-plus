@@ -99,6 +99,7 @@ pub fn FetchAnmeldung() -> Element {
                 )
                 .await
                 .unwrap();
+            // here
             let datetime = time::OffsetDateTime::now_utc();
             let datetime = datetime.to_offset(offset!(+2));
             let date = datetime.date();
