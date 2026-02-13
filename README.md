@@ -67,11 +67,6 @@ nix build -L .#extension-unpacked && (cd result && npx web-ext run --target fire
 ```
 PATH=$PATH:~/Downloads/chromedriver-linux64/:~/Downloads/chrome-linux64 EXTENSION_FILE=$PWD/tucan-plus-extension cargo test --package tucan-plus-tests desktop_chromium_main -- --nocapture
 cargo test
-
-cd crates/tucan-connector
-
-# because of FileSystemDirectoryHandle we need to run in browsers
-WASM_BINDGEN_USE_BROWSER=1 cargo test --target wasm32-unknown-unknown
 ```
 
 ### Running UI tests

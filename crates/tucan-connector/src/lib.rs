@@ -647,7 +647,6 @@ impl Tucan for TucanConnector {
 #[cfg(test)]
 mod tests {
     use std::sync::{Arc, OnceLock};
-    use wasm_bindgen_test::*;
 
     use reqwest::{Client, header};
     use tokio::{
@@ -697,7 +696,7 @@ mod tests {
         .unwrap()
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn login_incorrect() {
         let tucan = get_tucan_connector().await;
@@ -714,7 +713,7 @@ mod tests {
         ));
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_root_page() {
         let tucan = get_tucan_connector().await;
@@ -725,7 +724,7 @@ mod tests {
     /// redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&
     /// ARGUMENTS=-N000000000000001
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_startpage_dispatch_1() {
         let tucan = get_tucan_connector().await;
@@ -736,14 +735,14 @@ mod tests {
     /// ARGUMENTS=-N000000000000001 redirects to
     /// /scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXTERNALPAGES&
     /// ARGUMENTS=-N000000000000001,-N000344,-Awelcome
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_welcome() {
         let tucan = get_tucan_connector().await;
         welcome(&tucan).await.unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn module_keine_leistungskombination() {
         let tucan = get_tucan_connector().await;
@@ -760,7 +759,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn module_leistungskombination() {
         let tucan = get_tucan_connector().await;
@@ -777,7 +776,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_1() {
         let tucan = get_tucan_connector().await;
@@ -794,7 +793,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_2() {
         let tucan = get_tucan_connector().await;
@@ -811,7 +810,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_3() {
         let tucan = get_tucan_connector().await;
@@ -828,7 +827,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_4() {
         let tucan = get_tucan_connector().await;
@@ -845,7 +844,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_5() {
         let tucan = get_tucan_connector().await;
@@ -862,7 +861,7 @@ mod tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn course_6() {
         let tucan = get_tucan_connector().await;
@@ -882,11 +881,10 @@ mod tests {
 
 #[cfg(all(test, not(feature = "authenticated_tests")))]
 mod authenticated_tests {
-    use wasm_bindgen_test::*;
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
     #[ignore = "feature authenticated_tests disabled"]
-    pub const fn authenticated_tests() {}
+    pub async fn authenticated_tests() {}
 }
 
 #[cfg(all(test, feature = "authenticated_tests"))]
@@ -940,14 +938,14 @@ mod authenticated_tests {
         .await
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_login() {
         dotenvy::dotenv().unwrap();
         get_login_session().await;
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_redirect_after_login() {
         dotenvy::dotenv().unwrap();
@@ -958,7 +956,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_mlsstart() {
         dotenvy::dotenv().unwrap();
@@ -970,7 +968,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_registration() {
         dotenvy::dotenv().unwrap();
@@ -986,7 +984,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn vv_top_level() {
         dotenvy::dotenv().unwrap();
@@ -1008,7 +1006,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn vv_archiv_top_level() {
         dotenvy::dotenv().unwrap();
@@ -1033,7 +1031,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn vv_first_level() {
         dotenvy::dotenv().unwrap();
@@ -1066,7 +1064,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn vv_first_level_4_courses() {
         dotenvy::dotenv().unwrap();
@@ -1099,7 +1097,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn vv_first_level_all() {
         dotenvy::dotenv().unwrap();
@@ -1132,7 +1130,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_mymodules() {
         dotenvy::dotenv().unwrap();
@@ -1167,7 +1165,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_mycourses() {
         dotenvy::dotenv().unwrap();
@@ -1202,7 +1200,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_myexams() {
         dotenvy::dotenv().unwrap();
@@ -1237,7 +1235,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_courseresults() {
         dotenvy::dotenv().unwrap();
@@ -1274,7 +1272,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_examresults() {
         dotenvy::dotenv().unwrap();
@@ -1319,7 +1317,7 @@ mod authenticated_tests {
         }
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_mydocuments() {
         dotenvy::dotenv().unwrap();
@@ -1331,7 +1329,7 @@ mod authenticated_tests {
             .unwrap();
     }
 
-    #[wasm_bindgen_test]
+    #[tokio::test]
 
     pub async fn test_student_result() {
         dotenvy::dotenv().unwrap();
