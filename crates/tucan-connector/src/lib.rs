@@ -108,8 +108,10 @@ pub async fn sleep(duration: Duration) {
     use fragile::Fragile;
 
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
-        web_sys::window()
-            .unwrap()
+        use js_sys::wasm_bindgen::JsValue;
+        use web_sys::Window;
+
+        Window::from(JsValue::from(js_sys::global()))
             .set_timeout_with_callback_and_timeout_and_arguments_0(
                 &resolve,
                 duration.as_millis().try_into().unwrap(),
