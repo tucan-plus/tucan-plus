@@ -105,15 +105,6 @@ cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml 
 dx serve --web --features direct --verbose
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
-
-
-# in second tab
-cargo install bacon
-cd crates/tucan-plus-api/
-bacon run
-
-cargo install diesel_cli --no-default-features --features sqlite
-DATABASE_URL=file:$(mktemp) diesel database reset
 ```
 
 ### Developing the extension
