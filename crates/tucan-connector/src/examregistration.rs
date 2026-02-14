@@ -4,19 +4,12 @@ use html_handler::{Root, parse_document};
 use scraper::CaseSensitivity;
 use tucan_types::{
     LoginResponse, SemesterId, Semesterauswahl, TucanError,
-    coursedetails::CourseDetailsRequest,
     examregistration::{
         ExamRegistration, ExamRegistrationCourse, ExamRegistrationResponse, ExamRegistrationState,
     },
-    moduledetails::ModuleDetailsRequest,
-    myexams::{Exam, MyExamsResponse},
 };
 
-use crate::{
-    COURSEDETAILS_REGEX,
-    head::{footer, html_head, logged_in_head},
-    registration::MODULEDETAILS_REGEX,
-};
+use crate::head::{footer, html_head, logged_in_head};
 
 #[expect(clippy::too_many_lines)]
 pub(crate) fn exam_registration_internal(

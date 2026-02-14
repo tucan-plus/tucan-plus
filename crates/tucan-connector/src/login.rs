@@ -1,11 +1,7 @@
-use std::sync::LazyLock;
 
-use html_handler::parse_document;
-use regex::Regex;
-use reqwest::header::HeaderValue;
-use tucan_types::{LoginRequest, LoginResponse};
+use tucan_types::LoginResponse;
 
-use crate::{MyClient, TucanConnector, TucanError, authenticated_retryable_get};
+use crate::{TucanConnector, TucanError, authenticated_retryable_get};
 
 pub async fn logout(
     connector: &TucanConnector,

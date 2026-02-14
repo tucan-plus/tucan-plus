@@ -4,7 +4,6 @@ use dioxus::prelude::*;
 use tucan_types::{
     SemesterId, Tucan,
     examregistration::{ExamRegistrationResponse, ExamRegistrationState},
-    myexams::MyExamsResponse,
 };
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};

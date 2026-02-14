@@ -355,7 +355,7 @@ async fn worker_main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
-        use log::info;
+        
         use tucan_plus_worker::MessageWithId;
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();

@@ -2,11 +2,10 @@ use crate::{
     COURSEDETAILS_REGEX, h,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::{Either, Itertools};
 use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
+use sha3::Digest;
 use tucan_types::{
     InstructorImage, LoginResponse, TucanError,
     coursedetails::{

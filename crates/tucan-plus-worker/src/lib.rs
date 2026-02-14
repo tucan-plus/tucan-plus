@@ -795,7 +795,7 @@ impl MyDatabase {
                     error_closure.forget();
                 };
 
-                return js_sys::Promise::new(&mut cb);
+                js_sys::Promise::new(&mut cb)
             })
         };
         let _intentional =
@@ -804,12 +804,12 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        let this = Self {
+        
+
+        Self {
             broadcast_channel,
             pinged: Arc::new(AtomicBool::new(false)),
-        };
-
-        this
+        }
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(
