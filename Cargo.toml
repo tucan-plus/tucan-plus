@@ -79,6 +79,5 @@ web-extensions-sys = { version = "0.4.2" }
 html-extractor = { path = "crates/html-extractor" }
 html-handler = { path = "crates/html-handler" }
 tucan-connector = { path = "crates/tucan-connector" }
-tucan-plus-planning = { path = "crates/tucan-plus-planning" }
 tucan-plus-worker = { path = "crates/tucan-plus-worker" }
 tucan-types = { path = "crates/tucan-types" }

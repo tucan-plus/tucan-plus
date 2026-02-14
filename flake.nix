@@ -127,7 +127,6 @@
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
           fileset-dioxus
           fileset-worker
         ];

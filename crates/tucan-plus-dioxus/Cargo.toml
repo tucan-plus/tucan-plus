@@ -15,7 +15,6 @@ reqwest = { workspace = true, features = ["json"] }
 serde_json.workspace = true
 url.workspace = true
 tucan-connector = { workspace = true, optional = true }
-tucan-plus-planning.workspace = true
 tracing.workspace = true
 plotters.workspace = true
 keyring-core = { workspace = true, optional = true }
