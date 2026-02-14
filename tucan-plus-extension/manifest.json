@@ -86,6 +86,16 @@
                 "content-script-hessenbox.js"
             ],
             "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://git.rwth-aachen.de/users/sign_in",
+                "https://git.rwth-aachen.de/shibboleth-ds/?*"
+            ],
+            "js": [
+                "content-script-gitlab.js"
+            ],
+            "run_at": "document_end"
         }
     ],
     "browser_specific_settings": {
