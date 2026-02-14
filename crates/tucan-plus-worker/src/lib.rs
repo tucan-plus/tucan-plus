@@ -743,16 +743,17 @@ extern "C" {
     // Getters can only be declared on classes, so we need a fake type to declare it
     // on.
     #[wasm_bindgen]
-    type Meta;
+    #[expect(non_camel_case_types)]
+    type meta;
 
-    #[wasm_bindgen(js_namespace = import, static_method_of = Meta, getter)]
+    #[wasm_bindgen(js_namespace = import, static_method_of = meta, getter)]
     fn url() -> String;
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn shim_url() -> String {
-    Meta::url()
+    meta::url()
 }
 
 #[cfg(target_arch = "wasm32")]
