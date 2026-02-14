@@ -428,7 +428,6 @@ async fn frontend_main() {
 
     let launcher = launcher.with_context(worker.clone());
 
-    #[cfg(feature = "web")]
     let launcher = launcher.with_cfg(
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
     );
