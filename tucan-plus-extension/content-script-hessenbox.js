@@ -10,5 +10,3 @@ if (dropdownToggle) {
     selectElement.dispatchEvent(new Event('change', { bubbles: true }));
     /** @type {HTMLInputElement} */ (document.querySelector("#idpSelectListButton")).click()
 }
-
-// TODO tucan automatically click login button
