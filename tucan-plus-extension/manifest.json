@@ -77,6 +77,15 @@
                 "content-script-sharelatex.js"
             ],
             "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://next.hessenbox.de/shibboleth-ds/index.html?*"
+            ],
+            "js": [
+                "content-script-hessenbox.js"
+            ],
+            "run_at": "document_end"
         }
     ],
     "browser_specific_settings": {
