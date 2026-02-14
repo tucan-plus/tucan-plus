@@ -94,7 +94,7 @@
         }
     ],
     "content_security_policy": {
-        "extension_pages": "script-src http://127.0.0.1:8080 'self' 'wasm-unsafe-eval'; object-src 'self';"
+        "extension_pages": "script-src http://localhost:8080 'self' 'wasm-unsafe-eval'; object-src 'self';"
     },
     "commands": {
         "open-in-tucan-page": {

@@ -101,7 +101,7 @@ cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
 ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ public
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --features direct --hot-patch --verbose --forced-origin http://127.0.0.1:8080
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --features direct --hot-patch --verbose --base-path public
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
 ```
