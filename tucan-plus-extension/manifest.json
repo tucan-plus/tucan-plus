@@ -96,6 +96,24 @@
                 "content-script-gitlab.js"
             ],
             "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?*"
+            ],
+            "js": [
+                "content-script-tucan-autologin.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://login.tu-darmstadt.de/idp/profile/SAML2/Redirect/SSO?*"
+            ],
+            "js": [
+                "content-script-login.js"
+            ],
+            "run_at": "document_end"
         }
     ],
     "browser_specific_settings": {
