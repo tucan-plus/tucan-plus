@@ -1,8 +1,7 @@
 use std::collections::{HashMap, HashSet};
-#[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
-use crate::RcTucanType;
+use crate::{RcTucanType, common::decompress};
 use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
@@ -12,8 +11,7 @@ use num::ToPrimitive;
 use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
 use time::{Month, macros::offset};
-use tokio::io::AsyncWriteExt as _;
-use tucan_plus_planning::decompress;
+use tokio::io::AsyncWriteExt;
 use tucan_types::{
     DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},
@@ -174,7 +172,6 @@ pub fn FetchAnmeldung() -> Element {
                                 BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                             encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
                             atomic_current.with_mut(|current| *current += change.clone());
-                            #[cfg(target_arch = "wasm32")]
                             crate::sleep(Duration::from_millis(0)).await;
                         }
                         encoder.shutdown().await.unwrap();
@@ -230,19 +227,14 @@ pub fn FetchAnmeldung() -> Element {
             for entry in result() {
                 a {
                     href: {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            let blob_properties = web_sys::BlobPropertyBag::new();
-                            blob_properties.set_type("octet/stream");
-                            let bytes = js_sys::Array::new();
-                            bytes.push(&js_sys::Uint8Array::from(&entry.1[..]));
-                            let blob =
-                                web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
-                                    .unwrap();
-                            web_sys::Url::create_object_url_with_blob(&blob).unwrap()
-                        }
-                        #[cfg(not(target_arch = "wasm32"))]
-                        "/todo"
+                        let blob_properties = web_sys::BlobPropertyBag::new();
+                        blob_properties.set_type("octet/stream");
+                        let bytes = js_sys::Array::new();
+                        bytes.push(&js_sys::Uint8Array::from(&entry.1[..]));
+                        let blob =
+                            web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
+                                .unwrap();
+                        web_sys::Url::create_object_url_with_blob(&blob).unwrap()
                     },
                     download: entry.0.clone(),
                     { format!("Download {}", entry.0.clone()) }
@@ -345,7 +337,6 @@ pub fn MigrateV0ToV1() -> Element {
                         let change = BigRational::new(BigInt::from(1), BigInt::from(chunk_part));
                         encoder.write_all(chunk.1).await.unwrap(); // hangs, move to worker?
                         atomic_current.with_mut(|current| *current += change.clone());
-                        #[cfg(target_arch = "wasm32")]
                         crate::sleep(Duration::from_millis(0)).await;
                     }
                     encoder.shutdown().await.unwrap();
@@ -422,19 +413,14 @@ pub fn MigrateV0ToV1() -> Element {
             for entry in result() {
                 a {
                     href: {
-                        #[cfg(target_arch = "wasm32")]
-                        {
-                            let blob_properties = web_sys::BlobPropertyBag::new();
-                            blob_properties.set_type("octet/stream");
-                            let bytes = js_sys::Array::new();
-                            bytes.push(&js_sys::Uint8Array::from(&entry.1[..]));
-                            let blob =
-                                web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
-                                    .unwrap();
-                            web_sys::Url::create_object_url_with_blob(&blob).unwrap()
-                        }
-                        #[cfg(not(target_arch = "wasm32"))]
-                        "/todo"
+                        let blob_properties = web_sys::BlobPropertyBag::new();
+                        blob_properties.set_type("octet/stream");
+                        let bytes = js_sys::Array::new();
+                        bytes.push(&js_sys::Uint8Array::from(&entry.1[..]));
+                        let blob =
+                            web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties)
+                                .unwrap();
+                        web_sys::Url::create_object_url_with_blob(&blob).unwrap()
                     },
                     download: entry.0.clone(),
                     { format!("Download {}", entry.0.clone()) }

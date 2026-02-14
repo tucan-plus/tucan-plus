@@ -743,6 +743,7 @@ extern "C" {
     // Getters can only be declared on classes, so we need a fake type to declare it
     // on.
     #[wasm_bindgen]
+    #[expect(non_camel_case_types)]
     type meta;
 
     #[wasm_bindgen(js_namespace = import, static_method_of = meta, getter)]
@@ -795,7 +796,7 @@ impl MyDatabase {
                     error_closure.forget();
                 };
 
-                return js_sys::Promise::new(&mut cb);
+                js_sys::Promise::new(&mut cb)
             })
         };
         let _intentional =
@@ -804,12 +805,10 @@ impl MyDatabase {
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
 
-        let this = Self {
+        Self {
             broadcast_channel,
             pinged: Arc::new(AtomicBool::new(false)),
-        };
-
-        this
+        }
     }
 
     pub async fn send_message<R: RequestResponse + std::fmt::Debug>(

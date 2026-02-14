@@ -1,9 +1,29 @@
+use crate::RcTucanType;
 use dioxus::prelude::*;
 use log::info;
 use reqwest::StatusCode;
+use tokio::io::AsyncWriteExt as _;
 use tucan_types::{LoginResponse, RevalidationStrategy, TucanError};
 
-use crate::RcTucanType;
+pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
+        Vec::new(),
+        async_compression::Level::Best,
+    );
+    // https://github.com/DioxusLabs/dioxus/blob/09c1de7574abb36b11a2c8c825ac30d7398de948/packages/core/src/tasks.rs#L288
+    for chunk in in_data.chunks(10 * 1024).enumerate() {
+        encoder.write_all(chunk.1).await?; // hangs, move to worker?
+    }
+    encoder.shutdown().await?;
+    Ok(encoder.into_inner())
+}
+
+pub async fn decompress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
+    let mut decoder = async_compression::tokio::write::BrotliDecoder::new(Vec::new());
+    decoder.write_all(in_data).await?;
+    decoder.shutdown().await?;
+    Ok(decoder.into_inner())
+}
 
 pub fn use_authenticated_data_loader<
     I: Clone + PartialEq + std::fmt::Debug + 'static,
@@ -73,7 +93,6 @@ async fn handle_timeout<O: Clone + 'static>(
     // authorized vv urls from another session will repeatedly log you out here
     // do we also get a timeout for an unauthenticated vv url when we are logged in?
     // for debugging getting a timed out session would be useful
-    #[cfg(feature = "direct")]
     web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
         name: Some("id".to_owned()),
         partition_key: None,
@@ -89,7 +108,6 @@ async fn handle_timeout<O: Clone + 'static>(
     })
     .await;
 
-    #[cfg(feature = "direct")]
     web_extensions::cookies::set(web_extensions::cookies::SetCookieDetails {
         name: Some("cnsc".to_owned()),
         partition_key: None,

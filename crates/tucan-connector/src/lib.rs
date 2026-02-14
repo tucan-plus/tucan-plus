@@ -3,11 +3,13 @@ use std::{
     time::Duration,
 };
 
+use data_encoding::BASE64URL_NOPAD;
 use externalpages::welcome::welcome;
 use html_handler::InElement;
 use login::logout;
 use regex::Regex;
 use reqwest::header;
+use sha3::{Digest as _, Sha3_256};
 use time::{Month, OffsetDateTime, format_description::well_known::Rfc2822, macros::offset};
 use tokio::sync::Semaphore;
 use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::CacheEntry};
@@ -51,6 +53,10 @@ pub mod vv;
 
 pub type InElement5<'a, T> =
     InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, T>>>>>;
+
+pub fn h(input: &str) -> String {
+    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
+}
 
 pub async fn fetch_with_cache<Request, Response>(
     tucan: &TucanConnector,
@@ -640,17 +646,14 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, OnceLock};
+    use std::sync::Arc;
 
     use reqwest::{Client, header};
-    use tokio::{
-        runtime::Runtime,
-        sync::{OnceCell, Semaphore},
-    };
+    use tokio::sync::{OnceCell, Semaphore};
     use tucan_plus_worker::MyDatabase;
     use tucan_types::{
-        LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
-        coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
+        LoginResponse, RevalidationStrategy, coursedetails::CourseDetailsRequest,
+        moduledetails::ModuleDetailsRequest,
     };
 
     use crate::{

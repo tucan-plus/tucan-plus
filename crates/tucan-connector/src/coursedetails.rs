@@ -1,12 +1,10 @@
 use crate::{
-    COURSEDETAILS_REGEX,
+    COURSEDETAILS_REGEX, h,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
-use data_encoding::BASE64URL_NOPAD;
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::{Either, Itertools};
 use scraper::CaseSensitivity;
-use sha3::{Digest, Sha3_256};
 use tucan_types::{
     InstructorImage, LoginResponse, TucanError,
     coursedetails::{
@@ -14,10 +12,6 @@ use tucan_types::{
         InstructorImageWithLink, Room, Termin,
     },
 };
-
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
 
 #[expect(
     clippy::similar_names,
@@ -762,26 +756,28 @@ pub(crate) fn course_details_internal(
     html_handler.end_document();
 
     let instructors = instructors.unwrap_or_default();
-    if dozent.is_none() || dozent == Some("N.N.".to_owned()) {
-        assert!(instructors.is_empty());
-    } else if h(dozent.as_ref().unwrap()) == "fRArPBELwQcLhe4KzBODOZ7RNkKzNttCYuicWPUNx4w"
-        && instructors.iter().map(|m| h(&m.0)).eq([
-            "ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ",
-            "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo",
-            "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo",
-        ])
-    {
-        // hack, one person has a second name at one place and not at the other
-        // place
-    } else {
-        assert_eq!(
-            dozent.unwrap().split("; ").sorted().collect::<Vec<_>>(),
-            instructors
-                .iter()
-                .map(|m| &m.0)
-                .sorted()
-                .collect::<Vec<_>>()
-        );
+    match dozent.as_deref() {
+        None | Some("N.N.") => assert!(instructors.is_empty()),
+        Some(dozent)
+            if h(dozent) == "fRArPBELwQcLhe4KzBODOZ7RNkKzNttCYuicWPUNx4w"
+                && instructors.iter().map(|m| h(&m.0)).eq([
+                    "ZhaKKJFX25tOY1kxA60kaVFRXPhnq-2Znq16l9V5acQ",
+                    "dUAw_-nWeQp2zAi07MFw7M99KQGdgI6QmZMem0wTtgo",
+                    "o37txCeZ2uWIszeTnl6vocuOugvPMZnSjpKwaHGqfmo",
+                ]) =>
+        {
+            // hack
+        }
+        Some(dozent) => {
+            assert_eq!(
+                dozent.split("; ").sorted().collect::<Vec<_>>(),
+                instructors
+                    .iter()
+                    .map(|m| &m.0)
+                    .sorted()
+                    .collect::<Vec<_>>()
+            )
+        }
     }
     assert_eq!(
         anzeige_im_stundenplan.clone().unwrap_or_default(),

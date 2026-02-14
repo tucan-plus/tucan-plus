@@ -14,54 +14,30 @@ log.workspace = true
 reqwest = { workspace = true, features = ["json"] }
 serde_json.workspace = true
 url.workspace = true
-tucan-connector = { workspace = true, optional = true }
-tucan-plus-planning.workspace = true
+tucan-connector = { workspace = true }
 tracing.workspace = true
 plotters.workspace = true
-keyring-core = { workspace = true, optional = true }
 git-version.workspace = true
 futures.workspace = true
 serde-wasm-bindgen.workspace = true
 serde.workspace = true
 tucan-plus-worker.workspace = true
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["sync", "io-util"] }
 rand.workspace = true
 time.workspace = true
-# https://github.com/mitsuhiko/fragile/commit/47bb7220f4d1c422350bd95b5c43bf8e4a51f30f
-fragile = { workspace = true, optional = true }
 num.workspace = true
 itertools.workspace = true
 async-compression.workspace = true
 diesel.workspace = true
 diesel_migrations.workspace = true
-
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-dbus-secret-service-keyring-store = { workspace = true, optional = true }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
 sqlite-wasm-rs.workspace = true
 sqlite-wasm-vfs.workspace = true
 cookie.workspace = true
 getrandom.workspace = true
-web-extensions = { workspace = true, optional = true }
-web-extensions-sys = { workspace = true, optional = true }
+web-extensions = { workspace = true }
+web-extensions-sys = { workspace = true }
 web-sys = { workspace = true, features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-android-native-keyring-store = { workspace = true, optional = true }
 js-sys.workspace = true
 console_log = { workspace = true, features = ["color"] }
-
-# extension: target wasm and feature direct
-# native: target native and feature direct
-# dev: target wasm and feature api
-
-[features]
-wasm-split = ["dioxus/wasm-split"]
-direct = ["web", "dep:tucan-connector", "dep:web-extensions", "dep:web-extensions-sys" ]
-api = ["web", "dep:fragile"]
-default = ["web"]
-web = ["dioxus/web"]
-desktop = ["dioxus/desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
-mobile = ["dioxus/mobile", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]

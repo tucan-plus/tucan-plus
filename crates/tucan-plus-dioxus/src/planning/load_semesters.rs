@@ -1,14 +1,13 @@
 use dioxus::{html::FileData, signals::Signal};
 use futures::StreamExt as _;
 use log::warn;
-use tucan_plus_planning::decompress;
 use tucan_plus_worker::{
     InsertOrUpdateAnmeldungenRequest, MyDatabase, UpdateAnmeldungEntryRequest,
     models::{Anmeldung, AnmeldungEntry, Semester, State},
 };
 use tucan_types::CONCURRENCY;
 
-use crate::export_semester::SemesterExportV1;
+use crate::{common::decompress, export_semester::SemesterExportV1};
 
 pub async fn handle_semester(
     worker: &MyDatabase,

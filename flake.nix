@@ -127,7 +127,6 @@
           (craneLib.fileset.commonCargoSources ./crates/html-extractor)
           (craneLib.fileset.commonCargoSources ./crates/tucan-connector)
           (craneLib.fileset.commonCargoSources ./crates/html-handler)
-          (craneLib.fileset.commonCargoSources ./crates/tucan-plus-planning)
           fileset-dioxus
           fileset-worker
         ];
@@ -195,7 +194,7 @@
             '';
 
         client-args = rec {
-          dioxusExtraArgs = "--features direct --web";
+          dioxusExtraArgs = "--web";
           CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
           dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
           buildDepsOnly = {

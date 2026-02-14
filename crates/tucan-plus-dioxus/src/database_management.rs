@@ -15,7 +15,6 @@ pub fn ExportDatabase() -> Element {
                 .expect("export timed out")
         }
     });
-    #[cfg(target_arch = "wasm32")]
     rsx! {
         if let Some(database) = database() {
             a {
@@ -33,12 +32,6 @@ pub fn ExportDatabase() -> Element {
             }
         }
     }
-    #[cfg(not(target_arch = "wasm32"))]
-    rsx! {
-        p {
-            "Not implemented in non-browser environment"
-        }
-    }
 }
 
 #[component]
@@ -54,7 +47,6 @@ pub fn ImportDatabase() -> Element {
             async move {
                 success.set(false);
                 loading.set(true);
-                #[cfg(target_arch = "wasm32")]
                 crate::sleep(Duration::from_millis(0)).await;
                 worker
                     .send_message_with_timeout(
