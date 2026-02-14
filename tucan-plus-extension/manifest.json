@@ -70,7 +70,7 @@
         },
         {
             "matches": [
-                "https://sharelatex.tu-darmstadt.de/",
+                "https://sharelatex.tu-darmstadt.de/saml/login",
                 "https://www-cgi.hrz.tu-darmstadt.de/shibboleth/sharelatex/index.html?entityID=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fproxy_saml2_backend.xml&return=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fdisco"
             ],
             "js": [
