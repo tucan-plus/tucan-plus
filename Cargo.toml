@@ -1,13 +1,9 @@
 [workspace]
 members = ["./crates/*"]
 exclude = ["./crates/tucan-plus-tests"]
-edition = "2024"
 resolver = "3"
-version = "0.1.0"
-rust-version = "1.87"
 
 [workspace.dependencies]
-# External dependencies
 async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
 axum = { version = "0.8.1", features = ["macros"] }
 axum-core = "0.5.0"
@@ -64,7 +60,6 @@ utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
 wasm-bindgen = { version = "0.2.104" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
-
 derive_more = { version = "2.0.1", features = ["from"] }
 enum_dispatch = "0.3.13"
 erased-serde = "0.4"
@@ -74,7 +69,6 @@ typetag = "0.2"
 web-extensions = { git = "https://github.com/web-extensions-rs/web-extensions" }
 web-extensions-sys = { version = "0.4.2" }
 
-# Internal workspace crates
 html-extractor = { path = "crates/html-extractor" }
 html-handler = { path = "crates/html-handler" }
 tucan-connector = { path = "crates/tucan-connector" }

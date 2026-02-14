@@ -330,7 +330,6 @@ pub fn PlanningInner(student_result: StudentResultResponse) -> Element {
                     }
                 }
                 Fragment {
-                    key: "no-semester",
                     h2 {
                         "Nicht zugeordnet "
                         span { class: "badge text-bg-secondary", {format!("{} CP", value.2.iter().filter(|elem| elem.entry.state != State::MaybePlanned).map(|elem| elem.entry.credits).sum::<i32>())} }
@@ -489,19 +488,20 @@ fn AnmeldungenEntries(
                                     "Choose semester"
                                 }
                                 for i in 2020..2030 {
-                                    option {
-                                        key: "sose{i}",
-                                        value: serde_json::to_string(&(Some(i), Semester::Sommersemester)).unwrap(),
-                                        selected: entry.semester == Some(Semester::Sommersemester)
-                                            && entry.year == Some(i),
-                                        "Sommersemester {i}"
-                                    }
-                                    option {
-                                        key: "wise{i}",
-                                        value: serde_json::to_string(&(Some(i), Semester::Wintersemester)).unwrap(),
-                                        selected: entry.semester == Some(Semester::Wintersemester)
-                                            && entry.year == Some(i),
-                                        "Wintersemester {i}"
+                                    Fragment {
+                                        key: "year{i}",
+                                        option {
+                                            value: serde_json::to_string(&(Some(i), Semester::Sommersemester)).unwrap(),
+                                            selected: entry.semester == Some(Semester::Sommersemester)
+                                                && entry.year == Some(i),
+                                            "Sommersemester {i}"
+                                        }
+                                        option {
+                                            value: serde_json::to_string(&(Some(i), Semester::Wintersemester)).unwrap(),
+                                            selected: entry.semester == Some(Semester::Wintersemester)
+                                                && entry.year == Some(i),
+                                            "Wintersemester {i}"
+                                        }
                                     }
                                 }
                             }

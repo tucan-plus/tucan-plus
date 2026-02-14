@@ -5,7 +5,6 @@ use crate::{
 use html_handler::{MyElementRef, MyNode, Root, parse_document};
 use itertools::{Either, Itertools};
 use scraper::CaseSensitivity;
-use sha3::Digest;
 use tucan_types::{
     InstructorImage, LoginResponse, TucanError,
     coursedetails::{
