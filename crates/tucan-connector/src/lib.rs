@@ -52,6 +52,10 @@ pub mod vv;
 pub type InElement5<'a, T> =
     InElement<'a, InElement<'a, InElement<'a, InElement<'a, InElement<'a, T>>>>>;
 
+pub fn h(input: &str) -> String {
+    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
+}
+
 pub async fn fetch_with_cache<Request, Response>(
     tucan: &TucanConnector,
     login_response: &LoginResponse,

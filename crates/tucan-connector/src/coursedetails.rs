@@ -1,5 +1,5 @@
 use crate::{
-    COURSEDETAILS_REGEX,
+    COURSEDETAILS_REGEX, h,
     head::{footer, html_head, logged_in_head, logged_out_head},
 };
 use data_encoding::BASE64URL_NOPAD;
@@ -14,10 +14,6 @@ use tucan_types::{
         InstructorImageWithLink, Room, Termin,
     },
 };
-
-fn h(input: &str) -> String {
-    BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
-}
 
 #[expect(
     clippy::similar_names,

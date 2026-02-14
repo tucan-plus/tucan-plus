@@ -17,7 +17,6 @@ url.workspace = true
 tucan-connector = { workspace = true }
 tracing.workspace = true
 plotters.workspace = true
-keyring-core = { workspace = true, optional = true }
 git-version.workspace = true
 futures.workspace = true
 serde-wasm-bindgen.workspace = true
@@ -40,6 +39,5 @@ web-extensions-sys = { workspace = true }
 web-sys = { workspace = true, features = ["Document", "Window", "HtmlDocument", "NodeList", "HtmlSelectElement", "Blob", "Url", "BlobPropertyBag", "Worker", "WorkerOptions", "WorkerType", "AddEventListenerOptions", "EventTarget", "ErrorEvent", "FileList", "HtmlInputElement", "Navigator", "ServiceWorkerContainer", "ServiceWorker", "LockManager", "Lock", "BroadcastChannel"] }
 wasm-bindgen.workspace = true
 wasm-bindgen-futures.workspace = true
-android-native-keyring-store = { workspace = true, optional = true }
 js-sys.workspace = true
 console_log = { workspace = true, features = ["color"] }

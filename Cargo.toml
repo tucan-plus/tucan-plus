@@ -1,5 +1,6 @@
 [workspace]
 members = ["./crates/*"]
+excludes = ["./crates/tucan-plus/tests"]
 edition = "2024"
 resolver = "3"
 version = "0.1.0"
@@ -28,6 +29,7 @@ futures = "0.3.31"
 futures-core = "0.3"
 futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
+getrandom2 = { version = "0.2", features = ["wasm_js"] }
 git-version = "0.3"
 html5ever = "0.38.0"
 itertools = "0.14"
@@ -63,9 +65,6 @@ wasm-bindgen = { version = "0.2.104" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
 
-# Optional platform-specific dependencies
-android-native-keyring-store = { version = "0.5" }
-dbus-secret-service-keyring-store = { version = "0.3", features = ["crypto-rust"] }
 derive_more = { version = "2.0.1", features = ["from"] }
 enum_dispatch = "0.3.13"
 erased-serde = "0.4"

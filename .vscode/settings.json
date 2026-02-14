@@ -4,4 +4,7 @@
         "editor.formatOnSave": false
     },
     "rust-analyzer.cargo.target": "wasm32-unknown-unknown",
+    "rust-analyzer.files.exclude": [
+        "./crates/tucan-plus-tests"
+    ]
 }
