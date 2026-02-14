@@ -30,7 +30,7 @@ if (document.body.classList.contains("access_denied")) {
     }
 } else if (location.href === "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll") {
     // empty
-} else if (imprintInFooter && document.cookie.includes("cnsc=")) {
+} else if (imprintInFooter) {
     const args = /** @type {string} */ (new URL(imprintInFooter.href).searchParams.get("ARGUMENTS"))
     const sessionId = /** @type {string} */ (/^-N(?<id>\d+),/.exec(args)?.groups?.id)
     if (sessionId === "000000000000001") {
