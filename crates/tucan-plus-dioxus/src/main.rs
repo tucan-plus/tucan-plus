@@ -539,13 +539,27 @@ fn App() -> Element {
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
     rsx! {
+        document::Link {
+            rel: "icon",
+            href: LOGO_SVG,
+            sizes: "any",
+            type: "image/svg+xml"
+        }
+        document::Link {
+            rel: "manifest",
+            href: APP_MANIFEST
+        }
+        document::Link {
+            rel: "stylesheet",
+            href: BOOTSTRAP_CSS
+        }
         Router::<Route> {
         }
         script {
-            src: "http://127.0.0.1:8080/assets/bootstrap.bundle.min.js",
+            src: BOOTSTRAP_JS,
         }
         script {
-            src: "http://127.0.0.1:8080/assets/bootstrap.patch.js",
+            src: BOOTSTRAP_PATCH_JS,
         }
     }
 }

@@ -67,7 +67,7 @@ pub fn Navbar() -> Element {
                     to: Route::Root { },
                     class: "navbar-brand",
                     img {
-                        src: "http://127.0.0.1:8080/assets/logo.svg",
+                        src: LOGO_SVG,
                         height: 24,
                         alt: "TUCaN Plus",
                     }
