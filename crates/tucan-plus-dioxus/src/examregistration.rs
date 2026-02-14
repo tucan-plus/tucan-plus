@@ -22,8 +22,8 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
     use_authenticated_data_loader(
         handler,
         semester,
-        14 * 24 * 60 * 60,
         60 * 60,
+        60,
         |exams: ExamRegistrationResponse, reload| {
             let on_semester_change = {
                 Callback::new(move |e: Event<FormData>| {
