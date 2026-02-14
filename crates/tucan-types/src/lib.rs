@@ -403,11 +403,6 @@ pub const CONCURRENCY: usize = 10;
 
 #[dynosaur(pub DynTucan = dyn(box) Tucan)]
 pub trait Tucan: Send + Sync {
-    fn login(
-        &self,
-        request: LoginRequest,
-    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
-
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;
 
     fn after_login(

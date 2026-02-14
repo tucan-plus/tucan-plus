@@ -110,6 +110,9 @@ pub(crate) fn exam_registration_internal(
                                 </tr>
                             </thead>
                             <tbody>
+                                let _abc = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    <tr class="tbdata"><td colspan="5">"Keine Prüfungen gefunden."</td></tr>
+                                } => ();
                                 let exam_registrations = while html_handler.peek().is_some() {
                                     <tr class="tbsubhead level02">
                                         <td>
