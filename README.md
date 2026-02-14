@@ -101,15 +101,17 @@ cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
 # firefox doesn't allow symlinks
-cp -r /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/.
+cp -r /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/.
 
-ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
-sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --hot-patch --verbose --base-path public
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --hot-patch --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+
+sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
 
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
