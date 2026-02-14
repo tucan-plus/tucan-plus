@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 #[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 
-use crate::RcTucanType;
+use crate::{RcTucanType, common::decompress};
 use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
@@ -12,8 +12,7 @@ use num::ToPrimitive;
 use num::{BigInt, BigRational, FromPrimitive, One};
 use serde::{Deserialize, Serialize};
 use time::{Month, macros::offset};
-use tokio::io::AsyncWriteExt as _;
-use tucan_plus_planning::decompress;
+use tokio::io::AsyncWriteExt;
 use tucan_types::{
     DynTucan, LoginResponse, RevalidationStrategy, Tucan, TucanError,
     moduledetails::{ModuleDetailsRequest, ModuleDetailsResponse},

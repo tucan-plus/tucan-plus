@@ -108,7 +108,7 @@ ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/pu
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --features direct --hot-patch --verbose --base-path public
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --hot-patch --verbose --base-path public
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
 
@@ -119,7 +119,7 @@ https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_S
 
 ```
 cd crates/tucan-plus-dioxus/
-dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --features direct --release
+dx bundle --platform web --out-dir ../../tucan-plus-extension/ --base-path public --release
 sed -i 's/importMeta.url/import.meta.url/g' ../../tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
 ```
 

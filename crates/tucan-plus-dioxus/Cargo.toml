@@ -23,7 +23,7 @@ futures.workspace = true
 serde-wasm-bindgen.workspace = true
 serde.workspace = true
 tucan-plus-worker.workspace = true
-tokio = { workspace = true, features = ["sync"] }
+tokio = { workspace = true, features = ["sync", "io-util"] }
 rand.workspace = true
 time.workspace = true
 num.workspace = true
