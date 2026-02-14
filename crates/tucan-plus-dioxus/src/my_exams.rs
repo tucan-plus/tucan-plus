@@ -76,10 +76,11 @@ pub fn MyExams(semester: ReadSignal<SemesterId>) -> Element {
                         table { class: "table",
                             thead {
                                 tr {
-                                    th { scope: "col", {"NR"} }
-                                    th { scope: "col", {"Name"} }
-                                    th { scope: "col", {"Prüfungsart"} }
-                                    th { scope: "col", {"Termin"} }
+                                    th { scope: "col", "NR" }
+                                    th { scope: "col", "Name" }
+                                    th { scope: "col", "Prüfungsart" }
+                                    th { scope: "col", "Termin" }
+                                    th { scope: "col", "Anmeldung" }
                                 }
                             }
                             tbody {
@@ -121,6 +122,15 @@ pub fn MyExams(semester: ReadSignal<SemesterId>) -> Element {
                                                             }
                                                         } else {
                                                             {exam.date.clone()}
+                                                        }
+                                                    }
+                                                    td {
+                                                        if let Some(examunreg_url) = &exam.examunreg_url {
+                                                            a { href: format!("https://www.tucan.tu-darmstadt.de{}", examunreg_url),
+                                                                "Abmelden"
+                                                            }
+                                                        } else {
+                                                            "Du musst"
                                                         }
                                                     }
                                                 }

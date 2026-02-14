@@ -447,6 +447,13 @@ pub trait Tucan: Send + Sync {
         semester: SemesterId,
     ) -> impl std::future::Future<Output = Result<ExamResultsResponse, TucanError>>;
 
+    fn exam_registration(
+        &self,
+        login_response: &LoginResponse,
+        revalidation_strategy: RevalidationStrategy,
+        semester: SemesterId,
+    ) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
+
     fn course_results(
         &self,
         request: &LoginResponse,

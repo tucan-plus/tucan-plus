@@ -18,7 +18,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - run: |
-          nix build -L .#extension-unpacked .#api-server
+          nix build -L .#extension-unpacked
     - uses: actions/upload-artifact@v4
       with:
         name: tucan-plus-extension-nightly-zip

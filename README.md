@@ -94,72 +94,16 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 
 ```bash
 cargo install dioxus-cli
+cargo install --git https://github.com/DioxusLabs/dioxus.git --branch jk/workspace-hotpatch dioxus-cli
+cargo install --path /home/moritz/Documents/dioxus/packages/cli dioxus-cli
 
 cd crates/tucan-plus-dioxus/
 dx serve --web --features api --verbose
 
-dx build --web --features api --verbose --release --wasm-split --features wasm-split
-cd ../../target/dx/tucan-plus-dioxus/release/web/public
-sed -i 's/importMeta.url/import.meta.url/g' assets/tucan-plus-dioxus-*.js
-npx http-server -p 8080 # need one that caches wasm
-adb reverse tcp:8080 tcp:8080
+ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ public
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --features direct --hot-patch --verbose --base-path public
 
-rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/assets/
-
-rm -R /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/
-dx bundle --web --features direct --release --wasm-split --features "dioxus-router?/wasm-split"
-ls -lh /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/*.wasm
-
-# in second tab
-cargo install bacon
-cd crates/tucan-plus-api/
-bacon run
-
-cargo install diesel_cli --no-default-features --features sqlite
-DATABASE_URL=file:$(mktemp) diesel database reset
-
-# Service Workers in Firefox can't be ES Modules https://bugzilla.mozilla.org/show_bug.cgi?id=1360870
-# Event handlers must be registered synchronously
-cd crates/tucan-plus-service-worker/
-cargo build --target wasm32-unknown-unknown
-wasm-bindgen target/wasm32-unknown-unknown/debug/tucan-plus-service-worker.wasm --target no-modules --out-dir ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/ --no-typescript
-echo "wasm_bindgen.initSync({ module: Uint8Array.fromBase64(\"$(base64 -w0 target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker_bg.wasm)\")})" >> ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/tucan-plus-service-worker.js
-cp -r ./target/dx/tucan-plus-service-worker/debug/web/public/wasm/. ../tucan-plus-dioxus/assets/wasm/
-
-# http://localhost:8080/#/
-
-
-# 8.7 MB original size
-# 4.8 MB seems absolute minimum
-
-RUST_BACKTRACE=1 DIOXUS_LOG=trace,walrus::module::functions::local_function=debug,walrus::ir::traversals=debug cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml bundle --web --features direct --release --trace --wasm-split --features "dioxus-router?/wasm-split"
-
-twiggy dominators /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
-
-llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/assets/tucan-plus-dioxus_bg-*.wasm
-llvm-dwarfdump /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 
-
-cargo run --manifest-path ~/Documents/dioxus/packages/cli/Cargo.toml serve --web --features api --verbose
-
-# https://github.com/DioxusLabs/dioxus/issues/4237
-wasm2wat /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm | grep --color '"env"'
-
-wasm-tools addr2line ./target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm 0xc3d99e 0xb4c65d 0x86d66e 0xbcf4cf 0x8bd9d
-
-nix shell nixpkgs#llvmPackages_21.bintools
-whereis llvm-dwarfdump
-
-git clone https://github.com/emscripten-core/emsdk.git
-cd emsdk
-git pull
-./emsdk install latest
-./emsdk activate latest
-source ./emsdk_env.sh
-
-emsymbolizer
-
-EMCC_DEBUG=1 ./upstream/emscripten/tools/wasm-sourcemap.py ~/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --dwarfdump /nix/store/47pcjmrcaq81frqyg66gf95f5cy2bzjl-llvm-binutils-21.1.1/bin/llvm-dwarfdump --output /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm.map -w /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/wasm/tucan-plus-dioxus_bg.wasm --source-map-url http://127.0.0.1:8080/wasm/tucan-plus-dioxus_bg.wasm.map --sources --load-prefix /rustc/fa3155a644dd62e865825087b403646be01d4cef=/home/moritz/.rustup/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust
-
+https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
 ```
 
 ### Developing the extension
@@ -224,42 +168,6 @@ https://editor-next.swagger.io/
 
 https://chromewebstore.google.com/detail/cc++-devtools-support-dwa/pdcpmagijalfljmkmjngeonclgbbannb
 
-## Coverage
-
-```
-# https://doc.rust-lang.org/rustc/instrument-coverage.html#test-coverage
-cd tucan-connector
-RUSTFLAGS="-C instrument-coverage" cargo test
-nix shell nixpkgs#llvmPackages_19.bintools-unwrapped
-llvm-profdata merge *.profraw -o default.profdata
-
-llvm-cov show -Xdemangler=/home/moritz/.cargo/bin/rustfilt /home/moritz/Documents/tucan-plus/target/debug/deps/tucan_connector-90eac6df256ec2c3 \
-    -format=html \
-    -output-dir=target/coverage \
-    -instr-profile=default.profdata \
-    -show-line-counts-or-regions \
-    -show-instantiations
-
-xdg-open target/coverage/index.html 
-```
-
-```
-
-cat *_registration-N383703888296780\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link) | del(.[].entries.[].courses.[].[1].location_or_additional_info) | del(.[].entries.[].courses.[].[1].limit_and_size)' > a
-cat *_registration-N376333755785484\,-N0\,-N0\,-N0_B.Sc.\ Informatik\ \(2015\).json | jq 'sort_by(.path) | del(.[].studiumsauswahl) | del(.[].entries.[].module.registration_state) | del(.[].entries.[].courses.[].[1].registration_button_link) | del(.[].entries.[].courses.[].[1].location_or_additional_info) | del(.[].entries.[].courses.[].[1].limit_and_size)' | sed 's/N376333755785484/N383703888296780/g' > b
-meld a b
-
-oh no there are different numbers for the same PO (probably for each semester?) maybe because depending on your starting semester the modules change?
-
-seems like if you already completed a module it will not show up in registration at the other possible paths any more
-also it seems like it won't show new courses etc? probably as you are only allowed to do it once?
-
-seems like your wahlbereiche will be reduced to 3 if you complete your bachelor
-
-
-inkscape -w 512 ../crates/tucan-plus-dioxus/assets/logo.svg -o logo.png
-```
-
 ## CI
 
 Use a GitHub self-hosted runner with e.g. Ubuntu and Nix installed (so no NixOS).
@@ -269,5 +177,3 @@ Important: Enable "Require approval for all outside collaborators"
 https://docs.github.com/en/actions/reference/security/secure-use#hardening-for-self-hosted-runners
 
 Install gh, jq and docker on the runner.
-
-Alternative: Run the self-hosted runner in a containerized environment and mount the nix store into it or something like that.

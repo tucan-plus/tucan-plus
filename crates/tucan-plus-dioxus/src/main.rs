@@ -73,18 +73,17 @@ pub static LOGO_PNG: Asset = asset!(
     AssetOptions::builder().with_hash_suffix(false)
 );
 
-/*
-#[cfg(target_arch = "wasm32")]
 #[used]
-pub static SERVICE_WORKER_JS: Asset = asset!(
-    env!("SERVICE_WORKER_JS_PATH"),
+pub static BOOTSTRAP_JS: Asset = asset!(
+    "/assets/bootstrap.bundle.min.js",
     AssetOptions::builder().with_hash_suffix(false)
 );
-*/
 
-pub static BOOTSTRAP_JS: Asset = asset!("/assets/bootstrap.bundle.min.js",);
-
-pub static BOOTSTRAP_PATCH_JS: Asset = asset!("/assets/bootstrap.patch.js",);
+#[used]
+pub static BOOTSTRAP_PATCH_JS: Asset = asset!(
+    "/assets/bootstrap.patch.js",
+    AssetOptions::builder().with_hash_suffix(false)
+);
 
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
@@ -534,6 +533,20 @@ fn App() -> Element {
     let login_response = use_signal(|| login_response);
     provide_context(login_response);
     rsx! {
+        document::Link {
+            rel: "icon",
+            href: LOGO_SVG,
+            sizes: "any",
+            type: "image/svg+xml"
+        }
+        document::Link {
+            rel: "manifest",
+            href: APP_MANIFEST
+        }
+        document::Link {
+            rel: "stylesheet",
+            href: BOOTSTRAP_CSS
+        }
         Router::<Route> {
         }
         script {

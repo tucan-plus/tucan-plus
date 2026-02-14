@@ -23,10 +23,7 @@ use crate::{
     models::{Anmeldung, AnmeldungEntry, CacheEntry, Semester, State},
     schema::{anmeldungen_entries, anmeldungen_plan, cache},
 };
-use tucan_types::{
-    registration::AnmeldungRequest,
-    student_result::StudentResultLevel,
-};
+use tucan_types::{registration::AnmeldungRequest, student_result::StudentResultLevel};
 
 pub mod models;
 pub mod schema;
@@ -761,11 +758,15 @@ pub fn shim_url() -> String {
 #[cfg(target_arch = "wasm32")]
 impl MyDatabase {
     pub fn wait_for_worker() -> Self {
-        use js_sys::Promise;
+        use js_sys::{Promise, Reflect};
         use log::info;
         use wasm_bindgen::{JsCast as _, prelude::Closure};
+        use web_sys::Navigator;
 
-        let lock_manager = web_sys::window().unwrap().navigator().locks();
+        let navigator = Navigator::from(
+            Reflect::get(&js_sys::global(), &JsValue::from_str("navigator")).unwrap(),
+        );
+        let lock_manager = navigator.locks();
         let lock_closure: Closure<dyn Fn(_) -> Promise> = {
             Closure::new(move |_event: web_sys::Lock| {
                 let mut cb = |_resolve: js_sys::Function, reject: js_sys::Function| {
@@ -879,6 +880,7 @@ impl MyDatabase {
 
         let mut cb = |resolve: js_sys::Function, reject: js_sys::Function| {
             use wasm_bindgen::{JsCast as _, prelude::Closure};
+            use web_sys::Window;
 
             let temporary_message_closure: Closure<dyn Fn(_)> = {
                 Closure::new(move |event: web_sys::MessageEvent| {
@@ -894,8 +896,7 @@ impl MyDatabase {
                 .unwrap();
             temporary_message_closure.forget();
 
-            web_sys::window()
-                .unwrap()
+            Window::from(JsValue::from(js_sys::global()))
                 .set_timeout_with_callback_and_timeout_and_arguments_0(
                     &reject,
                     timeout.as_millis().try_into().unwrap(),
