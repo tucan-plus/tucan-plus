@@ -4,7 +4,6 @@ use dioxus::prelude::*;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
-#[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
 pub mod common;
@@ -33,7 +32,6 @@ pub mod vv;
 
 use std::ops::Deref;
 use std::sync::Arc;
-#[cfg(target_arch = "wasm32")]
 use std::time::Duration;
 use tucan_types::DynTucan;
 use tucan_types::gradeoverview::GradeOverviewRequest;
@@ -260,7 +258,6 @@ impl<T: ?Sized> Deref for MyRc<T> {
 
 pub type RcTucanType = MyRc<DynTucan<'static>>;
 
-#[cfg(target_arch = "wasm32")]
 pub async fn sleep(duration: Duration) {
     let mut cb = |resolve: js_sys::Function, _reject: js_sys::Function| {
         use wasm_bindgen::JsCast as _;
@@ -279,7 +276,6 @@ pub async fn sleep(duration: Duration) {
     wasm_bindgen_futures::JsFuture::from(p).await.unwrap();
 }
 
-#[cfg(target_arch = "wasm32")]
 #[wasm_bindgen]
 extern "C" {
     #[wasm_bindgen(js_namespace = console)]
@@ -303,7 +299,6 @@ extern "C" {
 #[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
     // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
-    #[cfg(target_arch = "wasm32")]
     panic::set_hook(Box::new(|info| {
         let mut msg = "Version: ".to_string();
         msg.push_str(git_version::git_version!());
@@ -319,7 +314,6 @@ pub async fn main() {
             alert(msg.as_str());
         }
     }));
-    #[cfg(target_arch = "wasm32")]
     console_log::init().unwrap();
 
     dioxus::logger::init(Level::INFO).expect("logger failed to init");
@@ -327,19 +321,13 @@ pub async fn main() {
     tracing::info!("tracing works");
     log::info!("logging works");
 
-    #[cfg(target_arch = "wasm32")]
     if web_sys::window().is_some() {
         frontend_main().await
     } else {
         worker_main().await
     }
-
-    #[cfg(not(target_arch = "wasm32"))]
-    frontend_main().await
 }
 
-#[cfg(target_arch = "wasm32")]
-#[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(worker))]
 async fn worker_main() {
     use std::cell::RefCell;
 
@@ -404,7 +392,6 @@ async fn worker_main() {
     global.post_message(&JsValue::from_str("ready")).unwrap();
 }
 
-#[cfg_attr(feature = "wasm-split", wasm_split::wasm_split(frontend))]
 async fn frontend_main() {
     let worker = MyDatabase::wait_for_worker(); // maybe move this before the wasm-split point?
 

@@ -1,9 +1,9 @@
+use crate::RcTucanType;
 use dioxus::prelude::*;
 use log::info;
 use reqwest::StatusCode;
-use tucan_types::{LoginResponse, RevalidationStrategy, TucanError};
 use tokio::io::AsyncWriteExt as _;
-use crate::RcTucanType;
+use tucan_types::{LoginResponse, RevalidationStrategy, TucanError};
 
 pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
     let mut encoder = async_compression::tokio::write::BrotliEncoder::with_quality(
@@ -13,8 +13,6 @@ pub async fn compress(in_data: &[u8]) -> std::io::Result<Vec<u8>> {
     // https://github.com/DioxusLabs/dioxus/blob/09c1de7574abb36b11a2c8c825ac30d7398de948/packages/core/src/tasks.rs#L288
     for chunk in in_data.chunks(10 * 1024).enumerate() {
         encoder.write_all(chunk.1).await?; // hangs, move to worker?
-        //#[cfg(target_arch = "wasm32")]
-        //tokio::time::sleep(std::time::Duration::from_millis(0)).await;
     }
     encoder.shutdown().await?;
     Ok(encoder.into_inner())
