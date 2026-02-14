@@ -5,7 +5,9 @@ use scraper::CaseSensitivity;
 use tucan_types::{
     LoginResponse, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
-    examregistration::{ExamRegistration, ExamRegistrationResponse},
+    examregistration::{
+        ExamRegistration, ExamRegistrationCourse, ExamRegistrationResponse, ExamRegistrationState,
+    },
     moduledetails::ModuleDetailsRequest,
     myexams::{Exam, MyExamsResponse},
 };
@@ -108,7 +110,7 @@ pub(crate) fn exam_registration_internal(
                                 </tr>
                             </thead>
                             <tbody>
-                                let exams = while html_handler.peek().is_some() {
+                                let exam_registrations = while html_handler.peek().is_some() {
                                     <tr class="tbsubhead level02">
                                         <td>
                                             course_id
@@ -132,21 +134,19 @@ pub(crate) fn exam_registration_internal(
                                                 date
                                             </td>
                                             <td>
-                                                let examunreg_url = if html_handler.peek().is_some() {
+                                                let registration_state = if html_handler.peek().is_some() {
                                                     let examunreg_url = if html_handler.peek().unwrap().value().is_text() {
                                                         "Ausgewählt"
-                                                    } => () else {
+                                                    } => ExamRegistrationState::ForceSelected else {
                                                         <a href=examunreg_url class="img img_arrowLeftRed">
                                                             "Abmelden"
                                                         </a>
-                                                    } => examunreg_url;
-                                                } => examunreg_url;
+                                                    } => ExamRegistrationState::Registered(examunreg_url);
+                                                } => examunreg_url.either_into();
                                             </td>
                                         </tr>
-                                    } => ();
-                                } => ExamRegistration {
-
-                                };
+                                    } => ExamRegistration { registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
+                                } => ExamRegistrationCourse { registrations };
                             </tbody>
                         </table>
                     </div>
@@ -156,7 +156,10 @@ pub(crate) fn exam_registration_internal(
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    Ok(ExamRegistrationResponse { semester })
+    Ok(ExamRegistrationResponse {
+        semester,
+        exam_registrations,
+    })
 }
 
 #[test]
@@ -168,5 +171,7 @@ fn test_exam_registration_internal() {
         },
         include_str!("../test-data/EXAMREGISTRATION.html"),
         &(),
-    );
+    )
+    .unwrap();
+    println!("{:?}", result);
 }
