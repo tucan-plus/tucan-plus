@@ -63,3 +63,5 @@ tucan-plus-worker_bg.wasm
 wasm
 *.db-shm
 *.db-wal
+
+test-data

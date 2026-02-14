@@ -92,26 +92,17 @@ pub(crate) fn exam_registration_internal(
                             <thead>
                                 <tr class="tbcontrol">
                                     <td colspan="5">
-                                        <a href=_examregistration_url class="img">
-                                            "Anmeldung zu Prüfungen"
+                                        <a href=_myexams_url class="img">
+                                            "Meine Prüfungen"
                                         </a>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th scope="col" id="Nr.">
-                                        "Nr."
-                                    </th>
-                                    <th scope="col" id="Course_event_module">
-                                        "Veranstaltung/Modul"
-                                    </th>
-                                    <th scope="col" id="Name">
-                                        "Name"
-                                    </th>
-                                    <th scope="col" id="Date">
-                                        "Datum"
-                                    </th>
-                                    <th>
-                                    </th>
+                                <tr class="tbsubhead">
+                                    <td style="width:50px;"><b>"Nr."</b></td>
+                                    <td><b>"Veranstaltung/Modul"</b></td>
+                                    <td><b>"Prüfung"</b></td>
+                                    <td><b>"Datum"</b></td>
+                                    <td></td>
                                 </tr>
                             </thead>
                             <tbody>
@@ -196,4 +187,16 @@ pub(crate) fn exam_registration_internal(
     }
     html_handler.end_document();
     Ok(MyExamsResponse { semester, exams })
+}
+
+#[test]
+fn test_exam_registration_internal() {
+    let result = exam_registration_internal(
+        &LoginResponse {
+            id: 0,
+            cookie_cnsc: String::new(),
+        },
+        include_str!("../test-data/EXAMREGISTRATION.html"),
+        &(),
+    );
 }
