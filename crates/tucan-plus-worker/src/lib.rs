@@ -743,16 +743,16 @@ extern "C" {
     // Getters can only be declared on classes, so we need a fake type to declare it
     // on.
     #[wasm_bindgen]
-    type meta;
+    type Meta;
 
-    #[wasm_bindgen(js_namespace = import, static_method_of = meta, getter)]
+    #[wasm_bindgen(js_namespace = import, static_method_of = Meta, getter)]
     fn url() -> String;
 }
 
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn shim_url() -> String {
-    meta::url()
+    Meta::url()
 }
 
 #[cfg(target_arch = "wasm32")]
@@ -803,8 +803,6 @@ impl MyDatabase {
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
-
-        
 
         Self {
             broadcast_channel,
