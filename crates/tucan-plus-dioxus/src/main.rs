@@ -74,12 +74,6 @@ pub static LOGO_PNG: Asset = asset!(
 );
 
 #[used]
-pub static WORKER_JS: Asset = asset!(
-    "/assets/worker.js",
-    AssetOptions::builder().with_hash_suffix(false)
-);
-
-#[used]
 pub static BOOTSTRAP_JS: Asset = asset!(
     "/assets/bootstrap.bundle.min.js",
     AssetOptions::builder().with_hash_suffix(false)

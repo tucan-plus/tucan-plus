@@ -776,9 +776,7 @@ impl MyDatabase {
                     options.set_type(WorkerType::Module);
                     // this is a local url which is not correct
                     info!("worker {}", shim_url());
-                    let worker =
-                        web_sys::Worker::new_with_options("/public/assets/worker.js", &options)
-                            .unwrap();
+                    let worker = web_sys::Worker::new_with_options(&shim_url(), &options).unwrap();
                     let error_closure: Closure<dyn Fn(_)> =
                         Closure::new(move |event: web_sys::Event| {
                             use log::info;

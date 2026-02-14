@@ -1,1 +1,0 @@
-import '/public/wasm/tucan-plus-dioxus.js';
