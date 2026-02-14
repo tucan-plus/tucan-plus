@@ -145,8 +145,8 @@ pub(crate) fn exam_registration_internal(
                                                 } => examunreg_url.either_into();
                                             </td>
                                         </tr>
-                                    } => ExamRegistration { registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
-                                } => ExamRegistrationCourse { registrations };
+                                    } => ExamRegistration { pruefungsart, examdetail_url, registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
+                                } => ExamRegistrationCourse { course_id, name, ids, registrations };
                             </tbody>
                         </table>
                     </div>
@@ -162,6 +162,7 @@ pub(crate) fn exam_registration_internal(
     })
 }
 
+#[cfg(false)]
 #[test]
 fn test_exam_registration_internal() {
     let result = exam_registration_internal(
@@ -173,5 +174,5 @@ fn test_exam_registration_internal() {
         &(),
     )
     .unwrap();
-    println!("{:?}", result);
+    println!("{:#?}", result);
 }

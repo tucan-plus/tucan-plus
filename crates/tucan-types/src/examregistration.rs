@@ -22,9 +22,14 @@ pub enum ExamRegistrationState {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ExamRegistration {
     pub registration_state: ExamRegistrationState,
+    pub pruefungsart: String,
+    pub examdetail_url: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ExamRegistrationCourse {
     pub registrations: Vec<ExamRegistration>,
+    pub course_id: String,
+    pub name: String,
+    pub ids: String,
 }
