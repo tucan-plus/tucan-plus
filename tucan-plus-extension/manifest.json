@@ -15,6 +15,7 @@
     },
     "permissions": [
         "declarativeNetRequestWithHostAccess",
+        "declarativeNetRequestFeedback",
         "webRequest",
         "scripting",
         "storage",

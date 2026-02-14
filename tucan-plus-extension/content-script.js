@@ -49,39 +49,12 @@ window.addEventListener("tucan-plus", event => {
     })
 })
 
+console.log("content script")
 
-/*
-window.dispatchEvent(new CustomEvent('tucan-plus', { detail: "open-in-tucan-page" }));
+const loginButton = /** @type {HTMLAnchorElement | null} */ (document.getElementById("logIn_btn"))
 
-let loginForm = /** @type {HTMLFormElement} (document.querySelector("#cn_loginForm"))
-
-loginForm.addEventListener("submit", async event => {
-    event.preventDefault()
-    const formData = new FormData(loginForm);
-
-    try {
-        const response = await fetch("/scripts/mgrqispi.dll", {
-            method: "POST",
-            // Set the FormData instance as the request body
-            body: formData,
-        });
-        const refreshHeader = response.headers.get("refresh")
-        const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
-        if (match !== null) {
-            const sessionId = match[1]
-
-            //chrome.cookies.set({
-            //    url: "https://www.tucan.tu-darmstadt.de/scripts",
-            //    name: "id",
-            //    value: sessionId,
-            //    secure: true
-            //})
-        }
-        // TODO check if it's a not logged in url and then change to a logged in one
-        // some urls like the vv urls are different when logged in, this is going to be fun.
-        location.reload()
-    } catch (e) {
-        console.error(e);
-    }
-})
-    */
+if (loginButton) {
+    // https://dsf.tucan.tu-darmstadt.de/IdentityServer/connect/authorize?client_id=ClassicWeb&scope=openid%20DSF%20email&response_mode=query&response_type=code&ui_locales=de&redirect_uri=https%3a%2f%2fwww.tucan.tu-darmstadt.de%2Fscripts%2Fmgrqispi.dll%3FAPPNAME%3DCampusNet%26PRGNAME%3DLOGINCHECK%26ARGUMENTS%3D-N000000000000001%2Cids_mode%26ids_mode%3DY
+    // https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY
+    loginButton.href = "https://dsf.tucan.tu-darmstadt.de/IdentityServer/External/Challenge?provider=dfnshib&returnUrl=%2FIdentityServer%2Fconnect%2Fauthorize%2Fcallback%3Fclient_id%3DClassicWeb%26scope%3Dopenid%2520DSF%2520email%26response_mode%3Dquery%26response_type%3Dcode%26ui_locales%3Dde%26redirect_uri%3Dhttps%253A%252F%252Fwww.tucan.tu-darmstadt.de%252Fscripts%252Fmgrqispi.dll%253FAPPNAME%253DCampusNet%2526PRGNAME%253DLOGINCHECK%2526ARGUMENTS%253D-N000000000000001,ids_mode%2526ids_mode%253DY";
+}
