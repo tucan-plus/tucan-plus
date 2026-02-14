@@ -88,7 +88,7 @@ pub fn GradeOverview(gradeoverview: ReadSignal<GradeOverviewRequest>) -> Element
                                                 .clone()
                                         },
                                     )
-                                    .axis_desc_style(("sans-serif", 15))
+                                    .axis_desc_style(("sanfs-serif", 15))
                                     .draw()?;
                                 chart
                                     .draw_series(
