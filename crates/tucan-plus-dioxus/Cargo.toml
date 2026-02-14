@@ -9,8 +9,6 @@ rust-version = "1.87"
 
 [dependencies]
 dioxus.workspace = true
-dioxus-desktop = { workspace = true, optional = true }
-dioxus-router.workspace = true
 tucan-types.workspace = true
 log.workspace = true
 reqwest = { workspace = true, features = ["json"] }
@@ -60,10 +58,10 @@ console_log = { workspace = true, features = ["color"] }
 # dev: target wasm and feature api
 
 [features]
-wasm-split = ["dioxus/wasm-split", "dioxus-router/wasm-split"]
+wasm-split = ["dioxus/wasm-split"]
 direct = ["web", "dep:tucan-connector", "dep:web-extensions", "dep:web-extensions-sys" ]
 api = ["web", "dep:fragile"]
 default = ["web"]
 web = ["dioxus/web"]
-desktop = ["dioxus/desktop", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
-mobile = ["dioxus/mobile", "dep:dioxus-desktop", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]
+desktop = ["dioxus/desktop", "dep:tucan-connector", "dep:keyring-core", "dep:dbus-secret-service-keyring-store"]
+mobile = ["dioxus/mobile", "dep:tucan-connector", "dep:keyring-core", "dep:android-native-keyring-store"]
