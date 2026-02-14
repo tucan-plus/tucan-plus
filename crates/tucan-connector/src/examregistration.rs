@@ -119,7 +119,7 @@ pub(crate) fn exam_registration_internal(
                                             ids
                                         </td>
                                     </tr>
-                                    let registrations = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    let registrations = while html_handler.peek().is_some() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
                                         <tr class="tbdata">
                                             <td></td>
                                             <td></td>
