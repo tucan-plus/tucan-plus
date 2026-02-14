@@ -27,9 +27,7 @@
         "keyword": "tucanplus"
     },
     "host_permissions": [
-        "https://www.tucan.tu-darmstadt.de/*",
-        "https://moodle.informatik.tu-darmstadt.de/*",
-        "https://moodle.tu-darmstadt.de/*"
+        "https://www.tucan.tu-darmstadt.de/*"
     ],
     "content_scripts": [
         {
@@ -54,7 +52,7 @@
         },
         {
             "matches": [
-                "https://moodle.informatik.tu-darmstadt.de/*"
+                "https://moodle.informatik.tu-darmstadt.de/"
             ],
             "js": [
                 "content-script-moodle-informatik.js"
@@ -63,10 +61,20 @@
         },
         {
             "matches": [
-                "https://moodle.tu-darmstadt.de/*"
+                "https://moodle.tu-darmstadt.de/"
             ],
             "js": [
                 "content-script-moodle.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://sharelatex.tu-darmstadt.de/",
+                "https://www-cgi.hrz.tu-darmstadt.de/shibboleth/sharelatex/index.html?entityID=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fproxy_saml2_backend.xml&return=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fdisco"
+            ],
+            "js": [
+                "content-script-sharelatex.js"
             ],
             "run_at": "document_end"
         }
