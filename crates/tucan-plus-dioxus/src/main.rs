@@ -7,8 +7,6 @@ use tucan_types::LoginResponse;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::prelude::*;
 
-#[cfg(feature = "api")]
-pub mod api_server;
 pub mod common;
 pub mod course_details;
 pub mod course_results;
@@ -105,35 +103,6 @@ pub static BOOTSTRAP_PATCH_JS: Asset = asset!(
 #[derive(Copy, Clone)]
 pub struct Anonymize(pub bool);
 
-#[cfg(not(any(
-    feature = "desktop",
-    feature = "mobile",
-    feature = "direct",
-    feature = "api"
-)))]
-pub async fn login_response() -> Option<tucan_types::LoginResponse> {
-    None
-}
-
-#[cfg(any(feature = "desktop", feature = "mobile"))]
-pub async fn login_response() -> Option<tucan_types::LoginResponse> {
-    #[cfg(feature = "mobile")]
-    keyring_core::set_default_store(
-        android_native_keyring_store::AndroidStore::from_ndk_context().unwrap(),
-    );
-
-    #[cfg(feature = "desktop")]
-    keyring_core::set_default_store(dbus_secret_service_keyring_store::Store::new().unwrap());
-
-    let entry = keyring_core::Entry::new("tucan-plus", "session").ok()?;
-    Some(serde_json::from_str(&entry.get_password().ok()?).unwrap())
-    //println!("My password is '{}'", password);
-    //entry.set_password("topS3cr3tP4$$w0rd").ok()?;
-    //println!("could set password");
-    //None
-}
-
-#[cfg(feature = "direct")]
 pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     let session_id = web_extensions::cookies::get(web_extensions::cookies::CookieDetails {
         name: "id".to_owned(),
@@ -156,37 +125,6 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
     Some(tucan_types::LoginResponse {
         id: session_id.parse().unwrap(),
         cookie_cnsc: cnsc,
-    })
-}
-
-#[cfg(feature = "api")]
-pub async fn login_response() -> Option<tucan_types::LoginResponse> {
-    use wasm_bindgen::JsCast;
-    let window = web_sys::window().unwrap();
-    let document = window.document().unwrap();
-    let html_document = document.dyn_into::<web_sys::HtmlDocument>().unwrap();
-    let cookie = html_document.cookie().unwrap();
-
-    Some(tucan_types::LoginResponse {
-        id: cookie::Cookie::split_parse(&cookie)
-            .find_map(|cookie| {
-                let cookie = cookie.unwrap();
-                if cookie.name() == "id" {
-                    Some(cookie.value().to_string())
-                } else {
-                    None
-                }
-            })?
-            .parse()
-            .unwrap(),
-        cookie_cnsc: cookie::Cookie::split_parse(&cookie).find_map(|cookie| {
-            let cookie = cookie.unwrap();
-            if cookie.name() == "cnsc" {
-                Some(cookie.value().to_string())
-            } else {
-                None
-            }
-        })?,
     })
 }
 
@@ -471,20 +409,15 @@ async fn frontend_main() {
     let worker = MyDatabase::wait_for_worker(); // maybe move this before the wasm-split point?
 
     let anonymize = {
-        #[cfg(feature = "direct")]
-        {
-            // TODO we need to update this when you update the value in the extension
-            let obj = js_sys::Object::new();
-            js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
-            let storage = web_extensions_sys::chrome().storage().sync();
-            let result = storage.get(&obj).await.unwrap();
-            js_sys::Reflect::get(&result, &"anonymize".into())
-                .unwrap()
-                .as_bool()
-                .unwrap()
-        }
-        #[cfg(not(feature = "direct"))]
-        false
+        // TODO we need to update this when you update the value in the extension
+        let obj = js_sys::Object::new();
+        js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
+        let storage = web_extensions_sys::chrome().storage().sync();
+        let result = storage.get(&obj).await.unwrap();
+        js_sys::Reflect::get(&result, &"anonymize".into())
+            .unwrap()
+            .as_bool()
+            .unwrap()
     };
 
     // Does not work in Firefox extensions
@@ -500,29 +433,9 @@ async fn frontend_main() {
         dioxus::web::Config::new().history(std::rc::Rc::new(dioxus::web::HashHistory::new(false))),
     );
 
-    // TODO FIXME also use this for web and here we should have access to the asset
-    // paths?
-    #[cfg(feature = "desktop")]
-    let launcher = launcher.with_cfg(
-        dioxus::desktop::Config::new()
-            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
-    );
-
-    #[cfg(feature = "mobile")]
-    let launcher = launcher.with_cfg(
-        dioxus::mobile::Config::new()
-            .with_custom_index(include_str!("../index.html").replace("{base_path}", ".")),
-    );
-
     let login_response = login_response().await;
     let launcher = launcher.with_context(login_response);
 
-    #[cfg(feature = "api")]
-    let launcher = launcher.with_context(RcTucanType::new(tucan_types::DynTucan::new_arc(
-        api_server::ApiServerTucan::new(),
-    )));
-
-    #[cfg(any(feature = "direct", feature = "desktop", feature = "mobile"))]
     let launcher = launcher.with_context(RcTucanType::new(tucan_types::DynTucan::new_arc(
         tucan_connector::TucanConnector::new(worker).await.unwrap(),
     )));
