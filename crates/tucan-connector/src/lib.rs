@@ -646,17 +646,14 @@ impl Tucan for TucanConnector {
 
 #[cfg(test)]
 mod tests {
-    use std::sync::{Arc, OnceLock};
+    use std::sync::Arc;
 
     use reqwest::{Client, header};
-    use tokio::{
-        runtime::Runtime,
-        sync::{OnceCell, Semaphore},
-    };
+    use tokio::sync::{OnceCell, Semaphore};
     use tucan_plus_worker::MyDatabase;
     use tucan_types::{
-        LoginRequest, LoginResponse, RevalidationStrategy, TucanError,
-        coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
+        LoginResponse, RevalidationStrategy, coursedetails::CourseDetailsRequest,
+        moduledetails::ModuleDetailsRequest,
     };
 
     use crate::{

@@ -103,7 +103,7 @@ dx serve --web --features api --verbose
 # firefox doesn't allow symlinks
 cp -r /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/.
 
-ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ public
+ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/debug/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
