@@ -382,7 +382,7 @@ impl Tucan for TucanConnector {
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
     ) -> Result<ExamRegistrationResponse, TucanError> {
-        let key = format!("unparsed_myexams.{}", semester.inner());
+        let key = format!("unparsed_examregistration.{}", semester.inner());
         let url = format!(
             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N{:015},-N000318,{}",
             login_response.id,

@@ -1,7 +1,9 @@
 use std::str::FromStr;
 
 use dioxus::prelude::*;
-use tucan_types::{SemesterId, Tucan, myexams::MyExamsResponse};
+use tucan_types::{
+    SemesterId, Tucan, examregistration::ExamRegistrationResponse, myexams::MyExamsResponse,
+};
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 
@@ -9,7 +11,7 @@ use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
 pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
     let handler = async |tucan: RcTucanType, current_session, revalidation_strategy, additional| {
         tucan
-            .my_exams(&current_session, revalidation_strategy, additional)
+            .exam_registration(&current_session, revalidation_strategy, additional)
             .await
     };
 
@@ -20,7 +22,7 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
         semester,
         14 * 24 * 60 * 60,
         60 * 60,
-        |exams: MyExamsResponse, reload| {
+        |exams: ExamRegistrationResponse, reload| {
             let on_semester_change = {
                 Callback::new(move |e: Event<FormData>| {
                     let value = e.value();
@@ -32,7 +34,7 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
             rsx! {
                 div {
                     h1 {
-                        {"Prüfungen"}
+                        {"Prüfungsanmeldung"}
                         {" "}
                         button {
                             onclick: reload,
@@ -86,53 +88,19 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
                             tbody {
                                 {
                                     exams
-                                        .exams
+                                        .exam_registrations
                                         .iter()
                                         .map(|exam| {
                                             rsx! {
                                                 tr {
-                                                    th { scope: "row", {exam.id.clone()} }
+                                                    th { scope: "row", {exam.course_id.clone()} }
                                                     td {
-                                                        if let Some(coursedetails_url) = &exam.coursedetails_url {
-                                                            Link {
-                                                                to: Route::CourseDetails {
-                                                                    course: coursedetails_url.clone(),
-                                                                },
-                                                                {exam.name.clone()}
-                                                            }
-                                                        }
-                                                        if let Some(moduledetails_url) = &exam.moduledetails_url {
-                                                            Link {
-                                                                to: Route::ModuleDetails {
-                                                                    module: moduledetails_url.clone(),
-                                                                },
-                                                                {exam.name.clone()}
-                                                            }
-                                                        }
+                                                        {exam.name.clone()}
                                                     }
                                                     td {
-                                                        a { href: format!("https://www.tucan.tu-darmstadt.de{}", exam.examdetail_url),
-                                                            {exam.pruefungsart.clone()}
-                                                        }
+                                                        {exam.ids.clone()}
                                                     }
-                                                    td {
-                                                        if let Some(courseprep_url) = &exam.courseprep_url {
-                                                            a { href: format!("https://www.tucan.tu-darmstadt.de{}", courseprep_url),
-                                                                {exam.date.clone()}
-                                                            }
-                                                        } else {
-                                                            {exam.date.clone()}
-                                                        }
-                                                    }
-                                                    td {
-                                                        if let Some(examunreg_url) = &exam.examunreg_url {
-                                                            a { href: format!("https://www.tucan.tu-darmstadt.de{}", examunreg_url),
-                                                                "Abmelden"
-                                                            }
-                                                        } else {
-                                                            "Du musst"
-                                                        }
-                                                    }
+
                                                 }
                                             }
                                         })
