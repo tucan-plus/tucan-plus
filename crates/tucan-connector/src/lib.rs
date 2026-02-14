@@ -14,6 +14,7 @@ use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::Cac
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
+    examregistration::ExamRegistrationResponse,
     examresults::ExamResultsResponse,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     mlsstart::MlsStart,
@@ -387,7 +388,7 @@ impl Tucan for TucanConnector {
         login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
-    ) -> Result<MyExamsResponse, TucanError> {
+    ) -> Result<ExamRegistrationResponse, TucanError> {
         let key = format!("unparsed_myexams.{}", semester.inner());
         let url = format!(
             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N{:015},-N000318,{}",
