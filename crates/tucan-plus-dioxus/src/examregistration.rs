@@ -2,7 +2,9 @@ use std::str::FromStr;
 
 use dioxus::prelude::*;
 use tucan_types::{
-    SemesterId, Tucan, examregistration::ExamRegistrationResponse, myexams::MyExamsResponse,
+    SemesterId, Tucan,
+    examregistration::{ExamRegistrationResponse, ExamRegistrationState},
+    myexams::MyExamsResponse,
 };
 
 use crate::{RcTucanType, Route, common::use_authenticated_data_loader};
@@ -74,40 +76,65 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
                                 })
                         }
                     }
-                    div { class: "table-responsive",
-                        table { class: "table",
-                            thead {
-                                tr {
-                                    th { scope: "col", "NR" }
-                                    th { scope: "col", "Name" }
-                                    th { scope: "col", "Prüfungsart" }
-                                    th { scope: "col", "Termin" }
-                                    th { scope: "col", "Anmeldung" }
-                                }
-                            }
-                            tbody {
-                                {
-                                    exams
-                                        .exam_registrations
-                                        .iter()
-                                        .map(|exam| {
-                                            rsx! {
+                    {
+                        exams
+                            .exam_registrations
+                            .iter()
+                            .map(|exam| {
+                                rsx! {
+                                    h4 {
+                                        { exam.course_id.clone() } " " { exam.name.clone() } " " { exam.ids.clone() }
+                                    }
+                                    div { class: "table-responsive",
+                                        table { class: "table",
+                                            thead {
                                                 tr {
-                                                    th { scope: "row", {exam.course_id.clone()} }
-                                                    td {
-                                                        {exam.name.clone()}
-                                                    }
-                                                    td {
-                                                        {exam.ids.clone()}
-                                                    }
-
+                                                    th { scope: "col", "Datum" }
+                                                    th { scope: "col", "Prüfungsart" }
+                                                    th { scope: "col", "Details" }
+                                                    th { scope: "col", "Status" }
                                                 }
                                             }
-                                        })
+                                            tbody {
+                                                {
+                                                    exam.registrations.iter().map(|reg| {
+                                                        rsx! {
+                                                            tr {
+                                                                td {
+                                                                    { reg.date.clone() }
+                                                                }
+                                                                td {
+                                                                    { reg.pruefungsart.clone() }
+                                                                }
+                                                                td {
+                                                                    a {
+                                                                        href: reg.examdetail_url.clone(),
+                                                                        "Details"
+                                                                    }
+                                                                }
+                                                                td {
+                                                                    match &reg.registration_state {
+                                                                        ExamRegistrationState::NotPossible => rsx! { "Nicht anmeldbar" },
+                                                                        ExamRegistrationState::ForceSelected => rsx! { "Du musst" },
+                                                                        ExamRegistrationState::Registered(href) => rsx! {
+                                                                            a {
+                                                                                href: href.clone(),
+                                                                                "Abmelden"
+                                                                            }
+                                                                        },
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    })
+                                                }
+                                            }
+                                        }
+                                    }
                                 }
-                            }
+                            })
                         }
-                    }
+
                 }
             }
         },

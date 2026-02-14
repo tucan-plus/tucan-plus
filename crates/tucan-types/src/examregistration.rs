@@ -22,6 +22,7 @@ pub enum ExamRegistrationState {
 #[derive(Debug, Clone, Serialize, Deserialize, ToSchema)]
 pub struct ExamRegistration {
     pub registration_state: ExamRegistrationState,
+    pub date: String,
     pub pruefungsart: String,
     pub examdetail_url: String,
 }

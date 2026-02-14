@@ -148,7 +148,7 @@ pub(crate) fn exam_registration_internal(
                                                 } => examunreg_url.either_into();
                                             </td>
                                         </tr>
-                                    } => ExamRegistration { pruefungsart, examdetail_url, registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
+                                    } => ExamRegistration { pruefungsart, date, examdetail_url, registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
                                 } => ExamRegistrationCourse { course_id, name, ids, registrations };
                             </tbody>
                         </table>
