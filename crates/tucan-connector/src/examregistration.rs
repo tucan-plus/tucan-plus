@@ -1,9 +1,13 @@
 use std::str::FromStr;
 
 use html_handler::{Root, parse_document};
+use scraper::CaseSensitivity;
 use tucan_types::{
     LoginResponse, SemesterId, Semesterauswahl, TucanError,
     coursedetails::CourseDetailsRequest,
+    examregistration::{
+        ExamRegistration, ExamRegistrationCourse, ExamRegistrationResponse, ExamRegistrationState,
+    },
     moduledetails::ModuleDetailsRequest,
     myexams::{Exam, MyExamsResponse},
 };
@@ -19,7 +23,7 @@ pub(crate) fn exam_registration_internal(
     login_response: &LoginResponse,
     content: &str,
     _nothing: &(),
-) -> Result<MyExamsResponse, TucanError> {
+) -> Result<ExamRegistrationResponse, TucanError> {
     let document = parse_document(content);
     let html_handler = Root::new(document.root());
     let html_handler = html_handler.document_start();
@@ -92,100 +96,60 @@ pub(crate) fn exam_registration_internal(
                             <thead>
                                 <tr class="tbcontrol">
                                     <td colspan="5">
-                                        <a href=_examregistration_url class="img">
-                                            "Anmeldung zu Prüfungen"
+                                        <a href=_myexams_url class="img">
+                                            "Meine Prüfungen"
                                         </a>
                                     </td>
                                 </tr>
-                                <tr>
-                                    <th scope="col" id="Nr.">
-                                        "Nr."
-                                    </th>
-                                    <th scope="col" id="Course_event_module">
-                                        "Veranstaltung/Modul"
-                                    </th>
-                                    <th scope="col" id="Name">
-                                        "Name"
-                                    </th>
-                                    <th scope="col" id="Date">
-                                        "Datum"
-                                    </th>
-                                    <th>
-                                    </th>
+                                <tr class="tbsubhead">
+                                    <td style="width:50px;"><b>"Nr."</b></td>
+                                    <td><b>"Veranstaltung/Modul"</b></td>
+                                    <td><b>"Prüfung"</b></td>
+                                    <td><b>"Datum"</b></td>
+                                    <td></td>
                                 </tr>
                             </thead>
                             <tbody>
-                                let exams = while html_handler.peek().is_some() {
-                                    <tr>
-                                        <td class="tbdata">
+                                let _abc = if html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                    <tr class="tbdata"><td colspan="5">"Keine Prüfungen gefunden."</td></tr>
+                                } => ();
+                                let exam_registrations = while html_handler.peek().is_some() {
+                                    <tr class="tbsubhead level02">
+                                        <td>
                                             course_id
                                         </td>
-                                        <td class="tbdata">
-                                            let res = if html_handler.peek().unwrap().value().as_element().unwrap().attr("name").is_some() {
-                                                <a class="link" name="eventLink" href=coursedetails_url>
-                                                    name
-                                                </a>
-                                                <br></br>
-                                                tuple_of_courses
-                                            } => (
-                                                name,
-                                                Some(CourseDetailsRequest::parse(&COURSEDETAILS_REGEX.replace(&coursedetails_url, ""))),
-                                                None,
-                                                Some(tuple_of_courses)
-                                            ) else {
-                                                <a class="link" href=moduledetails_url>
-                                                    name
-                                                </a>
-                                                let _thesis = if html_handler.peek().is_some() {
-                                                    <br></br>
-                                                    <b>
-                                                        "Thema:"
-                                                    </b>
-                                                    _topic
-                                                    <br></br>
-                                                    let _submitted = if html_handler.peek().is_some() {
-                                                        _submitted_date
-                                                        <br></br>
-                                                    } => ();
-                                                } => ();
-                                            } => (name, None, Some(ModuleDetailsRequest::parse(&MODULEDETAILS_REGEX.replace(&moduledetails_url, ""))), None);
-                                        </td>
-                                        <td class="tbdata">
-                                            <a class="link" href=examdetail_url>
-                                                pruefungsart
-                                            </a>
-                                        </td>
-                                        <td class="tbdata">
-                                            let date_and_courseprep = if html_handler.peek().unwrap().value().is_text() {
-                                                date
-                                            } => (date, None) else {
-                                                <a class="link" href=courseprep_url>
-                                                    date
-                                                </a>
-                                            } => (date, Some(courseprep_url));
-                                        </td>
-                                        <td class="tbdata">
-                                            let examunreg_url = if html_handler.peek().unwrap().value().is_text() {
-                                                "Ausgewählt"
-                                            } => () else {
-                                                <a href=examunreg_url class="img img_arrowLeftRed">
-                                                    "Abmelden"
-                                                </a>
-                                            } => examunreg_url;
+                                        <td colspan="4">
+                                            name
+                                            <br></br>
+                                            ids
                                         </td>
                                     </tr>
-                                } => Exam {
-                                    id: course_id,
-                                    name: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().0,
-                                    coursedetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().1,
-                                    moduledetails_url: res.clone().either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().2,
-                                    tuple_of_courses: res.either_into::<(String, Option<CourseDetailsRequest>, Option<ModuleDetailsRequest>, Option<String>)>().3,
-                                    examdetail_url,
-                                    pruefungsart,
-                                    date: date_and_courseprep.clone().either_into::<(String, Option<String>)>().0,
-                                    courseprep_url: date_and_courseprep.either_into::<(String, Option<String>)>().1,
-                                    examunreg_url: examunreg_url.right(),
-                                };
+                                    let registrations = while html_handler.peek().is_some() && html_handler.peek().unwrap().value().as_element().unwrap().has_class("tbdata", CaseSensitivity::CaseSensitive) {
+                                        <tr class="tbdata">
+                                            <td></td>
+                                            <td></td>
+                                            <td>
+                                                <a class="link" href=examdetail_url>
+                                                    pruefungsart
+                                                </a>
+                                            </td>
+                                            <td>
+                                                date
+                                            </td>
+                                            <td>
+                                                let registration_state = if html_handler.peek().is_some() {
+                                                    let examunreg_url = if html_handler.peek().unwrap().value().is_text() {
+                                                        "Ausgewählt"
+                                                    } => ExamRegistrationState::ForceSelected else {
+                                                        <a href=examunreg_url class="img img_arrowLeftRed">
+                                                            "Abmelden"
+                                                        </a>
+                                                    } => ExamRegistrationState::Registered(examunreg_url);
+                                                } => examunreg_url.either_into();
+                                            </td>
+                                        </tr>
+                                    } => ExamRegistration { pruefungsart, date, examdetail_url, registration_state: registration_state.unwrap_or(ExamRegistrationState::NotPossible) };
+                                } => ExamRegistrationCourse { course_id, name, ids, registrations };
                             </tbody>
                         </table>
                     </div>
@@ -195,5 +159,23 @@ pub(crate) fn exam_registration_internal(
         use footer(html_handler, login_response.id, 326);
     }
     html_handler.end_document();
-    Ok(MyExamsResponse { semester, exams })
+    Ok(ExamRegistrationResponse {
+        semester,
+        exam_registrations,
+    })
+}
+
+#[cfg(false)]
+#[test]
+fn test_exam_registration_internal() {
+    let result = exam_registration_internal(
+        &LoginResponse {
+            id: 0,
+            cookie_cnsc: String::new(),
+        },
+        include_str!("../test-data/EXAMREGISTRATION.html"),
+        &(),
+    )
+    .unwrap();
+    println!("{:#?}", result);
 }

@@ -5,7 +5,7 @@ use std::{
 
 use externalpages::welcome::welcome;
 use html_handler::InElement;
-use login::{login, logout};
+use login::logout;
 use regex::Regex;
 use reqwest::header;
 use time::{Month, OffsetDateTime, format_description::well_known::Rfc2822, macros::offset};
@@ -14,6 +14,7 @@ use tucan_plus_worker::{CacheRequest, MyDatabase, StoreCacheRequest, models::Cac
 use tucan_types::{
     CONCURRENCY, LoginResponse, RevalidationStrategy, SemesterId, Tucan, TucanError,
     courseresults::ModuleResultsResponse,
+    examregistration::ExamRegistrationResponse,
     examresults::ExamResultsResponse,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     mlsstart::MlsStart,
@@ -251,13 +252,6 @@ impl TucanConnector {
 }
 
 impl Tucan for TucanConnector {
-    async fn login(
-        &self,
-        request: tucan_types::LoginRequest,
-    ) -> Result<tucan_types::LoginResponse, TucanError> {
-        login(&self.client, &request).await
-    }
-
     async fn welcome(&self) -> Result<tucan_types::LoggedOutHead, TucanError> {
         welcome(self).await
     }
@@ -387,8 +381,8 @@ impl Tucan for TucanConnector {
         login_response: &tucan_types::LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
-    ) -> Result<MyExamsResponse, TucanError> {
-        let key = format!("unparsed_myexams.{}", semester.inner());
+    ) -> Result<ExamRegistrationResponse, TucanError> {
+        let key = format!("unparsed_examregistration.{}", semester.inner());
         let url = format!(
             "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N{:015},-N000318,{}",
             login_response.id,
@@ -660,7 +654,7 @@ mod tests {
     };
 
     use crate::{
-        Tucan, TucanConnector, externalpages::welcome::welcome, login::login, root::root,
+        Tucan, TucanConnector, externalpages::welcome::welcome, root::root,
         startpage_dispatch::one::startpage_dispatch_1,
     };
 
@@ -694,23 +688,6 @@ mod tests {
         )
         .await
         .unwrap()
-    }
-
-    #[tokio::test]
-
-    pub async fn login_incorrect() {
-        let tucan = get_tucan_connector().await;
-        assert!(matches!(
-            login(
-                &tucan.client,
-                &LoginRequest {
-                    username: "not_found".to_owned(),
-                    password: "not_correct".to_owned()
-                },
-            )
-            .await,
-            Err(TucanError::InvalidCredentials)
-        ));
     }
 
     #[tokio::test]
@@ -896,8 +873,7 @@ mod authenticated_tests {
     };
 
     use crate::{
-        Tucan, login::login, startpage_dispatch::after_login::redirect_after_login,
-        tests::get_tucan_connector,
+        Tucan, startpage_dispatch::after_login::redirect_after_login, tests::get_tucan_connector,
     };
 
     static ONCE: OnceCell<LoginResponse> = OnceCell::const_new();

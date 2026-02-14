@@ -32,7 +32,8 @@
         {
             "matches": [
                 "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N001",
-                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N002"
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=CHANGELANGUAGE&ARGUMENTS=-N*,-N002",
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N*,-N*,-N000000000000000"
             ],
             "js": [
                 "content-script-redirect.js"
@@ -45,6 +46,71 @@
             ],
             "js": [
                 "content-script.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://moodle.informatik.tu-darmstadt.de/"
+            ],
+            "js": [
+                "content-script-moodle-informatik.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://moodle.tu-darmstadt.de/"
+            ],
+            "js": [
+                "content-script-moodle.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://sharelatex.tu-darmstadt.de/saml/login",
+                "https://www-cgi.hrz.tu-darmstadt.de/shibboleth/sharelatex/index.html?entityID=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fproxy_saml2_backend.xml&return=https%3A%2F%2Fsharelatex-01.ca.hrz.tu-darmstadt.de%2FSaml2%2Fdisco"
+            ],
+            "js": [
+                "content-script-sharelatex.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://next.hessenbox.de/shibboleth-ds/index.html?*"
+            ],
+            "js": [
+                "content-script-hessenbox.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://git.rwth-aachen.de/users/sign_in",
+                "https://git.rwth-aachen.de/shibboleth-ds/?*"
+            ],
+            "js": [
+                "content-script-gitlab.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?*"
+            ],
+            "js": [
+                "content-script-tucan-autologin.js"
+            ],
+            "run_at": "document_end"
+        },
+        {
+            "matches": [
+                "https://login.tu-darmstadt.de/idp/profile/SAML2/Redirect/SSO?*"
+            ],
+            "js": [
+                "content-script-login.js"
             ],
             "run_at": "document_end"
         }

@@ -108,6 +108,14 @@ export const bidirectionalMappings = (/** @type {string|number|undefined} */ id)
         "tucan-plus": t`my-exams/${s("(\\d+)")}`,
     },
     {
+        "tucan": t`PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N${num(id)},-N${num(318)},`,
+        "tucan-plus": t`exam-registration/current`,
+    },
+    {
+        "tucan": t`PRGNAME=EXAMREGISTRATION&ARGUMENTS=-N${num(id)},-N${num(318)},-N${s("(\\d+)")}`,
+        "tucan-plus": t`exam-registration/${s("(\\d+)")}`,
+    },
+    {
         "tucan": t`PRGNAME=EXAMRESULTS&ARGUMENTS=-N${num(id)},-N${num(325)},`,
         "tucan-plus": t`exam-results/current`,
     },

@@ -38,32 +38,13 @@
         "priority": 2,
         "condition": {
             "isUrlFilterCaseSensitive": true,
-            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N000019,-N000000000000000$",
-            "resourceTypes": [
-                "main_frame"
-            ]
+            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N(\\d+),-N000000000000000$",
+            "excludedResourceTypes": []
         },
         "action": {
             "type": "redirect",
             "redirect": {
-                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000019,"
-            }
-        }
-    },
-    {
-        "id": 4,
-        "priority": 2,
-        "condition": {
-            "isUrlFilterCaseSensitive": true,
-            "regexFilter": "^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N000350,-N000000000000000$",
-            "resourceTypes": [
-                "main_frame"
-            ]
-        },
-        "action": {
-            "type": "redirect",
-            "redirect": {
-                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N000350,"
+                "regexSubstitution": "https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=MLSSTART&ARGUMENTS=-N\\1,-N\\2,"
             }
         }
     },

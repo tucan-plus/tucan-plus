@@ -336,6 +336,17 @@ pub fn NavbarLoggedIn(current_session: LoginResponse, data: Option<MlsStart>) ->
                     }
                 }
                 li {
+                    Link {
+                        to: Route::ExamRegistration {
+                            semester: SemesterId::current(),
+                        },
+                        class: "dropdown-item bg-success",
+                        "data-bs-target": "#navbarSupportedContent",
+                        "data-bs-hide": "collapse",
+                        {"Prüfungsanmeldung"}
+                    }
+                }
+                li {
                     a {
                         class: "dropdown-item",
                         href: format!(

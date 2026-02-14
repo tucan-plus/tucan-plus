@@ -2,6 +2,7 @@ pub mod coursedetails;
 pub mod courseprep;
 pub mod courseresults;
 pub mod enhanced_module_results;
+pub mod examregistration;
 pub mod examresults;
 pub mod gradeoverview;
 pub mod mlsstart;
@@ -36,6 +37,7 @@ use vv::{ActionRequest, Vorlesungsverzeichnis};
 
 use crate::{
     enhanced_module_results::{EnhancedModuleResult, EnhancedModuleResultsResponse},
+    examregistration::ExamRegistrationResponse,
     gradeoverview::{GradeOverviewRequest, GradeOverviewResponse},
     mymodules::Module,
     student_result::StudentResultState,
@@ -401,11 +403,6 @@ pub const CONCURRENCY: usize = 10;
 
 #[dynosaur(pub DynTucan = dyn(box) Tucan)]
 pub trait Tucan: Send + Sync {
-    fn login(
-        &self,
-        request: LoginRequest,
-    ) -> impl std::future::Future<Output = Result<LoginResponse, TucanError>>;
-
     fn welcome(&self) -> impl std::future::Future<Output = Result<LoggedOutHead, TucanError>>;
 
     fn after_login(
@@ -452,7 +449,7 @@ pub trait Tucan: Send + Sync {
         login_response: &LoginResponse,
         revalidation_strategy: RevalidationStrategy,
         semester: SemesterId,
-    ) -> impl std::future::Future<Output = Result<MyExamsResponse, TucanError>>;
+    ) -> impl std::future::Future<Output = Result<ExamRegistrationResponse, TucanError>>;
 
     fn course_results(
         &self,

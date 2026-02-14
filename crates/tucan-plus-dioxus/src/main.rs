@@ -14,9 +14,9 @@ pub mod course_details;
 pub mod course_results;
 pub mod database_management;
 pub mod exam_results;
+pub mod examregistration;
 pub mod export_semester;
 pub mod gradeoverview;
-pub mod login_component;
 pub mod logout_component;
 pub mod module_details;
 pub mod my_courses;
@@ -33,11 +33,6 @@ pub mod registration;
 pub mod student_result;
 pub mod vv;
 
-use crate::export_semester::FetchAnmeldung;
-use crate::export_semester::MigrateV0ToV1;
-use crate::navbar::Navbar;
-use crate::overview::Overview;
-use crate::planning::Planning;
 use std::ops::Deref;
 use std::sync::Arc;
 #[cfg(target_arch = "wasm32")]
@@ -48,6 +43,28 @@ use tucan_types::{
     SemesterId, coursedetails::CourseDetailsRequest, moduledetails::ModuleDetailsRequest,
     registration::AnmeldungRequest, vv::ActionRequest,
 };
+
+use crate::course_details::CourseDetails;
+use crate::course_results::CourseResults;
+use crate::database_management::ExportDatabase;
+use crate::database_management::ImportDatabase;
+use crate::exam_results::ExamResults;
+use crate::examregistration::ExamRegistration;
+use crate::export_semester::FetchAnmeldung;
+use crate::export_semester::MigrateV0ToV1;
+use crate::gradeoverview::GradeOverview;
+use crate::module_details::ModuleDetails;
+use crate::my_courses::MyCourses;
+use crate::my_documents::MyDocuments;
+use crate::my_exams::MyExams;
+use crate::my_modules::MyModules;
+use crate::my_semester_modules::MySemesterModules;
+use crate::navbar::Navbar;
+use crate::overview::Overview;
+use crate::planning::Planning;
+use crate::registration::Registration;
+use crate::student_result::StudentResult;
+use crate::vv::Vorlesungsverzeichnis;
 
 #[used]
 pub static BOOTSTRAP_CSS: Asset = asset!(
@@ -172,21 +189,6 @@ pub async fn login_response() -> Option<tucan_types::LoginResponse> {
         })?,
     })
 }
-use crate::course_details::CourseDetails;
-use crate::course_results::CourseResults;
-use crate::database_management::ExportDatabase;
-use crate::database_management::ImportDatabase;
-use crate::exam_results::ExamResults;
-use crate::gradeoverview::GradeOverview;
-use crate::module_details::ModuleDetails;
-use crate::my_courses::MyCourses;
-use crate::my_documents::MyDocuments;
-use crate::my_exams::MyExams;
-use crate::my_modules::MyModules;
-use crate::my_semester_modules::MySemesterModules;
-use crate::registration::Registration;
-use crate::student_result::StudentResult;
-use crate::vv::Vorlesungsverzeichnis;
 
 #[derive(Clone, Routable, PartialEq)]
 pub enum Route {
@@ -213,6 +215,8 @@ pub enum Route {
     MyCourses { semester: SemesterId },
     #[route("/my-exams/:semester")]
     MyExams { semester: SemesterId },
+    #[route("/exam-registration/:semester")]
+    ExamRegistration { semester: SemesterId },
     #[route("/exam-results/:semester")]
     ExamResults { semester: SemesterId },
     #[route("/course-results/:semester")]
