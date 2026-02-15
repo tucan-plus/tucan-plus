@@ -382,10 +382,6 @@ async fn worker_main() {
                 let value = util.export_db("tucan-plus.db").unwrap();
                 connection
                     .replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
-                connection
-                    .borrow_mut()
-                    .run_pending_migrations(MIGRATIONS)
-                    .unwrap();
                 let blob_properties = web_sys::BlobPropertyBag::new();
                 blob_properties.set_type("octet/stream");
                 let bytes = js_sys::Array::new();
