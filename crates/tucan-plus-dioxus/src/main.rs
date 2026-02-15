@@ -358,12 +358,14 @@ async fn worker_main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
+        warn!("UUUUUU");
         use tucan_plus_worker::MessageWithId;
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
 
         let result = match value.message {
             tucan_plus_worker::RequestResponseEnum::ImportDatabaseRequest(import) => {
+                warn!("CCCCCC");
                 let old_connection =
                     connection.replace(SqliteConnection::establish(":memory:").unwrap());
                 drop(old_connection);
@@ -378,6 +380,7 @@ async fn worker_main() {
                     .borrow_mut()
                     .run_pending_migrations(MIGRATIONS)
                     .unwrap();
+                warn!("DDDDDD");
                 JsValue::null()
             }
             tucan_plus_worker::RequestResponseEnum::ExportDatabaseRequest(export) => {

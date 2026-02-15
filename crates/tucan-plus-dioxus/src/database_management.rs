@@ -47,9 +47,10 @@ pub fn ImportDatabase() -> Element {
             async move {
                 success.set(false);
                 loading.set(true);
-                crate::sleep(Duration::from_millis(0)).await;
+                warn!("AAAAA");
                 let file = file()[0].get_web_file().unwrap();
                 let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
+                warn!("BBBBB");
                 worker
                     .send_message_with_timeout(
                         ImportDatabaseRequest {

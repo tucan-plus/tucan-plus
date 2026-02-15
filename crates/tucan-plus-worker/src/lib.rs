@@ -936,7 +936,9 @@ impl MyDatabase {
             })
             .unwrap();
 
+            warn!("EEEEEE");
             self.broadcast_channel.get().post_message(&value).unwrap();
+            warn!("FFFFFFFF");
         }
 
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
