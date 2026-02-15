@@ -27,7 +27,7 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
             let on_semester_change = {
                 Callback::new(move |e: Event<FormData>| {
                     let value = e.value();
-                    navigator.push(Route::MyExams {
+                    navigator.push(Route::ExamRegistration {
                         semester: SemesterId::from_str(&value).unwrap(),
                     });
                 })
