@@ -1,10 +1,13 @@
 use std::panic;
 
 use dioxus::prelude::*;
+use js_sys::Uint8Array;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::FileReader;
 
 pub mod common;
 pub mod course_details;
@@ -355,27 +358,51 @@ async fn worker_main() {
     let broadcast_channel = BroadcastChannel::new("global").unwrap();
 
     let closure: Closure<dyn Fn(MessageEvent)> = Closure::new(move |event: MessageEvent| {
-        
+        warn!("UUUUUU");
         use tucan_plus_worker::MessageWithId;
 
         let value: MessageWithId = serde_wasm_bindgen::from_value(event.data()).unwrap();
 
-        let result = if let tucan_plus_worker::RequestResponseEnum::ImportDatabaseRequest(import) =
-            value.message
-        {
-            let old_connection =
-                connection.replace(SqliteConnection::establish(":memory:").unwrap());
-            drop(old_connection);
-            util.delete_db("tucan-plus.db").unwrap();
-            util.import_db("tucan-plus.db", &import.data).unwrap();
-            connection.replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
-            connection
-                .borrow_mut()
-                .run_pending_migrations(MIGRATIONS)
-                .unwrap();
-            JsValue::null()
-        } else {
-            value.message.execute(&mut connection.borrow_mut())
+        let result = match value.message {
+            tucan_plus_worker::RequestResponseEnum::ImportDatabaseRequest(import) => {
+                warn!("CCCCCC");
+                let old_connection =
+                    connection.replace(SqliteConnection::establish(":memory:").unwrap());
+                drop(old_connection);
+                util.delete_db("tucan-plus.db").unwrap();
+                let uint8array = Uint8Array::new(&import.data);
+                let mut slice = vec![0; uint8array.length().try_into().unwrap()];
+                uint8array.copy_to(&mut slice[..]);
+                util.import_db("tucan-plus.db", &slice).unwrap();
+                connection
+                    .replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
+                connection
+                    .borrow_mut()
+                    .run_pending_migrations(MIGRATIONS)
+                    .unwrap();
+                warn!("DDDDDD");
+                JsValue::null()
+            }
+            tucan_plus_worker::RequestResponseEnum::ExportDatabaseRequest(export) => {
+                warn!("AAAAA");
+                let old_connection =
+                    connection.replace(SqliteConnection::establish(":memory:").unwrap());
+                drop(old_connection);
+                let value = util.export_db("tucan-plus.db").unwrap();
+                connection
+                    .replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
+                let blob_properties = web_sys::BlobPropertyBag::new();
+                blob_properties.set_type("octet/stream");
+                let bytes = js_sys::Array::new();
+                bytes.push(&js_sys::Uint8Array::new_from_slice(&value));
+                let blob =
+                    web_sys::Blob::new_with_u8_array_sequence_and_options(&bytes, &blob_properties)
+                        .unwrap()
+                        .into();
+                warn!("AAAAA");
+                blob
+            }
+            _ => value.message.execute(&mut connection.borrow_mut()),
         };
 
         let temporary_broadcast_channel = BroadcastChannel::new(&value.id).unwrap();
