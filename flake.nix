@@ -120,8 +120,15 @@
           ./tucan-plus-extension/background.js
           ./tucan-plus-extension/fix-session-id-in-url.js
           ./tucan-plus-extension/context-menu.js
-          ./tucan-plus-extension/content-script.js
+          ./tucan-plus-extension/content-script-gitlab.js
+          ./tucan-plus-extension/content-script-hessenbox.js
+          ./tucan-plus-extension/content-script-login.js
+          ./tucan-plus-extension/content-script-moodle-informatik.js
+          ./tucan-plus-extension/content-script-moodle.js
           ./tucan-plus-extension/content-script-redirect.js
+          ./tucan-plus-extension/content-script-sharelatex.js
+          ./tucan-plus-extension/content-script-tucan-autologin.js
+          ./tucan-plus-extension/content-script.js
           ./tucan-plus-extension/open-in-tucan.js
           ./tucan-plus-extension/bootstrap.bundle.min.js
           ./tucan-plus-extension/bootstrap.css
