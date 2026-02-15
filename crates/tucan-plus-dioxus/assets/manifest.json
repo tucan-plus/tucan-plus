@@ -2,9 +2,17 @@
     "name": "TUCaN Plus",
     "icons": [
         {
-            "src": "./logo.svg",
+            "src": "./logo.png",
             "type": "image/svg+xml",
             "sizes": "512x512"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "semesterplanung.png",
+            "sizes": "1280x7261",
+            "type": "image/png",
+            "form_factor": "wide"
         }
     ],
     "id": "tucan-plus",
