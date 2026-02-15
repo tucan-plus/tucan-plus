@@ -108,7 +108,7 @@ ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/release/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --hot-patch --verbose --base-path public --release
+cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --verbose --base-path public --release # --hot-patch not allowed in release mode
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
 sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
