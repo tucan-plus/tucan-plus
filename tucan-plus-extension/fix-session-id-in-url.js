@@ -53,7 +53,6 @@ chrome.cookies.onChanged.addListener((changeInfo) => {
     asyncClosure(async () => {
         if (changeInfo.cookie.name === "cnsc" && changeInfo.cause !== "overwrite" && changeInfo.removed) {
             console.log("REMOVE cnsc REMOVE ID COOKIE")
-            console.log(changeInfo)
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",

@@ -442,7 +442,6 @@ async fn frontend_main() {
     );
 
     let login_response = login_response().await;
-    warn!("{login_response:?}");
     let launcher = launcher.with_context(login_response);
 
     let launcher = launcher.with_context(RcTucanType::new(tucan_types::DynTucan::new_arc(
