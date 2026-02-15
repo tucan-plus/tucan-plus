@@ -12,14 +12,15 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 use itertools::Itertools as _;
+use js_sys::{ArrayBuffer, Uint8Array};
 use log::warn;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
-use serde_bytes::ByteBuf;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
 use web_sys::BroadcastChannel;
+use web_sys::File;
 
 use crate::{
     models::{Anmeldung, AnmeldungEntry, CacheEntry, Semester, State},
@@ -580,8 +581,14 @@ impl RequestResponse for SetCpAndModuleCount {
 #[derive(Debug)]
 pub struct ExportDatabaseRequest {}
 
+#[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
+#[derive(Debug)]
+pub struct ExportDatabaseResponse(
+    #[serde(with = "serde_wasm_bindgen::preserve")] pub web_sys::Blob,
+);
+
 impl RequestResponse for ExportDatabaseRequest {
-    type Response = ByteBuf;
+    type Response = ExportDatabaseResponse;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
         panic!("should be special cased at caller")
@@ -591,7 +598,8 @@ impl RequestResponse for ExportDatabaseRequest {
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct ImportDatabaseRequest {
-    pub data: ByteBuf,
+    #[serde(with = "serde_wasm_bindgen::preserve")]
+    pub data: ArrayBuffer,
 }
 
 impl RequestResponse for ImportDatabaseRequest {

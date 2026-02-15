@@ -1,10 +1,13 @@
 use std::panic;
 
 use dioxus::prelude::*;
+use js_sys::Uint8Array;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
 use wasm_bindgen::prelude::*;
+use wasm_bindgen_futures::JsFuture;
+use web_sys::FileReader;
 
 pub mod common;
 pub mod course_details;
@@ -365,7 +368,10 @@ async fn worker_main() {
                     connection.replace(SqliteConnection::establish(":memory:").unwrap());
                 drop(old_connection);
                 util.delete_db("tucan-plus.db").unwrap();
-                util.import_db("tucan-plus.db", &import.data).unwrap();
+                let uint8array = Uint8Array::new(&import.data);
+                let mut slice = vec![0; uint8array.length().try_into().unwrap()];
+                uint8array.copy_to(&mut slice[..]);
+                util.import_db("tucan-plus.db", &slice).unwrap();
                 connection
                     .replace(SqliteConnection::establish("file:tucan-plus.db?mode=rwc").unwrap());
                 connection

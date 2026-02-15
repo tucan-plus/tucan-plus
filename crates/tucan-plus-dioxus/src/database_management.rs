@@ -1,8 +1,9 @@
 use std::time::Duration;
 
-use dioxus::{html::FileData, prelude::*};
+use dioxus::{html::FileData, prelude::*, web::WebFileExt as _};
 use tucan_plus_worker::{ExportDatabaseRequest, ImportDatabaseRequest, MyDatabase};
 use wasm_bindgen::JsCast;
+use wasm_bindgen_futures::JsFuture;
 
 #[component]
 pub fn ExportDatabase() -> Element {
@@ -47,10 +48,12 @@ pub fn ImportDatabase() -> Element {
                 success.set(false);
                 loading.set(true);
                 crate::sleep(Duration::from_millis(0)).await;
+                let file = file()[0].get_web_file().unwrap();
+                let array_buffer = JsFuture::from(file.array_buffer()).await.unwrap();
                 worker
                     .send_message_with_timeout(
                         ImportDatabaseRequest {
-                            data: file()[0].read_bytes().await.unwrap().to_vec().into(),
+                            data: array_buffer.into(),
                         },
                         Duration::from_secs(10 * 60),
                     )
