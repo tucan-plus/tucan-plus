@@ -1,7 +1,7 @@
 {
     "manifest_version": 3,
     "name": "TUCaN Plus",
-    "version": "0.52.0",
+    "version": "0.52.1",
     "description": "Quality of life improvements for TUCaN",
     "update_url": "https://github.com/tucan-plus/tucan-plus/releases/latest/download/updates.xml",
     "declarative_net_request": {
@@ -160,7 +160,7 @@
         }
     ],
     "content_security_policy": {
-        "extension_pages": "script-src http://localhost:8080 'self' 'wasm-unsafe-eval'; object-src 'self';"
+        "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
     },
     "commands": {
         "open-in-tucan-page": {
