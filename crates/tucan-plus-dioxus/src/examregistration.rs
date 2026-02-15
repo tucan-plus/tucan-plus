@@ -107,7 +107,7 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
                                                                 }
                                                                 td {
                                                                     a {
-                                                                        href: reg.examdetail_url.clone(),
+                                                                        href: format!("https://www.tucan.tu-darmstadt.de{}", reg.examdetail_url),
                                                                         "Details"
                                                                     }
                                                                 }
@@ -117,7 +117,7 @@ pub fn ExamRegistration(semester: ReadSignal<SemesterId>) -> Element {
                                                                         ExamRegistrationState::ForceSelected => rsx! { "Du musst" },
                                                                         ExamRegistrationState::Registered(href) => rsx! {
                                                                             a {
-                                                                                href: href.clone(),
+                                                                                href: format!("https://www.tucan.tu-darmstadt.de{}", href),
                                                                                 "Abmelden"
                                                                             }
                                                                         },
