@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use dioxus::{html::FileData, prelude::*};
 use tucan_plus_worker::{ExportDatabaseRequest, ImportDatabaseRequest, MyDatabase};
+use wasm_bindgen::JsCast;
 
 #[component]
 pub fn ExportDatabase() -> Element {
@@ -9,23 +10,22 @@ pub fn ExportDatabase() -> Element {
     let database = use_resource(move || {
         let worker = worker.clone();
         async move {
-            worker
-                .send_message_with_timeout(ExportDatabaseRequest {}, Duration::from_secs(10 * 60))
+            let value = worker
+                .send_message_with_timeout_raw(
+                    ExportDatabaseRequest {},
+                    Duration::from_secs(10 * 60),
+                )
                 .await
-                .expect("export timed out")
+                .expect("export timed out");
+            warn!("BBBB");
+            value
         }
     });
     rsx! {
         if let Some(database) = database() {
             a {
                 href: {
-                    let blob_properties = web_sys::BlobPropertyBag::new();
-                    blob_properties.set_type("octet/stream");
-                    let bytes = js_sys::Array::new();
-                    bytes.push(&js_sys::Uint8Array::from(&database[..]));
-                    let blob =
-                        web_sys::Blob::new_with_blob_sequence_and_options(&bytes, &blob_properties).unwrap();
-                    web_sys::Url::create_object_url_with_blob(&blob).unwrap()
+                    web_sys::Url::create_object_url_with_blob(database.unchecked_ref()).unwrap()
                 },
                 download: "tucan-plus.db",
                 "Download database"

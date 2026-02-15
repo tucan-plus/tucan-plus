@@ -12,6 +12,7 @@ use diesel_migrations::{EmbeddedMigrations, embed_migrations};
 #[cfg(target_arch = "wasm32")]
 use fragile::Fragile;
 use itertools::Itertools as _;
+use log::warn;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use serde_bytes::ByteBuf;
@@ -583,7 +584,7 @@ impl RequestResponse for ExportDatabaseRequest {
     type Response = ByteBuf;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        connection.serialize_database_to_buffer().to_vec().into()
+        panic!("should be special cased at caller")
     }
 }
 
@@ -824,11 +825,11 @@ impl MyDatabase {
             .expect("timed out")
     }
 
-    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
+    pub async fn send_message_with_timeout_raw<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,
-    ) -> Result<R::Response, ()>
+    ) -> Result<JsValue, ()>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -839,7 +840,7 @@ impl MyDatabase {
             let mut i = 0;
             while i < 100 && {
                 let value = self
-                    .send_message_with_timeout_internal::<PingRequest>(
+                    .send_message_with_timeout_internal_raw::<PingRequest>(
                         PingRequest {},
                         Duration::from_millis(100),
                     )
@@ -859,16 +860,30 @@ impl MyDatabase {
             self.pinged.store(true, Ordering::Relaxed);
         }
 
-        self.send_message_with_timeout_internal(message, timeout)
+        self.send_message_with_timeout_internal_raw(message, timeout)
             .await
             .map_err(|_| ())
     }
 
-    async fn send_message_with_timeout_internal<R: RequestResponse + std::fmt::Debug>(
+    pub async fn send_message_with_timeout<R: RequestResponse + std::fmt::Debug>(
         &self,
         message: R,
         timeout: Duration,
-    ) -> Result<R::Response, String>
+    ) -> Result<R::Response, ()>
+    where
+        RequestResponseEnum: std::convert::From<R>,
+    {
+        Ok(serde_wasm_bindgen::from_value(
+            self.send_message_with_timeout_raw(message, timeout).await?,
+        )
+        .unwrap())
+    }
+
+    async fn send_message_with_timeout_internal_raw<R: RequestResponse + std::fmt::Debug>(
+        &self,
+        message: R,
+        timeout: Duration,
+    ) -> Result<JsValue, String>
     where
         RequestResponseEnum: std::convert::From<R>,
     {
@@ -919,6 +934,6 @@ impl MyDatabase {
         let result = Fragile::new(wasm_bindgen_futures::JsFuture::from(promise))
             .await
             .map_err(|error| format!("{error:?}"));
-        Ok(serde_wasm_bindgen::from_value(result?).unwrap())
+        result
     }
 }
