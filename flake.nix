@@ -7,11 +7,6 @@
     crane.url = "github:ipetkov/crane";
 
     flake-utils.url = "github:numtide/flake-utils";
-
-    rust-overlay = {
-      url = "github:oxalica/rust-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
   outputs =
@@ -20,7 +15,6 @@
       nixpkgs,
       crane,
       flake-utils,
-      rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -30,20 +24,11 @@
           inherit system;
           config.allowUnfree = true;
           config.android_sdk.accept_license = true;
-          overlays = [ (import rust-overlay) ];
         };
 
         inherit (pkgs) lib;
 
-        rustToolchainFor =
-          p:
-          p.rust-bin.stable.latest.minimal.override {
-            targets = [
-              "wasm32-unknown-unknown"
-            ];
-            extensions = [ "rustfmt" ];
-          };
-        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+        craneLib = crane.mkLib pkgs;
 
         cargoDioxus =
           craneLib:
@@ -171,28 +156,6 @@
           (craneLib.fileset.commonCargoSources ./crates/tucan-plus-tests)
         ];
 
-        api-server = craneLib.buildPackage {
-          strictDeps = true;
-          buildInputs = [
-            pkgs.sqlite
-          ];
-          pname = "tucan-plus-workspace-native-api";
-          src = lib.fileset.toSource {
-            root = ./.;
-            fileset = fileset-api;
-          };
-          cargoTestExtraArgs = "--no-run";
-          cargoExtraArgs = "--package=tucan-plus-api";
-        };
-
-        schema =
-          pkgs.runCommandNoCC "schema.json"
-            {
-            }
-            ''
-              ${api-server}/bin/schema > $out
-            '';
-
         client-args = rec {
           dioxusExtraArgs = "--web";
           CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
@@ -252,6 +215,7 @@
             pkgs.which
             #wasm-bindgen
             pkgs.binaryen
+            pkgs.llvmPackages_21.bintools
           ];
           doNotPostBuildInstallCargoBinaries = true;
         };
@@ -339,17 +303,11 @@
         };
 
         packages.client = client;
-        packages.api-server = api-server;
 
         packages.extension = extension;
         packages.extension-unpacked = extension-unpacked;
         packages.extension-source = source;
         packages.extension-source-unpacked = source-unpacked;
-
-        apps.api-server = flake-utils.lib.mkApp {
-          name = "api-server";
-          drv = api-server;
-        };
 
         packages.publish =
           let
