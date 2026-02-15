@@ -181,4 +181,30 @@ if (chrome.omnibox) {
     })
 }
 
+self.addEventListener("periodicsync", (event) => {
+    console.log("PERIODIC SYNC", event)
+});
+
+self.addEventListener("activate", event => {
+    asyncClosure(async () => {
+        console.log("activate")
+        console.log(event)
+        console.log(self.registration)
+        const status = await navigator.permissions.query({
+            name: 'periodic-background-sync',
+        });
+        if (status.state === 'granted') {
+            console.log("permission granted")
+            // Periodic background sync can be used.
+        } else {
+            console.log(status)
+            // Periodic background sync cannot be used.
+        }
+        // Attempted to register a sync event without a window or registration tag too long.
+        await self.registration.periodicSync.register("get-latest-news", {
+            minInterval: 60 * 1000,
+        });
+    });
+})
+
 export { }
