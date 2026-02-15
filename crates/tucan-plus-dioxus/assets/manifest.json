@@ -9,8 +9,8 @@
     ],
     "screenshots": [
         {
-            "src": "semesterplanung.png",
-            "sizes": "1280x7261",
+            "src": "/leistungsspiegel.png",
+            "sizes": "1280x1048",
             "type": "image/png",
             "form_factor": "wide"
         }
