@@ -19,7 +19,6 @@ pub fn MySemesterModules(semester: ReadSignal<SemesterId>) -> Element {
             .my_modules(&current_session, revalidation_strategy, additional.clone())
             .await?;
         let after = first.semester.iter().skip_while(|e| !e.selected).nth(1);
-        warn!("after {additional} comes {after:?}");
         if let Some(after) = after {
             let second = tucan
                 .my_modules(&current_session, revalidation_strategy, after.value.clone())
