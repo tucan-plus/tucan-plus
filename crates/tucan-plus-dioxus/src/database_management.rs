@@ -17,7 +17,6 @@ pub fn ExportDatabase() -> Element {
                 )
                 .await
                 .expect("export timed out");
-            warn!("BBBB");
             value
         }
     });

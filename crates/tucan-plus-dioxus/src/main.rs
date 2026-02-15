@@ -375,6 +375,7 @@ async fn worker_main() {
                 JsValue::null()
             }
             tucan_plus_worker::RequestResponseEnum::ExportDatabaseRequest(export) => {
+                warn!("AAAAA");
                 let old_connection =
                     connection.replace(SqliteConnection::establish(":memory:").unwrap());
                 drop(old_connection);
@@ -389,9 +390,12 @@ async fn worker_main() {
                 blob_properties.set_type("octet/stream");
                 let bytes = js_sys::Array::new();
                 bytes.push(&js_sys::Uint8Array::new_from_slice(&value));
-                web_sys::Blob::new_with_u8_array_sequence_and_options(&bytes, &blob_properties)
-                    .unwrap()
-                    .into()
+                let blob =
+                    web_sys::Blob::new_with_u8_array_sequence_and_options(&bytes, &blob_properties)
+                        .unwrap()
+                        .into();
+                warn!("AAAAA");
+                blob
             }
             _ => value.message.execute(&mut connection.borrow_mut()),
         };
