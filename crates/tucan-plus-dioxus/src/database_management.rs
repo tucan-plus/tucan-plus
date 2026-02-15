@@ -51,7 +51,7 @@ pub fn ImportDatabase() -> Element {
                 worker
                     .send_message_with_timeout(
                         ImportDatabaseRequest {
-                            data: file()[0].read_bytes().await.unwrap().to_vec(),
+                            data: file()[0].read_bytes().await.unwrap().to_vec().into(),
                         },
                         Duration::from_secs(10 * 60),
                     )

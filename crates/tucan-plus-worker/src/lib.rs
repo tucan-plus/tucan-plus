@@ -14,6 +14,7 @@ use fragile::Fragile;
 use itertools::Itertools as _;
 #[cfg(target_arch = "wasm32")]
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
+use serde_bytes::ByteBuf;
 #[cfg(target_arch = "wasm32")]
 use wasm_bindgen::JsValue;
 #[cfg(target_arch = "wasm32")]
@@ -579,17 +580,17 @@ impl RequestResponse for SetCpAndModuleCount {
 pub struct ExportDatabaseRequest {}
 
 impl RequestResponse for ExportDatabaseRequest {
-    type Response = Vec<u8>;
+    type Response = ByteBuf;
 
     fn execute(&self, connection: &mut SqliteConnection) -> Self::Response {
-        connection.serialize_database_to_buffer().to_vec()
+        connection.serialize_database_to_buffer().to_vec().into()
     }
 }
 
 #[cfg_attr(target_arch = "wasm32", derive(Serialize, Deserialize))]
 #[derive(Debug)]
 pub struct ImportDatabaseRequest {
-    pub data: Vec<u8>,
+    pub data: ByteBuf,
 }
 
 impl RequestResponse for ImportDatabaseRequest {
