@@ -53,10 +53,7 @@ jobs:
       with:
         name: tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}-xpi
     - run: |
-        mkdir pages
-        cp out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/
-        cp out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi pages/
-        cat << EOF > pages/updates.xml
+        cat << EOF > updates.xml
         <?xml version='1.0' encoding='UTF-8'?>
         <gupdate xmlns='http://www.google.com/update2/response' protocol='2.0'>
           <app appid='ohpjpeodokebaeilcpfejcaipbeeekkj'>
@@ -64,7 +61,7 @@ jobs:
           </app>
         </gupdate>
         EOF
-        cat << EOF > pages/updates.json
+        cat << EOF > updates.json
         {
           "addons": {
             "tucant@selfmade4u.de": {
@@ -82,9 +79,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes v${{ needs.build-and-sign.outputs.version }} out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/updates.xml pages/updates.json
+        gh release create --generate-notes v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
     - if: ${{ !inputs.publish }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi out/tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx pages/updates.xml pages/updates.json
+        gh release create --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
