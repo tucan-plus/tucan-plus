@@ -117,7 +117,7 @@ async fn handle_timeout<O: Clone + 'static>(
         path: Some("/scripts".to_owned()),
         value: None,
         expiration_date: Some(0),
-        http_only: None,
+        http_only: Some(true),
         secure: Some(true),
         same_site: None,
     })

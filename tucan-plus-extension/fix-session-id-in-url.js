@@ -6,7 +6,7 @@ chrome.webRequest.onBeforeRequest.addListener((details) => {
         console.log(`onBeforeRequest ${details.url}`)
         // TODO CHECK PRGNAME LOGINCHECK
         if (details.url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&")) {
-            console.log("login attempt")
+            console.log("login attempt REMOVE COOKIE")
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
@@ -22,10 +22,12 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
         if (details.url.startsWith("https://www.tucan.tu-darmstadt.de/scripts/mgrqispi.dll?APPNAME=CampusNet&PRGNAME=LOGINCHECK&")) {
             console.log(`extracting login ${details.responseHeaders}`)
             const refreshHeader = details.responseHeaders?.find(v => v.name === "refresh")?.value ?? "";
+            console.log(`found refresh header ${refreshHeader}`);
             const match = new RegExp("^0; URL=/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=STARTPAGE_DISPATCH&ARGUMENTS=-N(\\d+),-N\\d+,-N000000000000000$", "g").exec(refreshHeader);
             if (match !== null) {
                 const sessionId = match[1]
 
+                console.log("set session id cookie")
                 await chrome.cookies.set({
                     url: "https://www.tucan.tu-darmstadt.de/scripts",
                     name: "id",
@@ -37,6 +39,7 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
 
         const logoutMatch = new RegExp("^https://www\\.tucan\\.tu-darmstadt\\.de/scripts/mgrqispi\\.dll\\?APPNAME=CampusNet&PRGNAME=LOGOUT&.*$", "g").exec(details.url);
         if (logoutMatch !== null) {
+            console.log("LOGOUT REMOVE COOKIE")
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
@@ -48,7 +51,9 @@ chrome.webRequest.onHeadersReceived.addListener((details) => {
 
 chrome.cookies.onChanged.addListener((changeInfo) => {
     asyncClosure(async () => {
-        if (changeInfo.cookie.name === "cnsc" && changeInfo.removed) {
+        if (changeInfo.cookie.name === "cnsc" && changeInfo.cause !== "overwrite" && changeInfo.removed) {
+            console.log("REMOVE cnsc REMOVE ID COOKIE")
+            console.log(changeInfo)
             await chrome.cookies.remove({
                 url: "https://www.tucan.tu-darmstadt.de/scripts",
                 name: "id",
