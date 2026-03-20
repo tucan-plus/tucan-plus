@@ -220,7 +220,7 @@
           checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
             pkgs.which
-            #wasm-bindgen
+            pkgs.wasm-bindgen-cli_0_2_114
             pkgs.binaryen
             pkgs.llvmPackages_21.bintools
           ];
