@@ -173,28 +173,30 @@ pub(crate) fn module_details_internal(
                                             <td class="rw rw-detail-unreg">
                                             </td>
                                         </tr>
-                                    } => () else {
-                                        <tr class="tbdata">
-                                            <td class="rw rw-detail-phase">
-                                                anmeldeart
-                                            </td>
-                                            <td class="rw rw-detail-block">
-                                                "Vorlesungszeit"
-                                            </td>
-                                            <td class="rw rw-detail-regstart">
-                                                registration_range
-                                            </td>
-                                            <td class="rw rw-detail-unreg">
-                                                let unregistration_range = if html_handler.peek().is_some() {
-                                                    unregistration_range
-                                                } => unregistration_range;
-                                            </td>
-                                        </tr>
-                                    } => Anmeldefristen {
-                                        anmeldeart,
-                                        registration_range,
-                                        unregistration_range
-                                    };
+                                    } => Vec::<Anmeldefristen>::new() else {
+                                        let abc = while html_handler.peek().is_some() {
+                                            <tr class="tbdata">
+                                                <td class="rw rw-detail-phase">
+                                                    anmeldeart
+                                                </td>
+                                                <td class="rw rw-detail-block">
+                                                    "Vorlesungszeit"
+                                                </td>
+                                                <td class="rw rw-detail-regstart">
+                                                    registration_range
+                                                </td>
+                                                <td class="rw rw-detail-unreg">
+                                                    let unregistration_range = if html_handler.peek().is_some() {
+                                                        unregistration_range
+                                                    } => unregistration_range;
+                                                </td>
+                                            </tr>
+                                        } => Anmeldefristen {
+                                            anmeldeart,
+                                            registration_range,
+                                            unregistration_range
+                                        };
+                                    } => abc;
                                 </tbody>
                             </table>
                             let kurskategorien = if html_handler
@@ -674,7 +676,11 @@ pub(crate) fn module_details_internal(
         duration,
         abweichende_credits: abweichende_credits.is_some(),
         start_semester,
-        anmeldefristen: anmeldefristen.right(),
+        // TODO FIXME this drops data so the serialization format doesn't break
+        anmeldefristen: anmeldefristen
+            .either_into::<Vec<Anmeldefristen>>()
+            .into_iter()
+            .next(),
         kurskategorien: kurskategorien.unwrap_or_default(),
         modulverantwortliche,
         leistungen: leistungen.into_iter().flatten().collect(),
