@@ -1,5 +1,4 @@
 use std::collections::{HashMap, HashSet};
-use std::panic::AssertUnwindSafe;
 use std::time::Duration;
 
 use crate::{RcTucanType, common::decompress};
@@ -7,7 +6,6 @@ use dioxus::{
     html::{FileData, geometry::euclid::num::Zero},
     prelude::*,
 };
-use futures::stream::FuturesUnordered;
 use futures::{FutureExt as _, StreamExt, stream::BoxStream};
 use num::ToPrimitive;
 use num::{BigInt, BigRational, FromPrimitive, One};
@@ -132,39 +130,30 @@ pub fn FetchAnmeldung() -> Element {
                             .map(|module| module.url.clone())
                             .collect();
                         let modules_len = 3 * modules.len();
-                        let module_stream: FuturesUnordered<_> = modules
-                            .into_iter()
-                            .map(|module_id| {
+                        let module_stream =
+                            futures::stream::iter(modules).flat_map_unordered(None, |module_id| {
                                 let tucan = tucan.clone();
                                 let session = session.clone();
-                                async move {
+                                let future = async move {
                                     let change = BigRational::new(
                                         BigInt::from(1),
                                         BigInt::from(modules_len),
                                     );
-                                    let module = AssertUnwindSafe(async {
-                                        // dammit web doesn't have unwind support?
-                                        tucan
-                                            .module_details(
-                                                &session,
-                                                RevalidationStrategy::cache(),
-                                                module_id.clone(),
-                                            )
-                                            .await
-                                            .unwrap()
-                                    })
-                                    .catch_unwind()
-                                    .await
-                                    .ok();
+                                    let module = tucan
+                                        .0
+                                        .module_details(
+                                            &session,
+                                            RevalidationStrategy::cache(),
+                                            module_id.clone(),
+                                        )
+                                        .await
+                                        .unwrap();
                                     atomic_current.with_mut(|current| *current += change.clone());
-                                    module.map(|m| (module_id, m))
-                                }
-                            })
-                            .collect();
-                        let module_response = module_stream
-                            .filter_map(|opt| async move { opt })
-                            .collect()
-                            .await;
+                                    (module_id, module)
+                                };
+                                Box::pin(future).into_stream()
+                            });
+                        let module_response = module_stream.collect().await;
 
                         let content = serde_json::to_string(&SemesterExportV1 {
                             anmeldungen: response,
