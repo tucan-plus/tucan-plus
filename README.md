@@ -102,11 +102,6 @@ cd crates/tucan-plus-dioxus/
 export VARIANT=debug
 export VARIANT=release
 
-# firefox doesn't allow symlinks
-cp -r /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/.
-
-ln -s /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
-
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?

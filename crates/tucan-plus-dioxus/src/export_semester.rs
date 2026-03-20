@@ -143,6 +143,7 @@ pub fn FetchAnmeldung() -> Element {
                                         BigInt::from(modules_len),
                                     );
                                     let module = AssertUnwindSafe(async {
+                                        // dammit web doesn't have unwind support?
                                         tucan
                                             .module_details(
                                                 &session,
