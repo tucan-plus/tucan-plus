@@ -26,7 +26,7 @@ futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
 getrandom2 = { version = "0.2", features = ["wasm_js"] }
 git-version = "0.3"
-html5ever = "0.38.0"
+html5ever = "0.39"
 itertools = "0.14"
 js-sys = "0.3"
 log = { version = "0.4" }
