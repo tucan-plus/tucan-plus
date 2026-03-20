@@ -93,9 +93,7 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ### Running as local webserver
 
 ```bash
-cargo install dioxus-cli
-cargo install --git https://github.com/DioxusLabs/dioxus.git --branch jk/workspace-hotpatch dioxus-cli
-cargo install --path /home/moritz/Documents/dioxus/packages/cli dioxus-cli
+cargo install --git https://github.com/mohe2015/dioxus.git --branch wip dioxus-cli
 
 cd crates/tucan-plus-dioxus/
 
@@ -105,8 +103,8 @@ export VARIANT=release
 mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --verbose --base-path public --hot-patch
-cargo run --manifest-path /home/moritz/Documents/dioxus/packages/cli/Cargo.toml serve --web --verbose --base-path public --release
+dx serve --web --verbose --base-path public --hot-patch
+dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
 sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
