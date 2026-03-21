@@ -2,9 +2,17 @@
     "name": "TUCaN Plus",
     "icons": [
         {
-            "src": "./logo.svg",
-            "type": "image/svg+xml",
+            "src": "./logo.png",
+            "type": "image/png",
             "sizes": "512x512"
+        }
+    ],
+    "screenshots": [
+        {
+            "src": "/leistungsspiegel.png",
+            "sizes": "1280x1048",
+            "type": "image/png",
+            "form_factor": "wide"
         }
     ],
     "id": "tucan-plus",

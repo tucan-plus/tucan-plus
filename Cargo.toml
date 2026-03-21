@@ -12,9 +12,8 @@ bytes = "1"
 console_log = { version = "1" }
 cookie = "0.18"
 data-encoding = "2"
-# needed for libsqlite3-sys 0.36.0
-diesel = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
-diesel_migrations = { git = "https://github.com/diesel-rs/diesel.git", features = ["sqlite"] }
+diesel = { version = "2.3.7", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
+diesel_migrations = { version = "2.3.1", features = ["sqlite"] }
 dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "wip", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
 dotenvy = "0.15"
 dynosaur = "0.3"
@@ -27,7 +26,7 @@ futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
 getrandom2 = { version = "0.2", features = ["wasm_js"] }
 git-version = "0.3"
-html5ever = "0.38.0"
+html5ever = "0.39"
 itertools = "0.14"
 js-sys = "0.3"
 log = { version = "0.4" }
@@ -38,7 +37,7 @@ quote = "1"
 rand = "0.10.0"
 regex = { version = "1" }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
-scraper = { git = "https://github.com/rust-scraper/scraper.git", features = ["deterministic"] }
+scraper = { version = "0.26", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-wasm-bindgen = "0.6"
@@ -66,6 +65,7 @@ erased-serde = "0.4"
 keyring-core = { version = "0.7" }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 typetag = "0.2"
+# https://github.com/web-extensions-rs/web-extensions/pull/19/changes?w=1
 web-extensions = { git = "https://github.com/web-extensions-rs/web-extensions" }
 web-extensions-sys = { version = "0.4.2" }
 
