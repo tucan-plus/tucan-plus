@@ -34,7 +34,7 @@ num = "0.4"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 proc-macro2 = "1"
 quote = "1"
-rand = "0.10.0"
+rand = "0.10.1"
 regex = { version = "1" }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
 scraper = { version = "0.26", features = ["deterministic"] }
