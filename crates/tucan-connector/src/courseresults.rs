@@ -37,7 +37,7 @@ pub(crate) fn course_results_internal(
                     </style>
                 </head>
                 <body class="course_results">
-                    use logged_in_head(html_handler, login_response.id).0;
+                    use Ok::<_, String>(logged_in_head(html_handler, login_response.id)?.0);
                     <script type="text/javascript">
                     </script>
                     <h1>

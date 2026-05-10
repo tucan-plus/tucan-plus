@@ -33,7 +33,7 @@ pub(crate) fn exam_registration_internal(
                     </style>
                 </head>
                 <body class="exam_registration">
-                    use logged_in_head(html_handler, login_response.id).0;
+                    use Ok::<_, String>(logged_in_head(html_handler, login_response.id)?.0);
                     <script type="text/javascript">
                     </script>
                     <h1>

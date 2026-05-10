@@ -301,11 +301,11 @@ pub(crate) fn student_result_internal(
                     </style>
                 </head>
                 <body class="students_results">
-                    use if login_response.id == 1 {
-                        logged_out_head(html_handler).0
+                    use Ok::<_, String>(if login_response.id == 1 {
+                        logged_out_head(html_handler)?.0
                     } else {
-                        logged_in_head(html_handler, login_response.id).0
-                    };
+                        logged_in_head(html_handler, login_response.id)?.0
+                    });
                     <script type="text/javascript">
                     </script>
                     <h1>

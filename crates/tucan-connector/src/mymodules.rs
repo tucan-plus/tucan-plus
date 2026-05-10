@@ -34,7 +34,7 @@ pub(crate) fn my_modules_internal(
                     </style>
                 </head>
                 <body class="mymodules">
-                    use logged_in_head(html_handler, login_response.id).0;
+                    use Ok::<_, String>(logged_in_head(html_handler, login_response.id)?.0);
                     <script type="text/javascript">
                     </script>
                     <h1>

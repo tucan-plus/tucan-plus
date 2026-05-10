@@ -33,7 +33,7 @@ pub async fn veranstaltungen(
                 </style>
             </head>
             <body class="external_pages">
-                use logged_in_head(html_handler, login_response.id).0;
+                use Ok::<_, String>(logged_in_head(html_handler, login_response.id)?.0);
                 <script type="text/javascript">
                 </script>
                 <div id="inhalt">
