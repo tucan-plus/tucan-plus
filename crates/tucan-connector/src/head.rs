@@ -341,7 +341,7 @@ pub fn logged_in_head<'a>(
 fn logged_in_head_internal<'a>(
     html_handler: InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     id: u64,
-) -> Ok<(
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     LoggedInHead,
 )> {

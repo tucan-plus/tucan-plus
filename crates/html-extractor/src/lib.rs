@@ -802,7 +802,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
         }) => {
             quote! {
                 #[allow(unused_mut)]
-                let mut html_handler = #expr #semi
+                let mut html_handler = #expr ? #semi
             }
         }
         HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
@@ -817,7 +817,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
                 HtmlLetInner::Expr(expr) => {
                     quote_spanned! {expr.span()=>
                         #[allow(unused_mut)]
-                        let (mut html_handler, #variable) = #expr;
+                        let (mut html_handler, #variable) = #expr ?;
                     }
                 }
                 HtmlLetInner::If(HtmlIf {
