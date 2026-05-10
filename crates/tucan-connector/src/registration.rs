@@ -376,7 +376,7 @@ pub(crate) fn anmeldung_internal(
                                                                     let location_or_additional_info = if html_handler
                                                                         .peek()
                                                                         .is_some() {
-                                                                            let location_or_additional_info = html_handler.next_any_child();
+                                                                            let location_or_additional_info = html_handler.next_any_child()?;
                                                                         </p>
                                                                     } => match location_or_additional_info.value() {
                                                                         MyNode::Text(text) => text.to_string(),

@@ -12,7 +12,7 @@ use scraper::{Html, StrTendril};
 use scraper::{Node, node::Doctype};
 use sha3::{Digest, Sha3_256};
 
-type HtmlResult<T> = core::result::Result<T, String>;
+pub type HtmlResult<T> = core::result::Result<T, String>;
 
 // Copied from https://github.com/rust-scraper/scraper licensed under ISC License
 /*
