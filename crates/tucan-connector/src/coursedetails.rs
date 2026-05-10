@@ -231,7 +231,7 @@ pub(crate) fn course_details_internal(
                                                 </p>
                                             } => (teilnehmer_range, teilnehmer_min, teilnehmer_max);
                                             let description = while html_handler.peek().is_some() {
-                                                let child = html_handler.next_any_child()?;
+                                                let child = html_handler.next_any_child();
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
                                                 MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),

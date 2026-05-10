@@ -155,7 +155,7 @@ pub(crate) fn after_login_internal(
                                             </td>
                                             <td headers="Betreff" class="rw rw-mailsubject">
                                                 <a class="link" href={|u| assert_eq!(url, u)}>
-                                                    let message = html_handler.next_any_child()?;
+                                                    let message = html_handler.next_any_child();
                                                 </a>
                                             </td>
                                             <td headers="Aktion" class="rw rw-maildel">
