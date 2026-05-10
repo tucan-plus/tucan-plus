@@ -107,8 +107,6 @@ dx serve --web --verbose --base-path public --hot-patch
 dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
-sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
-
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost
 ```
