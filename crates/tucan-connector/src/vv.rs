@@ -214,7 +214,7 @@ pub(crate) fn vv_internal(
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326);
+    let html_handler = footer(html_handler, login_response.map_or(1, |l| l.id), 326)?;
     html_handler.end_document();
     Ok(Vorlesungsverzeichnis {
         title,

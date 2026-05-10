@@ -39,7 +39,7 @@ pub(crate) fn course_details_internal(
                     </style>
                 </head>
                 <body class="coursedetails">
-                    use Ok(if login_response.id == 1 {
+                    use Ok::<_, String>(if login_response.id == 1 {
                         logged_out_head(html_handler)?.0
                     } else {
                         logged_in_head(html_handler, login_response.id)?.0
@@ -745,7 +745,7 @@ pub(crate) fn course_details_internal(
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.id, 311);
+    let html_handler = footer(html_handler, login_response.id, 311)?;
     let course_anmeldefristen = course_anmeldefristen.map_or_else(Vec::new, |anmeldefristen| {
         if anmeldefristen.is_left() {
             anmeldefristen.unwrap_left()

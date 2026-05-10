@@ -464,7 +464,7 @@ pub(crate) fn anmeldung_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 311);
+    let html_handler = footer(html_handler, login_response.id, 311)?;
     html_handler.end_document();
     let path: Vec<(String, AnmeldungRequest)> = path.into_iter().flatten().collect();
     Ok(AnmeldungResponse {

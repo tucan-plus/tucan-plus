@@ -188,7 +188,7 @@ pub(crate) fn after_login_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 19);
+    let html_handler = footer(html_handler, login_response.id, 19)?;
     html_handler.end_document();
     Ok(MlsStart {
         logged_in_head: head,

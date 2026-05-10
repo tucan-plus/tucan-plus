@@ -645,7 +645,7 @@ pub(crate) fn module_details_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 311);
+    let html_handler = footer(html_handler, login_response.id, 311)?;
     html_handler.end_document();
     let modulverantwortliche = modulverantwortliche.unwrap_or_default();
     if modulverantwortliche.is_empty() {

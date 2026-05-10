@@ -2,6 +2,7 @@ use std::sync::LazyLock;
 
 use crate::head::{footer, html_head, logged_in_head, logged_out_head};
 use ego_tree::NodeRef;
+use html_handler::HtmlResult;
 use html_handler::{InElement, MyNode, Root, parse_document};
 use regex::Regex;
 use scraper::CaseSensitivity;
@@ -29,7 +30,7 @@ fn get_level(node: &NodeRef<MyNode>) -> i8 {
 fn part0<T>(
     html_handler: InElement<'_, T>,
     level: i8,
-) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
+) -> HtmlResult<(InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>)> {
     html_extractor::html! {
         let result = if get_level(html_handler.peek().unwrap()) == level {
             <tr class={|l| assert_eq!(l, format!("subhead level0{level}"))}>
@@ -115,7 +116,7 @@ fn part0<T>(
             };
         } => (level_i, entries);
     }
-    (html_handler, result)
+    Ok((html_handler, result))
 }
 
 fn parse_rules(rules: &[String]) -> StudentResultRules {
@@ -175,7 +176,7 @@ fn part1<T>(
     level: i8,
     name: Option<(String, Vec<StudentResultEntry>)>,
     children: Vec<StudentResultLevel>,
-) -> (InElement<'_, T>, StudentResultLevel) {
+) -> HtmlResult<(InElement<'_, T>, StudentResultLevel)> {
     html_extractor::html! {
         let optional = if html_handler
             .peek()
@@ -259,7 +260,7 @@ fn part1<T>(
             )
         };
     }
-    (
+    Ok((
         html_handler,
         StudentResultLevel {
             name: name.as_ref().map(|n| n.0.clone()),
@@ -276,7 +277,7 @@ fn part1<T>(
             rules: parse_rules(&optional.map(|o| o.3).unwrap_or_default()),
             children,
         },
-    )
+    ))
 }
 
 #[expect(clippy::too_many_lines)]
@@ -443,7 +444,7 @@ pub(crate) fn student_result_internal(
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.id, 311);
+    let html_handler = footer(html_handler, login_response.id, 311)?;
     html_handler.end_document();
 
     Ok(StudentResultResponse {
