@@ -13,9 +13,9 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
     )
     .await?;
     let document = parse_document(&content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
             <html
                 xmlns="http://www.w3.org/1999/xhtml"
@@ -40,7 +40,7 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
                         style="padding:0px; width:650px; margin:0px; background-color:#ffffff;"
                     >
                         let _unused = while html_handler.peek().is_some() {
-                            let any_child = html_handler.next_any_child();
+                            let any_child = html_handler.next_any_child()?;
                         } => any_child;
                     </div>
                 </div>

@@ -86,9 +86,9 @@ pub(crate) fn vv_internal(
     content: &str,
 ) -> Result<Vorlesungsverzeichnis, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -122,7 +122,7 @@ pub(crate) fn vv_internal(
                         && html_handler.peek().unwrap().value().as_element().unwrap().has_class("nb", scraper::CaseSensitivity::CaseSensitive) {
                         <div class="tb nb">
                             let description = while html_handler.peek().is_some() {
-                                let any_child = html_handler.next_any_child();
+                                let any_child = html_handler.next_any_child()?;
                             } => match any_child.value() {
                                 MyNode::Text(text) => text.to_string(),
                                 MyNode::Element(_element) => MyElementRef::wrap(any_child).unwrap().html(),

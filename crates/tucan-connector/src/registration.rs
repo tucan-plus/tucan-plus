@@ -155,7 +155,7 @@ pub(crate) fn anmeldung_internal(
                             ">"
                             <a href=url>
                                 let any_child = if html_handler.peek().is_some() {
-                                    let any_child = html_handler.next_any_child();
+                                    let any_child = html_handler.next_any_child()?;
                                 } => any_child;
                             </a>
                         } => match any_child.map(|c| c.value()) {
@@ -188,7 +188,7 @@ pub(crate) fn anmeldung_internal(
                             .and_then(ego_tree::NodeRef::next_sibling)
                             .and_then(|e| e.value().as_element())
                             .is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
-                        let child = html_handler.next_any_child();
+                        let child = html_handler.next_any_child()?;
                     } => if let MyNode::Element(_element) = child.value() {
                         Some(MyElementRef::wrap(child).unwrap().html())
                     } else {

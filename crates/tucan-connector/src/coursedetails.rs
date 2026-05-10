@@ -24,9 +24,9 @@ pub(crate) fn course_details_internal(
     request: &CourseDetailsRequest,
 ) -> Result<CourseDetailsResponse, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -231,7 +231,7 @@ pub(crate) fn course_details_internal(
                                                 </p>
                                             } => (teilnehmer_range, teilnehmer_min, teilnehmer_max);
                                             let description = while html_handler.peek().is_some() {
-                                                let child = html_handler.next_any_child();
+                                                let child = html_handler.next_any_child()?;
                                             } => match child.value() {
                                                 MyNode::Text(text) => text.to_string(),
                                                 MyNode::Element(_element) => MyElementRef::wrap(child).unwrap().html(),

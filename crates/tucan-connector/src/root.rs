@@ -4,9 +4,9 @@ use html_handler::{Root, parse_document};
 pub async fn root(connector: &TucanConnector) -> Result<(), TucanError> {
     let (content, ..) = retryable_get(connector, "https://www.tucan.tu-darmstadt.de/").await?;
     let document = parse_document(&content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
         <html>
             <head>
