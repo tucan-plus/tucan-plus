@@ -800,7 +800,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
             expr,
             semi,
         }) => {
-            quote! {
+            quote_spanned! {expr.span()=>
                 #[allow(unused_mut)]
                 let mut html_handler = #expr ? #semi
             }

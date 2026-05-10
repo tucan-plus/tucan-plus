@@ -47,7 +47,7 @@ pub fn html_head_2<'a>(
 #[allow(clippy::no_effect_underscore_binding)]
 pub fn html_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError> {
+) -> HtmlResult<Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError>> {
     html_extractor::html! {
         <title>
             "Technische Universität Darmstadt"
@@ -116,7 +116,7 @@ pub fn html_head<'a>(
                 <body class="timeout">
                     extern {
                         let _html_handler = html_handler;
-                        return Err(TucanError::Timeout);
+                        return Ok(Err(TucanError::Timeout));
                     }
                 </body>
             } => () else {
@@ -133,7 +133,7 @@ pub fn html_head<'a>(
                     <body class="access_denied">
                         extern {
                             let _html_handler = html_handler;
-                            return Err(TucanError::AccessDenied);
+                            return Ok(Err(TucanError::AccessDenied));
                         }
                     </body>
                 } => () else {
@@ -145,7 +145,7 @@ pub fn html_head<'a>(
             <head>
         } => ();
     }
-    Ok(html_handler)
+    Ok(Ok(html_handler))
 }
 
 #[must_use]

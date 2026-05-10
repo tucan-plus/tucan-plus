@@ -39,11 +39,11 @@ pub(crate) fn course_details_internal(
                     </style>
                 </head>
                 <body class="coursedetails">
-                    use if login_response.id == 1 {
-                        logged_out_head(html_handler).0
+                    use Ok(if login_response.id == 1 {
+                        logged_out_head(html_handler)?.0
                     } else {
-                        logged_in_head(html_handler, login_response.id).0
-                    };
+                        logged_in_head(html_handler, login_response.id)?.0
+                    });
                     <script type="text/javascript">
                     </script>
                     <script type="text/javascript">

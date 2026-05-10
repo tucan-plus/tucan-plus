@@ -521,8 +521,8 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     #[must_use]
-    pub const fn skip_any_comment(self) -> Self {
-        self
+    pub const fn skip_any_comment(self) -> HtmlResult<Self> {
+        Ok(self)
     }
 
     #[track_caller]
