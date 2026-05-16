@@ -1,5 +1,5 @@
 [unstable]
-build-std = ["std", "panic_unwind"]
+build-std = ["core", "alloc", "std", "panic_unwind", "panic_abort"]
 
 [build]
 target = "wasm32-unknown-unknown"

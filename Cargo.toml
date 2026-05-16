@@ -67,7 +67,7 @@ libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 typetag = "0.2"
 # https://github.com/web-extensions-rs/web-extensions/pull/19/changes?w=1
 web-extensions = { git = "https://github.com/mohe2015/web-extensions", branch = "fix-closure-unwind" }
-web-extensions-sys = { version = "0.4.2" }
+web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
 
 html-extractor = { path = "crates/html-extractor" }
 html-handler = { path = "crates/html-handler" }

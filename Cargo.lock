@@ -4251,7 +4251,7 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-extensions",
- "web-extensions-sys",
+ "web-extensions-sys 0.4.2 (git+https://github.com/mohe2015/web-extensions-sys.git?branch=mohe2015-patch-1)",
  "web-sys",
 ]
 
@@ -4688,7 +4688,7 @@ dependencies = [
  "thiserror 1.0.69",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "web-extensions-sys",
+ "web-extensions-sys 0.4.2 (registry+https://github.com/rust-lang/crates.io-index)",
 ]
 
 [[package]]
@@ -4696,6 +4696,16 @@ name = "web-extensions-sys"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "14a62e712b4f9f296e08f90aa0e289497faa2897f7cf6694cb7a8e482b461305"
+dependencies = [
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+]
+
+[[package]]
+name = "web-extensions-sys"
+version = "0.4.2"
+source = "git+https://github.com/mohe2015/web-extensions-sys.git?branch=mohe2015-patch-1#a5b958f06b3136bd7018f498a285d394b10f9c79"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
