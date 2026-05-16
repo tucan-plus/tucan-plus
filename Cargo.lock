@@ -2052,8 +2052,7 @@ dependencies = [
 [[package]]
 name = "indexed_db_futures"
 version = "0.6.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "69ff41758cbd104e91033bb53bc449bec7eea65652960c81eddf3fc146ecea19"
+source = "git+https://github.com/mohe2015/rust-indexed-db?branch=wasm-unwind#a8b30ea0097cccbbbfab2ad0bdb4b5d04ce355f1"
 dependencies = [
  "accessory",
  "cfg-if",
@@ -2074,8 +2073,7 @@ dependencies = [
 [[package]]
 name = "indexed_db_futures_macros_internal"
 version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "caeba94923b68f254abef921cea7e7698bf4675fdd89d7c58bf1ed885b49a27d"
+source = "git+https://github.com/mohe2015/rust-indexed-db?branch=wasm-unwind#a8b30ea0097cccbbbfab2ad0bdb4b5d04ce355f1"
 dependencies = [
  "macroific",
  "proc-macro2",
@@ -4682,7 +4680,7 @@ dependencies = [
 [[package]]
 name = "web-extensions"
 version = "0.3.0"
-source = "git+https://github.com/web-extensions-rs/web-extensions#0e9aafa79652f02d5285d51e5cc0b49590218798"
+source = "git+https://github.com/mohe2015/web-extensions?branch=fix-closure-unwind#0f82aff6b1874237b300a2766a4a49bf7eb735c1"
 dependencies = [
  "gloo-utils 0.1.7",
  "js-sys",
