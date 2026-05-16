@@ -106,7 +106,7 @@ sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/
 dx serve --web --verbose --base-path public --hot-patch
 rustup default nightly
 
-RUSTFLAGS="-Cpanic=unwind" cargo +nightly build --target wasm32-unknown-unknown -Zbuild-std=std,panic_unwind
+RUSTFLAGS="-Cpanic=unwind --cfg=web_sys_unstable_apis" cargo +nightly build --target wasm32-unknown-unknown -Zbuild-std=std,panic_unwind
 
 dx serve --rustc-args="-Cpanic=unwind" --cargo-args="-Zbuild-std=std,panic_unwind" --web --verbose --base-path public --hot-patch
 dx serve --web --verbose --base-path public --release
