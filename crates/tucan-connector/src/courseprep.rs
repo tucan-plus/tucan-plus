@@ -27,9 +27,9 @@ pub(crate) fn course_prep_internal(
     content: &str,
 ) -> Result<String, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
         <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
             <head>
@@ -39,11 +39,11 @@ pub(crate) fn course_prep_internal(
                 </style>
             </head>
             <body class="courseprep">
-                use if login_response.id == 1 {
-                    logged_out_head(html_handler).0
+                use Ok::<_, String>(if login_response.id == 1 {
+                    logged_out_head(html_handler)?.0
                 } else {
-                    logged_in_head(html_handler, login_response.id).0
-                };
+                    logged_in_head(html_handler, login_response.id)?.0
+                });
                 <script type="text/javascript">
                 </script>
                 <script language="JavaScript">

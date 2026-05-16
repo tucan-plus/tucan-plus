@@ -95,6 +95,9 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ```bash
 cargo install --git https://github.com/mohe2015/dioxus.git --branch wip dioxus-cli
 
+TODO try dioxus build first, probably simpler than serve
+omg it was somehow using two different versions of that crate, wtf
+
 cd crates/tucan-plus-dioxus/
 
 export VARIANT=debug
@@ -104,10 +107,13 @@ mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
 dx serve --web --verbose --base-path public --hot-patch
+rustup default nightly
+
+RUSTFLAGS="-Cpanic=unwind --cfg=web_sys_unstable_apis" cargo +nightly build --target wasm32-unknown-unknown -Zbuild-std=std,panic_unwind
+
+dx serve --rustc-args="-Cpanic=unwind" --cargo-args="-Zbuild-std=std,panic_unwind" --web --verbose --base-path public --hot-patch
 dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
-
-sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
 
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost

@@ -779,7 +779,7 @@ impl MyDatabase {
         );
         let lock_manager = navigator.locks();
         let lock_closure: Closure<dyn Fn(_) -> Promise> = {
-            Closure::new(move |_event: web_sys::Lock| {
+            Closure::own_aborting(move |_event: web_sys::Lock| {
                 let mut cb = |_resolve: js_sys::Function, reject: js_sys::Function| {
                     use web_sys::{WorkerOptions, WorkerType};
 

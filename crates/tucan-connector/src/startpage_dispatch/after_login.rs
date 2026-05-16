@@ -17,9 +17,9 @@ pub async fn redirect_after_login(
     )
     .await?;
     let document = parse_document(&content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
         <html>
             <head>

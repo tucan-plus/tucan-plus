@@ -12,6 +12,8 @@ use scraper::{Html, StrTendril};
 use scraper::{Node, node::Doctype};
 use sha3::{Digest, Sha3_256};
 
+pub type HtmlResult<T> = core::result::Result<T, String>;
+
 // Copied from https://github.com/rust-scraper/scraper licensed under ISC License
 /*
 Copyright © 2016, June McEnroe <june@causal.agency>
@@ -323,23 +325,23 @@ pub struct InElement<'a, OuterState> {
 
 impl<'a> Root<'a> {
     #[must_use]
-    pub fn new(node: NodeRef<'a, MyNode>) -> Self {
+    pub fn new(node: NodeRef<'a, MyNode>) -> HtmlResult<Self> {
         assert_eq!(
             *node.value(),
             MyNode::Document,
             "expected document but got {:?}",
             node.value()
         );
-        Self { node }
+        Ok(Self { node })
     }
 
     #[must_use]
-    pub fn document_start(self) -> InRoot<'a, Self> {
-        InRoot {
+    pub fn document_start(self) -> HtmlResult<InRoot<'a, Self>> {
+        Ok(InRoot {
             node: self.node,
             current_child: self.node.children().next(),
             outer_state: PhantomData,
-        }
+        })
     }
 }
 
@@ -351,25 +353,26 @@ impl<'a> InRoot<'a, Root<'a>> {
 
     #[track_caller]
     #[must_use]
-    pub fn doctype(self) -> Self {
+    pub fn doctype(self) -> HtmlResult<Self> {
         let child_node = self.current_child.expect("expected child but none left");
         let Some(_child_element) = child_node.value().as_doctype() else {
-            panic!("expected doctype but got {:?}", child_node.value())
+            return Err(format!("expected doctype but got {:?}", child_node.value()));
         };
-        InRoot {
+        Ok(InRoot {
             node: self.node,
             current_child: child_node.next_sibling(),
             outer_state: self.outer_state,
-        }
+        })
     }
 
     #[track_caller]
-    pub fn end_document(self) {
+    pub fn end_document(self) -> HtmlResult<()> {
         assert_eq!(
             self.current_child, None,
             "Expected no remaining children but got {:?}",
             self.current_child
         );
+        Ok(())
     }
 }
 
@@ -381,7 +384,7 @@ impl<'a, OuterState> InRoot<'a, OuterState> {
     }
 
     #[must_use]
-    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
+    pub fn next_child_tag_open_start(self, name: &str) -> HtmlResult<Open<'a, Self>> {
         let child_node = self.current_child.expect("expected child but none left");
         let Some(child_element) = child_node.value().as_element() else {
             panic!("expected element but got {:?}", child_node.value())
@@ -392,18 +395,18 @@ impl<'a, OuterState> InRoot<'a, OuterState> {
             "{}",
             MyElementRef::wrap(child_node).unwrap().html()
         );
-        Open {
+        Ok(Open {
             element: child_node,
             attrs: child_element.attrs().peekable(),
             outer_state: PhantomData,
-        }
+        })
     }
 }
 
 impl<'a, OuterState> Open<'a, OuterState> {
     #[track_caller]
     #[must_use]
-    pub fn attribute(mut self, name: &str, value: &str) -> Self {
+    pub fn attribute(mut self, name: &str, value: &str) -> HtmlResult<Self> {
         if name == "xss" {
             while let Some((attr_key, _attr_value)) = self.attrs.peek() {
                 if *attr_key == value {
@@ -411,7 +414,7 @@ impl<'a, OuterState> Open<'a, OuterState> {
                 }
                 self.attrs.next().unwrap();
             }
-            return self;
+            return Ok(self);
         }
         assert_eq!(
             self.attrs.next().expect("expected attribute but none left"),
@@ -419,12 +422,12 @@ impl<'a, OuterState> Open<'a, OuterState> {
             "{}",
             MyElementRef::wrap(self.element).unwrap().html()
         );
-        self
+        Ok(self)
     }
 
     #[track_caller]
     #[must_use]
-    pub fn attribute_value(mut self, expected_name: &str) -> (Self, String) {
+    pub fn attribute_value(mut self, expected_name: &str) -> HtmlResult<(Self, String)> {
         let (name, value) = self.attrs.next().expect("expected attribute but none left");
         assert_eq!(
             name,
@@ -432,12 +435,12 @@ impl<'a, OuterState> Open<'a, OuterState> {
             "{}",
             MyElementRef::wrap(self.element).unwrap().html()
         );
-        (self, value.to_owned())
+        Ok((self, value.to_owned()))
     }
 
     #[track_caller]
     #[must_use]
-    pub fn tag_open_end(mut self) -> InElement<'a, OuterState> {
+    pub fn tag_open_end(mut self) -> HtmlResult<InElement<'a, OuterState>> {
         let Some(_child_element) = self.element.value().as_element() else {
             panic!("expected element but got {:?}", self.element.value())
         };
@@ -448,11 +451,11 @@ impl<'a, OuterState> Open<'a, OuterState> {
             "expected no remaining attributes but got {attr:?} in {}",
             MyElementRef::wrap(self.element).unwrap().html()
         );
-        InElement {
+        Ok(InElement {
             element: self.element,
             current_child: self.element.children().next(),
             outer_state: self.outer_state,
-        }
+        })
     }
 }
 
@@ -464,10 +467,10 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[must_use]
     #[track_caller]
-    pub fn next_any_child(mut self) -> (Self, NodeRef<'a, MyNode>) {
+    pub fn next_any_child(mut self) -> HtmlResult<(Self, NodeRef<'a, MyNode>)> {
         let current_child = self.current_child.expect("expected child but none left");
         self.current_child = current_child.next_sibling();
-        (self, current_child)
+        Ok((self, current_child))
     }
 
     #[track_caller]
@@ -478,7 +481,7 @@ impl<'a, OuterState> InElement<'a, OuterState> {
 
     #[track_caller]
     #[must_use]
-    pub fn text(mut self) -> (Self, String) {
+    pub fn text(mut self) -> HtmlResult<(Self, String)> {
         let child_node = self
             .current_child
             .expect("expected child with text but got no children. maybe there is a closing tag?");
@@ -486,12 +489,12 @@ impl<'a, OuterState> InElement<'a, OuterState> {
             panic!("expected text but got {:?}", child_node.value())
         };
         self.current_child = child_node.next_sibling();
-        (self, child_element.to_string())
+        Ok((self, child_element.to_string()))
     }
 
     #[track_caller]
     #[must_use]
-    pub fn skip_text(mut self, text: &str) -> Self {
+    pub fn skip_text(mut self, text: &str) -> HtmlResult<Self> {
         let child_node = self
             .current_child
             .expect("expected child with text but got no children. maybe there is a closing tag?");
@@ -513,18 +516,18 @@ impl<'a, OuterState> InElement<'a, OuterState> {
             }
         }
         self.current_child = child_node.next_sibling();
-        self
+        Ok(self)
     }
 
     #[track_caller]
     #[must_use]
-    pub const fn skip_any_comment(self) -> Self {
-        self
+    pub const fn skip_any_comment(self) -> HtmlResult<Self> {
+        Ok(self)
     }
 
     #[track_caller]
     #[must_use]
-    pub fn next_child_tag_open_start(self, name: &str) -> Open<'a, Self> {
+    pub fn next_child_tag_open_start(self, name: &str) -> HtmlResult<Open<'a, Self>> {
         let Some(_child_element) = self.element.value().as_element() else {
             panic!("expected element but got {:?}", self.element.value())
         };
@@ -543,18 +546,18 @@ impl<'a, OuterState> InElement<'a, OuterState> {
             "{}",
             MyElementRef::wrap(child_node).unwrap().html()
         );
-        Open {
+        Ok(Open {
             element: child_node,
             attrs: child_element.attrs().peekable(),
             outer_state: PhantomData,
-        }
+        })
     }
 }
 
 impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
     #[track_caller]
     #[must_use]
-    pub fn close_element(self, name: &str) -> InElement<'a, OuterState> {
+    pub fn close_element(self, name: &str) -> HtmlResult<InElement<'a, OuterState>> {
         assert_eq!(
             self.current_child.map(|child| child.value()),
             None,
@@ -570,18 +573,18 @@ impl<'a, OuterState> InElement<'a, InElement<'a, OuterState>> {
             element.name(),
             MyElementRef::wrap(self.element).unwrap().html()
         );
-        InElement {
+        Ok(InElement {
             element: self.element.parent().unwrap(),
             current_child: self.element.next_sibling(),
             outer_state: PhantomData,
-        }
+        })
     }
 }
 
 impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
     #[track_caller]
     #[must_use]
-    pub fn close_element(self, name: &str) -> InRoot<'a, OuterState> {
+    pub fn close_element(self, name: &str) -> HtmlResult<InRoot<'a, OuterState>> {
         assert_eq!(
             self.current_child
                 .map(|child| MyElementRef::wrap(child).unwrap().html()),
@@ -598,10 +601,10 @@ impl<'a, OuterState> InElement<'a, InRoot<'a, OuterState>> {
             element.name(),
             MyElementRef::wrap(self.element).unwrap().html()
         );
-        InRoot {
+        Ok(InRoot {
             node: self.element.parent().unwrap(),
             current_child: self.element.next_sibling(),
             outer_state: PhantomData,
-        }
+        })
     }
 }

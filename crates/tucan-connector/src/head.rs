@@ -8,7 +8,7 @@ use tucan_types::{
     vv::ActionRequest,
 };
 
-use html_handler::{InElement, InRoot, Root};
+use html_handler::{HtmlResult, InElement, InRoot, Root};
 
 use crate::InElement5;
 
@@ -22,7 +22,7 @@ pub(crate) static ACTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 #[must_use]
 pub fn html_head_2<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
+) -> HtmlResult<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>> {
     html_extractor::html! {
         <script type="text/javascript">
         </script>
@@ -40,14 +40,14 @@ pub fn html_head_2<'a>(
         <link href="/css/styles.css" rel="stylesheet" type="text/css"></link>
         <link href="/css/colors.css" rel="stylesheet" type="text/css"></link>
     };
-    html_handler
+    Ok(html_handler)
 }
 
 #[expect(unreachable_code)]
 #[allow(clippy::no_effect_underscore_binding)]
 pub fn html_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError> {
+) -> HtmlResult<Result<InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>, TucanError>> {
     html_extractor::html! {
         <title>
             "Technische Universität Darmstadt"
@@ -116,7 +116,7 @@ pub fn html_head<'a>(
                 <body class="timeout">
                     extern {
                         let _html_handler = html_handler;
-                        return Err(TucanError::Timeout);
+                        return Ok(Err(TucanError::Timeout));
                     }
                 </body>
             } => () else {
@@ -133,7 +133,7 @@ pub fn html_head<'a>(
                     <body class="access_denied">
                         extern {
                             let _html_handler = html_handler;
-                            return Err(TucanError::AccessDenied);
+                            return Ok(Err(TucanError::AccessDenied));
                         }
                     </body>
                 } => () else {
@@ -145,13 +145,13 @@ pub fn html_head<'a>(
             <head>
         } => ();
     }
-    Ok(html_handler)
+    Ok(Ok(html_handler))
 }
 
 #[must_use]
 pub fn page_start<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>> {
+) -> HtmlResult<InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>> {
     html_extractor::html! {
         <div id="Cn-system-desc">
         </div>
@@ -237,16 +237,16 @@ pub fn page_start<'a>(
                     </a>
                     <ul class="nav depth_1 linkItemContainer">
     };
-    html_handler
+    Ok(html_handler)
 }
 
 #[must_use]
 pub fn vv_something<'a>(
     html_handler: InElement5<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
     VorlesungsverzeichnisUrls,
-) {
+)> {
     // these link ids are incrementing so they are different if used from different
     // contexts. could in theory be calculated based on some starting number
     html_extractor::html! {
@@ -310,30 +310,30 @@ pub fn vv_something<'a>(
             </li>
         </ul>
     };
-    (
+    Ok((
         html_handler,
         VorlesungsverzeichnisUrls {
             lehrveranstaltungssuche_url,
             vvs,
             archiv_links,
         },
-    )
+    ))
 }
 
 #[must_use]
 pub fn logged_in_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     id: u64,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     LoggedInHead,
-) {
+)> {
     assert_ne!(id, 1);
     html_extractor::html! {
         use page_start(html_handler);
         let result = logged_in_head_internal(html_handler, id);
     }
-    (html_handler, result)
+    Ok((html_handler, result))
 }
 
 #[expect(clippy::too_many_lines)]
@@ -341,10 +341,10 @@ pub fn logged_in_head<'a>(
 fn logged_in_head_internal<'a>(
     html_handler: InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     id: u64,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     LoggedInHead,
-) {
+)> {
     assert_ne!(id, 1);
     html_extractor::html! {
                     <li class="tree depth_1 linkItem branchLinkItem " title="Aktuelles" id="link000019">
@@ -1023,7 +1023,7 @@ fn logged_in_head_internal<'a>(
                 </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
     };
-    (
+    Ok((
         html_handler,
         LoggedInHead {
             messages_url,
@@ -1034,30 +1034,30 @@ fn logged_in_head_internal<'a>(
             antraege_url,
             meine_bewerbung_url,
         },
-    )
+    ))
 }
 
 #[must_use]
 pub fn logged_out_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     LoggedOutHead,
-) {
+)> {
     html_extractor::html! {
         use page_start(html_handler);
         let result = logged_out_head_internal(html_handler);
     }
-    (html_handler, result)
+    Ok((html_handler, result))
 }
 
 #[must_use]
 fn logged_out_head_internal<'a>(
     html_handler: InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     LoggedOutHead,
-) {
+)> {
     html_extractor::html! {
                     <li class="intern depth_1 linkItem " title="Startseite" id="link000344">
                         <a
@@ -1167,7 +1167,7 @@ fn logged_out_head_internal<'a>(
                 </div>
                 <div id="contentSpacer_IE" class="pageElementTop">
     }
-    (
+    Ok((
         html_handler,
         LoggedOutHead {
             vorlesungsverzeichnis_url: ActionRequest::parse(
@@ -1175,17 +1175,17 @@ fn logged_out_head_internal<'a>(
             ),
             vv,
         },
-    )
+    ))
 }
 
 #[must_use]
 pub fn logged_in_or_out_head<'a>(
     html_handler: InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     login_response: Option<&LoginResponse>,
-) -> (
+) -> HtmlResult<(
     InElement5<'a, InElement<'a, InRoot<'a, Root<'a>>>>,
     Either<LoggedOutHead, LoggedInHead>,
-) {
+)> {
     html_extractor::html! {
         use page_start(html_handler);
         let result = if html_handler
@@ -1201,7 +1201,7 @@ pub fn logged_in_or_out_head<'a>(
             let b = logged_in_head_internal(html_handler, login_response.unwrap().id);
         } => b;
     }
-    (html_handler, result)
+    Ok((html_handler, result))
 }
 
 #[must_use]
@@ -1209,7 +1209,7 @@ pub fn footer<'a>(
     html_handler: InElement<'a, InElement<'a, InElement<'a, InRoot<'a, Root<'a>>>>>,
     _id: u64,
     _subid: u64,
-) -> InRoot<'a, Root<'a>> {
+) -> HtmlResult<InRoot<'a, Root<'a>>> {
     html_extractor::html! {
                     <div id="pageFoot" class="pageElementTop">
                         <div id="pageFootControls" class="pageElementTop">
@@ -1275,5 +1275,5 @@ pub fn footer<'a>(
             </body>
         </html>
     };
-    html_handler
+    Ok(html_handler)
 }

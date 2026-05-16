@@ -716,14 +716,14 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
                     StringLiteralOrVariable::Literal(lit_str) => {
                         quote_spanned! {lit_str.span()=>
                             #[allow(unused_mut)]
-                            let mut html_handler = html_handler.attribute(#name, #lit_str);
+                            let mut html_handler = html_handler.attribute(#name, #lit_str)?;
                         }
                     }
                     StringLiteralOrVariable::Clousure(_brace, expr) => {
                         quote_spanned! {expr.span()=>
                             #[allow(unused_mut)]
                             let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
-                                html_handler.attribute_value(#name);
+                                html_handler.attribute_value(#name)?;
                             #[allow(clippy::redundant_closure_call)]
                             (#expr)(tmp_internal_html_extractor_proc_macro_2);
                         }
@@ -732,7 +732,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
                         quote_spanned! {ident.span()=>
                             #[allow(unused_mut)]
                             let (mut html_handler, #ident) =
-                                html_handler.attribute_value(#name);
+                                html_handler.attribute_value(#name)?;
                         }
                     }
                 }
@@ -740,12 +740,12 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
 
             let open = quote_spanned! {input.open_start.span()=>
                 #[allow(unused_mut)]
-                let mut html_handler = html_handler.next_child_tag_open_start(#tag);
+                let mut html_handler = html_handler.next_child_tag_open_start(#tag)?;
             };
 
             let close = quote_spanned! {input.open_end.span()=>
                 #[allow(unused_mut)]
-                let mut html_handler = html_handler.tag_open_end();
+                let mut html_handler = html_handler.tag_open_end()?;
             };
 
             quote! {
@@ -766,7 +766,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
             let name = html_element_close.element.to_string();
             quote_spanned! {html_element_close.close_start.span()=>
                 #[allow(unused_mut)]
-                let mut html_handler = html_handler.close_element(#name);
+                let mut html_handler = html_handler.close_element(#name)?;
             }
         }
         HtmlCommand::Comment(_html_comment) => {
@@ -776,14 +776,14 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
             StringLiteralOrVariable::Literal(lit_str) => {
                 quote_spanned! {lit_str.span()=>
                     #[allow(unused_mut)]
-                    let mut html_handler = html_handler.skip_text(#lit_str);
+                    let mut html_handler = html_handler.skip_text(#lit_str)?;
                 }
             }
             StringLiteralOrVariable::Clousure(_brace, expr) => {
                 quote_spanned! {expr.span()=>
                     #[allow(unused_mut)]
                     let (mut html_handler, tmp_internal_html_extractor_proc_macro_2) =
-                        html_handler.text();
+                        html_handler.text()?;
                     #[allow(clippy::redundant_closure_call)]
                     (#expr)(tmp_internal_html_extractor_proc_macro_2);
                 }
@@ -791,7 +791,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
             StringLiteralOrVariable::Variable(ident) => {
                 quote_spanned! {ident.span()=>
                     #[allow(unused_mut)]
-                    let (mut html_handler, #ident) = html_handler.text();
+                    let (mut html_handler, #ident) = html_handler.text()?;
                 }
             }
         },
@@ -800,9 +800,9 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
             expr,
             semi,
         }) => {
-            quote! {
+            quote_spanned! {expr.span()=>
                 #[allow(unused_mut)]
-                let mut html_handler = #expr #semi
+                let mut html_handler = #expr ? #semi
             }
         }
         HtmlCommand::Extern(HtmlExtern { extern_: _, block }) => {
@@ -817,7 +817,7 @@ fn convert_command(command: &HtmlCommand) -> TokenStream {
                 HtmlLetInner::Expr(expr) => {
                     quote_spanned! {expr.span()=>
                         #[allow(unused_mut)]
-                        let (mut html_handler, #variable) = #expr;
+                        let (mut html_handler, #variable) = #expr ?;
                     }
                 }
                 HtmlLetInner::If(HtmlIf {

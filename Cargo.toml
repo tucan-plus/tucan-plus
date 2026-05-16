@@ -41,7 +41,7 @@ scraper = { version = "0.26", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-wasm-bindgen = "0.6"
-sha3 = "0.10"
+sha3 = "0.11"
 sqlite-wasm-rs = { version = "0.5.2" }
 sqlite-wasm-vfs = "0.2.0"
 syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
@@ -56,7 +56,7 @@ url = "2"
 utoipa = "5"
 utoipa-axum = "0.2"
 utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
-wasm-bindgen = { version = "0.2.104" }
+wasm-bindgen = { version = "0.2.115" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
 derive_more = { version = "2.0.1", features = ["from"] }
@@ -66,11 +66,15 @@ keyring-core = { version = "0.7" }
 libsqlite3-sys = { version = "0.36.0", features = ["bundled"] }
 typetag = "0.2"
 # https://github.com/web-extensions-rs/web-extensions/pull/19/changes?w=1
-web-extensions = { git = "https://github.com/web-extensions-rs/web-extensions" }
-web-extensions-sys = { version = "0.4.2" }
+web-extensions = { git = "https://github.com/mohe2015/web-extensions", branch = "fix-closure-unwind" }
+web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
 
 html-extractor = { path = "crates/html-extractor" }
 html-handler = { path = "crates/html-handler" }
 tucan-connector = { path = "crates/tucan-connector" }
 tucan-plus-worker = { path = "crates/tucan-plus-worker" }
 tucan-types = { path = "crates/tucan-types" }
+
+[patch.crates-io]
+indexed_db_futures = { git = "https://github.com/mohe2015/rust-indexed-db", branch = "wasm-unwind" }
+web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }

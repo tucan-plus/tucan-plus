@@ -20,9 +20,9 @@ pub(crate) fn module_details_internal(
     _nothing: &(),
 ) -> Result<ModuleDetailsResponse, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -35,11 +35,11 @@ pub(crate) fn module_details_internal(
                     </style>
                 </head>
                 <body class="moduledetails">
-                    use if login_response.id == 1 {
-                        logged_out_head(html_handler).0
+                    use Ok::<_, String>(if login_response.id == 1 {
+                        logged_out_head(html_handler)?.0
                     } else {
-                        logged_in_head(html_handler, login_response.id).0
-                    };
+                        logged_in_head(html_handler, login_response.id)?.0
+                    });
                     <script type="text/javascript">
                     </script>
                     <h1>
@@ -645,7 +645,7 @@ pub(crate) fn module_details_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 311);
+    let html_handler = footer(html_handler, login_response.id, 311)?;
     html_handler.end_document();
     let modulverantwortliche = modulverantwortliche.unwrap_or_default();
     if modulverantwortliche.is_empty() {

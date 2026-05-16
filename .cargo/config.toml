@@ -1,2 +1,9 @@
-[target.wasm32-unknown-unknown]
-rustflags = ["--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
+[unstable]
+build-std = ["core", "alloc", "std", "panic_unwind", "panic_abort"]
+
+[build]
+target = "wasm32-unknown-unknown"
+rustflags = ["-C", "panic=unwind", "--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
+
+[profile.release]
+panic = "unwind"

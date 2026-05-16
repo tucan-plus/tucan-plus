@@ -26,9 +26,9 @@ pub(crate) fn gradeoverview_internal(
     _nothing: &(),
 ) -> Result<GradeOverviewResponse, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root());
-    let html_handler = html_handler.document_start();
-    let html_handler = html_handler.doctype();
+    let html_handler = Root::new(document.root())?;
+    let html_handler = html_handler.document_start()?;
+    let html_handler = html_handler.doctype()?;
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -145,7 +145,7 @@ pub(crate) fn gradeoverview_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 19);
+    let html_handler = footer(html_handler, login_response.id, 19)?;
     html_handler.end_document();
     Ok(GradeOverviewResponse {
         module_and_semester,
