@@ -77,3 +77,4 @@ tucan-types = { path = "crates/tucan-types" }
 
 [patch.crates-io]
 indexed_db_futures = { git = "https://github.com/mohe2015/rust-indexed-db", branch = "wasm-unwind" }
+web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
