@@ -419,7 +419,7 @@ dependencies = [
 [[package]]
 name = "const-serialize"
 version = "0.8.0-alpha.0"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "const-serialize 0.7.2",
  "const-serialize-macro 0.8.0-alpha.0",
@@ -440,7 +440,7 @@ dependencies = [
 [[package]]
 name = "const-serialize-macro"
 version = "0.8.0-alpha.0"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -771,7 +771,7 @@ dependencies = [
 [[package]]
 name = "dioxus"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-asset-resolver",
  "dioxus-cli-config",
@@ -798,12 +798,12 @@ dependencies = [
 [[package]]
 name = "dioxus-asset-resolver"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-cli-config",
  "http",
  "infer",
- "jni 0.21.1",
+ "jni",
  "js-sys",
  "ndk",
  "ndk-context",
@@ -818,7 +818,7 @@ dependencies = [
 [[package]]
 name = "dioxus-cli-config"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -826,7 +826,7 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -835,12 +835,12 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macros"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 
 [[package]]
 name = "dioxus-core"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "anyhow",
  "const_format",
@@ -862,7 +862,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "convert_case 0.8.0",
  "dioxus-rsx",
@@ -874,12 +874,12 @@ dependencies = [
 [[package]]
 name = "dioxus-core-types"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 
 [[package]]
 name = "dioxus-devtools"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -896,7 +896,7 @@ dependencies = [
 [[package]]
 name = "dioxus-devtools-types"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "serde",
@@ -906,7 +906,7 @@ dependencies = [
 [[package]]
 name = "dioxus-document"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -924,7 +924,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -972,7 +972,7 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.4.2",
+ "wasm-streams",
  "web-sys",
  "xxhash-rust",
 ]
@@ -980,7 +980,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-core"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "anyhow",
  "axum-core",
@@ -1007,7 +1007,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "const_format",
  "convert_case 0.8.0",
@@ -1020,7 +1020,7 @@ dependencies = [
 [[package]]
 name = "dioxus-history"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "tracing",
@@ -1029,7 +1029,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hooks"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "dioxus-signals",
@@ -1044,7 +1044,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1067,7 +1067,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html-internal-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "convert_case 0.8.0",
  "proc-macro2",
@@ -1078,7 +1078,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "js-sys",
  "lazy-js-bundle",
@@ -1093,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "dioxus-logger"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-cli-config",
  "tracing",
@@ -1104,7 +1104,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -1123,7 +1123,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "base16",
  "digest 0.10.7",
@@ -1137,7 +1137,7 @@ dependencies = [
 [[package]]
 name = "dioxus-rsx"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "proc-macro2",
  "proc-macro2-diagnostics",
@@ -1149,7 +1149,7 @@ dependencies = [
 [[package]]
 name = "dioxus-signals"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "futures-channel",
@@ -1164,7 +1164,7 @@ dependencies = [
 [[package]]
 name = "dioxus-stores"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-core",
  "dioxus-signals",
@@ -1175,7 +1175,7 @@ dependencies = [
 [[package]]
 name = "dioxus-stores-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "convert_case 0.8.0",
  "proc-macro2",
@@ -1186,7 +1186,7 @@ dependencies = [
 [[package]]
 name = "dioxus-web"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -1211,7 +1211,7 @@ dependencies = [
  "tracing",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.4.2",
+ "wasm-streams",
  "web-sys",
 ]
 
@@ -1548,7 +1548,7 @@ dependencies = [
 [[package]]
 name = "generational-box"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "parking_lot",
  "tracing",
@@ -1659,8 +1659,9 @@ dependencies = [
 
 [[package]]
 name = "gloo-timers"
-version = "0.4.0"
-source = "git+https://github.com/ranile/gloo.git?rev=552bedcb2ca8c384edc8f66d6bdda6a5e7ec3697#552bedcb2ca8c384edc8f66d6bdda6a5e7ec3697"
+version = "0.3.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bbb143cf96099802033e0d4f4963b19fd2e0b728bcf076cd9cf7f6634f092994"
 dependencies = [
  "futures-channel",
  "futures-core",
@@ -2151,36 +2152,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "jni"
-version = "0.22.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5efd9a482cf3a427f00d6b35f14332adc7902ce91efb778580e180ff90fa3498"
-dependencies = [
- "cfg-if",
- "combine",
- "jni-macros",
- "jni-sys 0.4.1",
- "log",
- "simd_cesu8",
- "thiserror 2.0.18",
- "walkdir",
- "windows-link",
-]
-
-[[package]]
-name = "jni-macros"
-version = "0.22.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a00109accc170f0bdb141fed3e393c565b6f5e072365c3bd58f5b062591560a3"
-dependencies = [
- "proc-macro2",
- "quote",
- "rustc_version",
- "simd_cesu8",
- "syn",
-]
-
-[[package]]
 name = "jni-sys"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2220,12 +2191,10 @@ dependencies = [
 
 [[package]]
 name = "js-sys"
-version = "0.3.92"
+version = "0.3.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cc4c90f45aa2e6eacbe8645f77fdea542ac97a494bcd117a67df9ff4d611f995"
+checksum = "464a3709c7f55f1f721e5389aa6ea4e3bc6aba669353300af094b29ffbdde1d8"
 dependencies = [
- "cfg-if",
- "futures-util",
  "once_cell",
  "wasm-bindgen",
 ]
@@ -2267,7 +2236,7 @@ checksum = "a4933f3f57a8e9d9da04db23fb153356ecaf00cbd14aee46279c33dc80925c37"
 [[package]]
 name = "lazy-js-bundle"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 
 [[package]]
 name = "lazy_static"
@@ -2415,11 +2384,11 @@ dependencies = [
 [[package]]
 name = "manganis"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "const-serialize 0.7.2",
  "const-serialize 0.8.0-alpha.0",
- "jni 0.21.1",
+ "jni",
  "manganis-core",
  "manganis-macro",
  "ndk-context",
@@ -2430,7 +2399,7 @@ dependencies = [
 [[package]]
 name = "manganis-core"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "const-serialize 0.7.2",
  "const-serialize 0.8.0-alpha.0",
@@ -2443,7 +2412,7 @@ dependencies = [
 [[package]]
 name = "manganis-macro"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "dunce",
  "macro-string",
@@ -3187,16 +3156,16 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.4.2",
+ "wasm-streams",
  "web-sys",
  "webpki-roots",
 ]
 
 [[package]]
 name = "reqwest"
-version = "0.13.3"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62e0021ea2c22aed41653bc7e1419abb2c97e038ff2c33d0e1309e49a97deec0"
+checksum = "04e9018c9d814e5f30cc16a0f03271aeab3571e609612d9fe78c1aa8d11c2f62"
 dependencies = [
  "base64",
  "bytes",
@@ -3232,7 +3201,7 @@ dependencies = [
  "url",
  "wasm-bindgen",
  "wasm-bindgen-futures",
- "wasm-streams 0.5.0",
+ "wasm-streams",
  "web-sys",
 ]
 
@@ -3333,13 +3302,13 @@ dependencies = [
 
 [[package]]
 name = "rustls-platform-verifier"
-version = "0.7.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "26d1e2536ce4f35f4846aa13bff16bd0ff40157cdb14cc056c7b14ba41233ba0"
+checksum = "1d99feebc72bae7ab76ba994bb5e121b8d83d910ca40b36e0921f53becc41784"
 dependencies = [
  "core-foundation",
  "core-foundation-sys",
- "jni 0.22.4",
+ "jni",
  "log",
  "once_cell",
  "rustls",
@@ -3653,22 +3622,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
-name = "simd_cesu8"
-version = "1.1.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "94f90157bb87cddf702797c5dadfa0be7d266cdf49e22da2fcaa32eff75b2c33"
-dependencies = [
- "rustc_version",
- "simdutf8",
-]
-
-[[package]]
-name = "simdutf8"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
-
-[[package]]
 name = "siphasher"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3808,7 +3761,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "subsecond"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "js-sys",
  "libc",
@@ -3826,7 +3779,7 @@ dependencies = [
 [[package]]
 name = "subsecond-types"
 version = "0.7.9"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#5efb047b53f538f6e8cce720dfa8a6e935f4247c"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=wip#a4ad5d4c311528d3d742045ae186f1bd9094c6fa"
 dependencies = [
  "serde",
 ]
@@ -4214,7 +4167,7 @@ dependencies = [
  "js-sys",
  "log",
  "regex",
- "reqwest 0.13.3",
+ "reqwest 0.13.1",
  "scraper",
  "serde",
  "sha3",
@@ -4248,7 +4201,7 @@ dependencies = [
  "num",
  "plotters",
  "rand 0.10.1",
- "reqwest 0.13.3",
+ "reqwest 0.13.1",
  "serde",
  "serde-wasm-bindgen",
  "serde_json",
@@ -4304,7 +4257,7 @@ dependencies = [
  "axum-core",
  "dynosaur",
  "regex",
- "reqwest 0.13.3",
+ "reqwest 0.13.1",
  "serde",
  "thiserror 2.0.18",
  "utoipa",
@@ -4552,9 +4505,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen"
-version = "0.2.115"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6523d69017b7633e396a89c5efab138161ed5aafcbc8d3e5c5a42ae38f50495a"
+checksum = "0d759f433fa64a2d763d1340820e46e111a7a5ab75f993d1852d70b03dbb80fd"
 dependencies = [
  "cfg-if",
  "once_cell",
@@ -4565,19 +4518,22 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-futures"
-version = "0.4.65"
+version = "0.4.56"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2d1faf851e778dfa54db7cd438b70758eba9755cb47403f3496edd7c8fc212f0"
+checksum = "836d9622d604feee9e5de25ac10e3ea5f2d65b41eac0d9ce72eb5deae707ce7c"
 dependencies = [
+ "cfg-if",
  "js-sys",
+ "once_cell",
  "wasm-bindgen",
+ "web-sys",
 ]
 
 [[package]]
 name = "wasm-bindgen-macro"
-version = "0.2.115"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4e3a6c758eb2f701ed3d052ff5737f5bfe6614326ea7f3bbac7156192dc32e67"
+checksum = "48cb0d2638f8baedbc542ed444afc0644a29166f1595371af4fecf8ce1e7eeb3"
 dependencies = [
  "quote",
  "wasm-bindgen-macro-support",
@@ -4585,9 +4541,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-macro-support"
-version = "0.2.115"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "921de2737904886b52bcbb237301552d05969a6f9c40d261eb0533c8b055fedf"
+checksum = "cefb59d5cd5f92d9dcf80e4683949f15ca4b511f4ac0a6e14d4e1ac60c6ecd40"
 dependencies = [
  "bumpalo",
  "proc-macro2",
@@ -4598,9 +4554,9 @@ dependencies = [
 
 [[package]]
 name = "wasm-bindgen-shared"
-version = "0.2.115"
+version = "0.2.106"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a93e946af942b58934c604527337bad9ae33ba1d5c6900bbb41c2c07c2364a93"
+checksum = "cbc538057e648b67f72a982e708d485b2efa771e1ac05fec311f9f63e5800db4"
 dependencies = [
  "unicode-ident",
 ]
@@ -4632,19 +4588,6 @@ name = "wasm-streams"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "15053d8d85c7eccdbefef60f06769760a563c7f0a9d6902a13d35c7800b0ad65"
-dependencies = [
- "futures-util",
- "js-sys",
- "wasm-bindgen",
- "wasm-bindgen-futures",
- "web-sys",
-]
-
-[[package]]
-name = "wasm-streams"
-version = "0.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d1ec4f6517c9e11ae630e200b2b65d193279042e28edd4a2cda233e46670bbb"
 dependencies = [
  "futures-util",
  "js-sys",
@@ -4694,9 +4637,9 @@ dependencies = [
 
 [[package]]
 name = "web-sys"
-version = "0.3.92"
+version = "0.3.83"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "84cde8507f4d7cfcb1185b8cb5890c494ffea65edbe1ba82cfd63661c805ed94"
+checksum = "9b32828d774c412041098d182a8b38b16ea816958e07cf40eec2bc080ae137ac"
 dependencies = [
  "js-sys",
  "wasm-bindgen",
