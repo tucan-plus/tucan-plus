@@ -777,9 +777,8 @@ impl MyDatabase {
         let navigator = Navigator::from(
             Reflect::get(&js_sys::global(), &JsValue::from_str("navigator")).unwrap(),
         );
-        let lock_manager = navigator.locks();
         let lock_closure: Closure<dyn Fn(_) -> Promise> = {
-            Closure::new(move |_event: web_sys::Lock| {
+            Closure::new(move |_event: u32| {
                 let mut cb = |_resolve: js_sys::Function, reject: js_sys::Function| {
                     use web_sys::{WorkerOptions, WorkerType};
 
@@ -809,8 +808,6 @@ impl MyDatabase {
                 js_sys::Promise::new(&mut cb)
             })
         };
-        let _intentional =
-            lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
