@@ -182,18 +182,7 @@ pub(crate) fn anmeldung_internal(
                             } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some()
-                        && html_handler
-                            .peek()
-                            .and_then(ego_tree::NodeRef::next_sibling)
-                            .and_then(|e| e.value().as_element())
-                            .is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
-                        let child = html_handler.next_any_child();
-                    } => if let MyNode::Element(_element) = child.value() {
-                        Some(MyElementRef::wrap(child).unwrap().html())
-                    } else {
-                        panic!()
-                    };
+
                     <br></br>
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
@@ -465,7 +454,7 @@ pub(crate) fn anmeldung_internal(
         </div>
     };
     let html_handler = footer(html_handler, login_response.id, 311)?;
-    html_handler.end_document();
+    html_handler.end_document()?;
     let path: Vec<(String, AnmeldungRequest)> = path.into_iter().flatten().collect();
     Ok(AnmeldungResponse {
         studiumsauswahl: studiumsauswahl.unwrap_or_else(|| {
@@ -478,6 +467,6 @@ pub(crate) fn anmeldung_internal(
         path,
         submenus: submenus.unwrap_or_default(),
         entries: anmeldung_entries.unwrap_or_default(),
-        additional_information: additional_information.into_iter().flatten().collect(),
+        additional_information: Vec::new(),
     })
 }

@@ -5,5 +5,8 @@ build-std = ["core", "alloc", "std", "panic_unwind", "panic_abort"]
 target = "wasm32-unknown-unknown"
 rustflags = ["-C", "panic=unwind", "--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
 
+[profile.dev]
+panic = "unwind"
+
 [profile.release]
 panic = "unwind"

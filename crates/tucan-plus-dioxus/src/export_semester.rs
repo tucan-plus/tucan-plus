@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::panic::AssertUnwindSafe;
 use std::time::Duration;
 
 use crate::{RcTucanType, common::decompress};
@@ -26,49 +27,55 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     mut atomic_total: SyncSignal<BigRational>,
     anmeldung_request: AnmeldungRequest,
 ) -> BoxStream<'a, AnmeldungResponse> {
-    tucan
-        .anmeldung(
-            login_response,
-            RevalidationStrategy::cache(),
-            anmeldung_request.clone(),
-        )
-        .into_stream()
-        .flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
-            let factor = factor.clone();
-            let element = element.unwrap();
-            if element.submenus.is_empty() {
-                if factor > BigRational::from_f64(0.01).unwrap() {
-                    let factor = factor.clone();
-                    atomic_total.with_mut(|total| *total -= factor);
-                } else {
-                    let factor = factor.clone();
-                    atomic_current.with_mut(|value| {
-                        *value += factor;
-                    })
-                }
+    AssertUnwindSafe(tucan.anmeldung(
+        login_response,
+        RevalidationStrategy::cache(),
+        anmeldung_request.clone(),
+    ))
+    .catch_unwind()
+    .map(|fut| {
+        fut.ok()
+            .unwrap_or(Err(TucanError::ParseError(String::new())))
+    })
+    .into_stream()
+    .flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
+        let factor = factor.clone();
+        let Ok(element) = element else {
+            return futures::stream::empty().boxed();
+        }; // now it will panic here?
+        if element.submenus.is_empty() {
+            if factor > BigRational::from_f64(0.01).unwrap() {
+                let factor = factor.clone();
+                atomic_total.with_mut(|total| *total -= factor);
+            } else {
+                let factor = factor.clone();
+                atomic_current.with_mut(|value| {
+                    *value += factor;
+                })
             }
-            futures::stream::once({
-                let element = element.clone();
-                async move { element.clone() }
-            })
-            .chain(
-                futures::stream::iter(element.submenus.clone()).flat_map_unordered(
-                    None,
-                    move |entry| {
-                        recursive_anmeldung(
-                            tucan,
-                            login_response,
-                            factor.clone()
-                                / BigRational::from_integer(element.submenus.len().into()),
-                            atomic_current,
-                            atomic_total,
-                            entry.1.clone(),
-                        )
-                    },
-                ),
-            )
+        }
+        futures::stream::once({
+            let element = element.clone();
+            async move { element.clone() }
         })
+        .chain(
+            futures::stream::iter(element.submenus.clone()).flat_map_unordered(
+                None,
+                move |entry| {
+                    recursive_anmeldung(
+                        tucan,
+                        login_response,
+                        factor.clone() / BigRational::from_integer(element.submenus.len().into()),
+                        atomic_current,
+                        atomic_total,
+                        entry.1.clone(),
+                    )
+                },
+            ),
+        )
         .boxed()
+    })
+    .boxed()
 }
 
 #[derive(Serialize, Deserialize)]

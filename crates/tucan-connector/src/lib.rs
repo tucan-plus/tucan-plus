@@ -1,4 +1,6 @@
+use core::panic;
 use std::{
+    panic::RefUnwindSafe,
     sync::{Arc, LazyLock},
     time::Duration,
 };
@@ -58,7 +60,8 @@ pub fn h(input: &str) -> String {
     BASE64URL_NOPAD.encode(&Sha3_256::digest(input))
 }
 
-pub async fn fetch_with_cache<Request, Response>(
+// maybe async function don't support panic unwind yet?
+pub async fn fetch_with_cache<Request: RefUnwindSafe, Response>(
     tucan: &TucanConnector,
     login_response: &LoginResponse,
     revalidation_strategy: RevalidationStrategy,
@@ -93,7 +96,10 @@ pub async fn fetch_with_cache<Request, Response>(
 
     let (content, date) =
         authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
-    let result = parser(login_response, &content, request)?;
+
+    let result = std::panic::catch_unwind(|| parser(login_response, &content, request))
+        .ok()
+        .unwrap_or(Err(TucanError::ParseError(String::new())))?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
         // TODO invalidate cached ones?
     }
