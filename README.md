@@ -106,15 +106,11 @@ export VARIANT=release
 
 # dioxus serve and --release seems to not be a valid configuration currently
 
-mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+mkdir -p /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-dx serve --web --verbose --base-path public --hot-patch
-rustup default nightly
+dx serve --web --verbose --base-path public --hot-patch=false
 
-RUSTFLAGS="-Cpanic=unwind --cfg=web_sys_unstable_apis" cargo +nightly build --target wasm32-unknown-unknown -Zbuild-std=std,panic_unwind
-
-dx serve --rustc-args="-Cpanic=unwind" --cargo-args="-Zbuild-std=std,panic_unwind" --web --verbose --base-path public --hot-patch
 dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 
