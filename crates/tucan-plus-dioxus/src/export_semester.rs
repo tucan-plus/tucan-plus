@@ -1,4 +1,5 @@
 use std::collections::{HashMap, HashSet};
+use std::ops::Add;
 use std::panic::AssertUnwindSafe;
 use std::time::Duration;
 
@@ -37,13 +38,22 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     ))
     .catch_unwind()
     .map(|fut| {
-        fut.ok()
-            .unwrap_or(Err(TucanError::ParseError(String::new())))
+        fut.unwrap_or_else(|err| {
+            if let Some(s) = err.downcast_ref::<&str>() {
+                tracing::error!("panic occurred: {s:?}");
+            } else if let Some(s) = err.downcast_ref::<String>() {
+                tracing::error!("panic occurred: {s:?}");
+            } else {
+                tracing::error!("panic occurred");
+            }
+            Err(TucanError::ParseError(String::new()))
+        })
     })
     .into_stream()
     .flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
         let factor = factor.clone();
         let Ok(element) = element else {
+            atomic_failed_count += 1;
             if factor > BigRational::from_f64(0.01).unwrap() {
                 let factor = factor.clone();
                 atomic_total
@@ -55,11 +65,12 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                 let factor = factor.clone();
                 atomic_failed.with_mut(|value| {
                     *value += factor;
-                })
+                });
             }
             return futures::stream::empty().boxed();
         }; // now it will panic here?
         if element.submenus.is_empty() {
+            atomic_current_count += 1;
             if factor > BigRational::from_f64(0.01).unwrap() {
                 let factor = factor.clone();
                 atomic_total
