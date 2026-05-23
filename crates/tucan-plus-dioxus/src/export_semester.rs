@@ -24,7 +24,9 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     login_response: &'b LoginResponse,
     factor: BigRational,
     mut atomic_current: SyncSignal<BigRational>,
+    mut atomic_current_count: SyncSignal<usize>,
     mut atomic_failed: SyncSignal<BigRational>,
+    mut atomic_failed_count: SyncSignal<usize>,
     mut atomic_total: SyncSignal<BigRational>,
     anmeldung_request: AnmeldungRequest,
 ) -> BoxStream<'a, AnmeldungResponse> {
@@ -85,7 +87,9 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                         login_response,
                         factor.clone() / BigRational::from_integer(element.submenus.len().into()),
                         atomic_current,
+                        atomic_current_count,
                         atomic_failed,
+                        atomic_failed_count,
                         atomic_total,
                         entry.1.clone(),
                     )
@@ -112,7 +116,9 @@ pub fn FetchAnmeldung() -> Element {
     let mut progresses = use_signal(
         Vec::<(
             SyncSignal<BigRational>,
+            SyncSignal<usize>,
             SyncSignal<BigRational>,
+            SyncSignal<usize>,
             SyncSignal<BigRational>,
         )>::new,
     );
@@ -139,7 +145,9 @@ pub fn FetchAnmeldung() -> Element {
             for course_of_study in anmeldung_response.studiumsauswahl {
                 let session = current_session_handle().unwrap();
                 let atomic_current = use_signal_sync(BigRational::zero);
+                let atomic_current_count = use_signal_sync(|| 0usize);
                 let atomic_failed = use_signal_sync(BigRational::zero);
+                let atomic_failed_count = use_signal_sync(|| 0usize);
                 let atomic_total = use_signal_sync(BigRational::one);
                 spawn({
                     let mut result = result;
@@ -153,7 +161,9 @@ pub fn FetchAnmeldung() -> Element {
                             &session,
                             BigRational::new(BigInt::from(1), BigInt::from(3)),
                             atomic_current,
+                            atomic_current_count,
                             atomic_failed,
+                            atomic_failed_count,
                             atomic_total,
                             course_of_study.value.clone(),
                         );
@@ -222,7 +232,13 @@ pub fn FetchAnmeldung() -> Element {
                         loading.set(false);
                     }
                 });
-                progresses.push((atomic_current, atomic_failed, atomic_total));
+                progresses.push((
+                    atomic_current,
+                    atomic_current_count,
+                    atomic_failed,
+                    atomic_failed_count,
+                    atomic_total,
+                ));
             }
         }
     };
@@ -284,20 +300,20 @@ pub fn FetchAnmeldung() -> Element {
                     div {
                         class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
                         "aria-valuemin": "0", "aria-valuemax": "100",
-                        style: format!("width: {}%", (progress.0()/progress.2()).to_f64().unwrap()*100.0),
+                        style: format!("width: {}%", (progress.0()/progress.4()).to_f64().unwrap()*100.0),
                         div { class: "progress-bar",
-                            { format!("{:.2}%", (progress.0()/progress.2()).to_f64().unwrap()*100.0) }
+
                         }
                     }
                     div {
                         class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
                         "aria-valuemin": "0", "aria-valuemax": "100",
-                        style: format!("width: {}%", (progress.1()/progress.2()).to_f64().unwrap()*100.0),
+                        style: format!("width: {}%", (progress.2()/progress.4()).to_f64().unwrap()*100.0),
                         div { class: "progress-bar bg-danger",
-                            { format!("{:.2}%", (progress.1()/progress.2()).to_f64().unwrap()*100.0) }
                         }
                     }
                 }
+                { format!("{} / {} / {}", progress.1(), progress.3(), progress.1() + progress.3()) }
             }
         }
     }
