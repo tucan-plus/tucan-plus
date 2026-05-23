@@ -97,9 +97,7 @@ pub async fn fetch_with_cache<Request: RefUnwindSafe, Response>(
     let (content, date) =
         authenticated_retryable_get(tucan, &url, &login_response.cookie_cnsc).await?;
 
-    let result = std::panic::catch_unwind(|| parser(login_response, &content, request))
-        .ok()
-        .unwrap_or(Err(TucanError::ParseError(String::new())))?;
+    let result = parser(login_response, &content, request)?;
     if invalidate_dependents && old_content_and_date.as_ref().map(|m| &m.key) != Some(&content) {
         // TODO invalidate cached ones?
     }
