@@ -24,6 +24,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     login_response: &'b LoginResponse,
     factor: BigRational,
     mut atomic_current: SyncSignal<BigRational>,
+    mut atomic_failed: SyncSignal<BigRational>,
     mut atomic_total: SyncSignal<BigRational>,
     anmeldung_request: AnmeldungRequest,
 ) -> BoxStream<'a, AnmeldungResponse> {
@@ -41,6 +42,10 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     .flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
         let factor = factor.clone();
         let Ok(element) = element else {
+            let factor = factor.clone();
+            atomic_failed.with_mut(|value| {
+                *value += factor;
+            });
             return futures::stream::empty().boxed();
         }; // now it will panic here?
         if element.submenus.is_empty() {
@@ -67,6 +72,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
                         login_response,
                         factor.clone() / BigRational::from_integer(element.submenus.len().into()),
                         atomic_current,
+                        atomic_failed,
                         atomic_total,
                         entry.1.clone(),
                     )
@@ -90,7 +96,13 @@ pub fn FetchAnmeldung() -> Element {
     let tucan: RcTucanType = use_context();
     let current_session_handle = use_context::<Signal<Option<LoginResponse>>>();
     let mut loading = use_signal(|| false);
-    let mut progresses = use_signal(Vec::<(SyncSignal<BigRational>, SyncSignal<BigRational>)>::new);
+    let mut progresses = use_signal(
+        Vec::<(
+            SyncSignal<BigRational>,
+            SyncSignal<BigRational>,
+            SyncSignal<BigRational>,
+        )>::new,
+    );
 
     let onclick = move |_event| {
         let tucan = tucan.clone();
@@ -114,21 +126,25 @@ pub fn FetchAnmeldung() -> Element {
             for course_of_study in anmeldung_response.studiumsauswahl {
                 let session = current_session_handle().unwrap();
                 let atomic_current = use_signal_sync(BigRational::zero);
+                let atomic_failed = use_signal_sync(BigRational::zero);
                 let atomic_total = use_signal_sync(BigRational::one);
                 spawn({
                     let mut result = result;
                     let tucan = tucan.clone();
                     async move {
                         let mut atomic_current = atomic_current;
+                        let mut atomic_failed = atomic_failed;
                         let atomic_total = atomic_total;
                         let response = recursive_anmeldung(
                             &tucan.0,
                             &session,
                             BigRational::new(BigInt::from(1), BigInt::from(3)),
                             atomic_current,
+                            atomic_failed,
                             atomic_total,
                             course_of_study.value.clone(),
                         );
+                        // here we could also handle this?
                         let response = response.collect::<Vec<AnmeldungResponse>>().await;
                         let modules: HashSet<_> = response
                             .iter()
@@ -193,7 +209,7 @@ pub fn FetchAnmeldung() -> Element {
                         loading.set(false);
                     }
                 });
-                progresses.push((atomic_current, atomic_total));
+                progresses.push((atomic_current, atomic_failed, atomic_total));
             }
         }
     };
@@ -251,11 +267,23 @@ pub fn FetchAnmeldung() -> Element {
             }
             for progress in progresses() {
                 div {
-                class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
-                "aria-valuemin": "0", "aria-valuemax": "100",
-                        div { class: "progress-bar", style: format!("width: {}%", (progress.0()/progress.1()).to_f64().unwrap()*100.0),
-                            { format!("{:.2}%", (progress.0()/progress.1()).to_f64().unwrap()*100.0) }
+                    class: "progress-stacked",
+                    div {
+                        class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
+                        "aria-valuemin": "0", "aria-valuemax": "100",
+                        style: format!("width: {}%", (progress.0()/progress.2()).to_f64().unwrap()*100.0),
+                        div { class: "progress-bar",
+                            { format!("{:.2}%", (progress.0()/progress.2()).to_f64().unwrap()*100.0) }
                         }
+                    }
+                    div {
+                        class: "progress", role:"progressbar", "aria-label": "Basic example", "aria-valuenow": "25",
+                        "aria-valuemin": "0", "aria-valuemax": "100",
+                        style: format!("width: {}%", (progress.1()/progress.2()).to_f64().unwrap()*100.0),
+                        div { class: "progress-bar bg-danger",
+                            { format!("{:.2}%", (progress.1()/progress.2()).to_f64().unwrap()*100.0) }
+                        }
+                    }
                 }
             }
         }
