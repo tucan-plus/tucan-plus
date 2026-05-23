@@ -42,16 +42,29 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
     .flat_map(move |element: Result<AnmeldungResponse, TucanError>| {
         let factor = factor.clone();
         let Ok(element) = element else {
-            let factor = factor.clone();
-            atomic_failed.with_mut(|value| {
-                *value += factor;
-            });
+            if factor > BigRational::from_f64(0.01).unwrap() {
+                let factor = factor.clone();
+                atomic_total
+                    .with_mut(|total| *total -= factor - BigRational::from_f64(0.01).unwrap());
+                atomic_failed.with_mut(|value| {
+                    *value += BigRational::from_f64(0.01).unwrap();
+                })
+            } else {
+                let factor = factor.clone();
+                atomic_failed.with_mut(|value| {
+                    *value += factor;
+                })
+            }
             return futures::stream::empty().boxed();
         }; // now it will panic here?
         if element.submenus.is_empty() {
             if factor > BigRational::from_f64(0.01).unwrap() {
                 let factor = factor.clone();
-                atomic_total.with_mut(|total| *total -= factor);
+                atomic_total
+                    .with_mut(|total| *total -= factor - BigRational::from_f64(0.01).unwrap());
+                atomic_current.with_mut(|value| {
+                    *value += BigRational::from_f64(0.01).unwrap();
+                })
             } else {
                 let factor = factor.clone();
                 atomic_current.with_mut(|value| {
