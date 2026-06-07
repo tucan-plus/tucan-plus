@@ -105,14 +105,6 @@ pub enum TucanError {
     NotCached,
     #[error("Login required")]
     LoginRequired,
-    #[error("Parse error {0}")]
-    ParseError(String),
-}
-
-impl From<String> for TucanError {
-    fn from(error: String) -> Self {
-        TucanError::ParseError(error)
-    }
 }
 
 impl IntoResponse for TucanError {
@@ -131,7 +123,6 @@ impl IntoResponse for TucanError {
             }
             Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
             Self::LoginRequired => (StatusCode::UNAUTHORIZED, "login required").into_response(),
-            Self::ParseError(error) => (StatusCode::INTERNAL_SERVER_ERROR, error).into_response(),
         }
     }
 }
