@@ -753,7 +753,7 @@ pub(crate) fn course_details_internal(
             anmeldefristen.unwrap_right()
         }
     });
-    html_handler.end_document();
+    html_handler.end_document()?;
 
     let instructors = instructors.unwrap_or_default();
     match dozent.as_deref() {

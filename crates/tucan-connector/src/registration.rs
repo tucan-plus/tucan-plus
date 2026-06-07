@@ -1,7 +1,6 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
-use scraper::CaseSensitivity;
 use tucan_types::{
     LoginResponse,
     coursedetails::CourseDetailsRequest,

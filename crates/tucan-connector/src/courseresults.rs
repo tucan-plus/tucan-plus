@@ -185,7 +185,7 @@ pub(crate) fn course_results_internal(
         </div>
         use footer(html_handler, login_response.id, 326);
     }
-    html_handler.end_document();
+    html_handler.end_document()?;
     Ok(ModuleResultsResponse {
         semester,
         results,

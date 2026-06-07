@@ -146,7 +146,7 @@ pub(crate) fn gradeoverview_internal(
         </div>
     };
     let html_handler = footer(html_handler, login_response.id, 19)?;
-    html_handler.end_document();
+    html_handler.end_document()?;
     Ok(GradeOverviewResponse {
         module_and_semester,
         modulangebot,

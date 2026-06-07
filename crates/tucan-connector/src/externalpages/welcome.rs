@@ -48,6 +48,6 @@ pub async fn welcome(connector: &TucanConnector) -> Result<LoggedOutHead, TucanE
         </div>
         use footer(html_handler, 1, 344);
     }
-    html_handler.end_document();
+    html_handler.end_document()?;
     Ok(vv)
 }

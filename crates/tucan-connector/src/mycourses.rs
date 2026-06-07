@@ -164,6 +164,6 @@ pub(crate) fn my_courses_internal(
         </div>
         use footer(html_handler, login_response.id, 326);
     }
-    html_handler.end_document();
+    html_handler.end_document()?;
     Ok(MyCoursesResponse { semester, sections })
 }
