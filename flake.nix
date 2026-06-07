@@ -7,6 +7,11 @@
     crane.url = "github:ipetkov/crane";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -15,6 +20,7 @@
       nixpkgs,
       crane,
       flake-utils,
+      rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -22,13 +28,25 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          config.allowUnfree = true;
-          config.android_sdk.accept_license = true;
+          overlays = [ (import rust-overlay) ];
         };
 
         inherit (pkgs) lib;
 
-        craneLib = crane.mkLib pkgs;
+        # https://crane.dev/examples/build-std.html
+
+        rustToolchainFor =
+          p:
+          p.rust-bin.selectLatestNightlyWith (
+            toolchain:
+            toolchain.default.override {
+              extensions = [ "rust-src" ];
+            targets = [ "wasm32-unknown-unknown" ];
+            }
+          );
+        rustToolchain = rustToolchainFor pkgs;
+
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
 
         cargoDioxus =
           craneLib:
@@ -103,7 +121,6 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/Dioxus.toml
-          ./crates/tucan-plus-dioxus/.cargo/config.toml
         ];
 
         fileset-wasm = lib.fileset.unions [
@@ -164,6 +181,22 @@
         ];
 
         client-args = rec {
+          cargoVendorDir = craneLib.vendorMultipleCargoDeps {
+            inherit (craneLib.findCargoFiles src) cargoConfigs;
+            cargoLockList = [
+              ./Cargo.lock
+
+              # Unfortunately this approach requires IFD (import-from-derivation)
+              # otherwise Nix will refuse to read the Cargo.lock from our toolchain
+              # (unless we build with `--impure`).
+              #
+              # Another way around this is to manually copy the rustlib `Cargo.lock`
+              # to the repo and import it with `./path/to/rustlib/Cargo.lock` which
+              # will avoid IFD entirely but will require manually keeping the file
+              # up to date!
+              "${rustToolchain.passthru.availableComponents.rust-src}/lib/rustlib/src/rust/library/Cargo.lock"
+            ];
+          };
           dioxusExtraArgs = "--web";
           CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
           dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
@@ -220,8 +253,20 @@
           checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
             pkgs.which
-            pkgs.wasm-bindgen-cli_0_2_114
             pkgs.binaryen
+            (pkgs.buildWasmBindgenCli rec {
+              src = pkgs.fetchCrate {
+                pname = "wasm-bindgen-cli";
+                version = "0.2.122";
+                hash = "sha256-vO4RSxi/sMWxmsEs3GuljdMfIRSu75A+Q+c5wgYToRU=";
+              };
+
+              cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+                inherit src;
+                inherit (src) pname version;
+                hash = "sha256-Inup6vvJSG5ghNyeDPyZbfZo4d0LsMG2OJfStoaeDBs=";
+              };
+            })
             pkgs.llvmPackages_21.bintools
           ];
           doNotPostBuildInstallCargoBinaries = true;
