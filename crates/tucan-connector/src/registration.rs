@@ -1,6 +1,7 @@
 use std::sync::LazyLock;
 
 use regex::Regex;
+use scraper::CaseSensitivity;
 use tucan_types::{
     LoginResponse,
     coursedetails::CourseDetailsRequest,
@@ -59,9 +60,9 @@ pub(crate) fn anmeldung_internal(
         Regex::new(r"^\p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\] - \p{Alphabetic}{2}, \d{1,2}\. \p{Alphabetic}{3}\. \d{4} \[\d\d:\d\d\]$").unwrap()
     });
     let document = parse_document(content);
-    let html_handler = Root::new(document.root())?;
-    let html_handler = html_handler.document_start()?;
-    let html_handler = html_handler.doctype()?;
+    let html_handler = Root::new(document.root());
+    let html_handler = html_handler.document_start();
+    let html_handler = html_handler.doctype();
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -74,7 +75,7 @@ pub(crate) fn anmeldung_internal(
                     </style>
                 </head>
                 <body class="registration">
-                    use Ok::<_, String>(logged_in_head(html_handler, login_response.id)?.0);
+                    use logged_in_head(html_handler, login_response.id).0;
                     <script type="text/javascript">
                     </script>
                     <h1>
@@ -181,7 +182,18 @@ pub(crate) fn anmeldung_internal(
                             } => (item, AnmeldungRequest::parse(&REGISTRATION_REGEX.replace(&url, "")));
                         </ul>
                     } => submenus;
-
+                    let additional_information = while html_handler.peek().unwrap().next_sibling().is_some()
+                        && html_handler
+                            .peek()
+                            .and_then(ego_tree::NodeRef::next_sibling)
+                            .and_then(|e| e.value().as_element())
+                            .is_none_or(|e| !e.has_class("tbcoursestatus", CaseSensitivity::CaseSensitive)) {
+                        let child = html_handler.next_any_child();
+                    } => if let MyNode::Element(_element) = child.value() {
+                        Some(MyElementRef::wrap(child).unwrap().html())
+                    } else {
+                        panic!()
+                    };
                     <br></br>
                     let anmeldung_entries = if html_handler.peek().is_some() {
                         <table class="tbcoursestatus rw-table rw-all">
@@ -452,8 +464,8 @@ pub(crate) fn anmeldung_internal(
             </div>
         </div>
     };
-    let html_handler = footer(html_handler, login_response.id, 311)?;
-    html_handler.end_document()?;
+    let html_handler = footer(html_handler, login_response.id, 311);
+    html_handler.end_document();
     let path: Vec<(String, AnmeldungRequest)> = path.into_iter().flatten().collect();
     Ok(AnmeldungResponse {
         studiumsauswahl: studiumsauswahl.unwrap_or_else(|| {
@@ -466,6 +478,6 @@ pub(crate) fn anmeldung_internal(
         path,
         submenus: submenus.unwrap_or_default(),
         entries: anmeldung_entries.unwrap_or_default(),
-        additional_information: Vec::new(),
+        additional_information: additional_information.into_iter().flatten().collect(),
     })
 }

@@ -2,7 +2,6 @@ use std::sync::LazyLock;
 
 use crate::head::{footer, html_head, logged_in_head, logged_out_head};
 use ego_tree::NodeRef;
-use html_handler::HtmlResult;
 use html_handler::{InElement, MyNode, Root, parse_document};
 use regex::Regex;
 use scraper::CaseSensitivity;
@@ -30,7 +29,7 @@ fn get_level(node: &NodeRef<MyNode>) -> i8 {
 fn part0<T>(
     html_handler: InElement<'_, T>,
     level: i8,
-) -> HtmlResult<(InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>)> {
+) -> (InElement<'_, T>, Option<(String, Vec<StudentResultEntry>)>) {
     html_extractor::html! {
         let result = if get_level(html_handler.peek().unwrap()) == level {
             <tr class={|l| assert_eq!(l, format!("subhead level0{level}"))}>
@@ -116,7 +115,7 @@ fn part0<T>(
             };
         } => (level_i, entries);
     }
-    Ok((html_handler, result))
+    (html_handler, result)
 }
 
 fn parse_rules(rules: &[String]) -> StudentResultRules {
@@ -176,7 +175,7 @@ fn part1<T>(
     level: i8,
     name: Option<(String, Vec<StudentResultEntry>)>,
     children: Vec<StudentResultLevel>,
-) -> HtmlResult<(InElement<'_, T>, StudentResultLevel)> {
+) -> (InElement<'_, T>, StudentResultLevel) {
     html_extractor::html! {
         let optional = if html_handler
             .peek()
@@ -260,7 +259,7 @@ fn part1<T>(
             )
         };
     }
-    Ok((
+    (
         html_handler,
         StudentResultLevel {
             name: name.as_ref().map(|n| n.0.clone()),
@@ -277,7 +276,7 @@ fn part1<T>(
             rules: parse_rules(&optional.map(|o| o.3).unwrap_or_default()),
             children,
         },
-    ))
+    )
 }
 
 #[expect(clippy::too_many_lines)]
@@ -287,9 +286,9 @@ pub(crate) fn student_result_internal(
     _nothing: &(),
 ) -> Result<StudentResultResponse, TucanError> {
     let document = parse_document(content);
-    let html_handler = Root::new(document.root())?;
-    let html_handler = html_handler.document_start()?;
-    let html_handler = html_handler.doctype()?;
+    let html_handler = Root::new(document.root());
+    let html_handler = html_handler.document_start();
+    let html_handler = html_handler.doctype();
     html_extractor::html! {
             <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="de" lang="de">
                 <head>
@@ -302,11 +301,11 @@ pub(crate) fn student_result_internal(
                     </style>
                 </head>
                 <body class="students_results">
-                    use Ok::<_, String>(if login_response.id == 1 {
-                        logged_out_head(html_handler)?.0
+                    use if login_response.id == 1 {
+                        logged_out_head(html_handler).0
                     } else {
-                        logged_in_head(html_handler, login_response.id)?.0
-                    });
+                        logged_in_head(html_handler, login_response.id).0
+                    };
                     <script type="text/javascript">
                     </script>
                     <h1>
@@ -444,7 +443,7 @@ pub(crate) fn student_result_internal(
             </div>
         </div>
     }
-    let html_handler = footer(html_handler, login_response.id, 311)?;
+    let html_handler = footer(html_handler, login_response.id, 311);
     html_handler.end_document();
 
     Ok(StudentResultResponse {
