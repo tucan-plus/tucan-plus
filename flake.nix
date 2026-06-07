@@ -73,9 +73,7 @@
             rev = "3f0a89734f931e0b2dddc41e71b581b0095ac99d";
             hash = "sha256-+kLEOK5lhZL8tCuzTzhAGYatytec4sh2YSXMm+uQGx4=";
           };
-          prePatch = ''
-            cd packages/cli
-          '';
+          cargoBuildFlags = [ "-p" "dioxus-cli" ];
 
           cargoHash = "sha256-jd4adW5ord3dJXRkkgPswdGfpN+4Lf+eS4vyKC0Lz0c=";
 
