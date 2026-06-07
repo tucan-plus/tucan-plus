@@ -46,7 +46,7 @@ pub fn recursive_anmeldung<'a, 'b: 'a>(
             } else {
                 tracing::error!("panic occurred");
             }
-            Err(TucanError::ParseError(String::new()))
+            Err(TucanError::Panic)
         })
     })
     .into_stream()
