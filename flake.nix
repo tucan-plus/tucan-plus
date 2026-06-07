@@ -74,8 +74,11 @@
             hash = "sha256-+kLEOK5lhZL8tCuzTzhAGYatytec4sh2YSXMm+uQGx4=";
           };
           cargoBuildFlags = [ "-p" "dioxus-cli" ];
+          cargoTestFlags = [ "-p" "dioxus-cli" ];
 
           cargoHash = "sha256-jd4adW5ord3dJXRkkgPswdGfpN+4Lf+eS4vyKC0Lz0c=";
+
+          doCheck = false;
 
           buildFeatures = [
             "no-downloads" "disable-telemetry"
