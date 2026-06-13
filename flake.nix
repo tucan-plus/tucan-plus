@@ -330,12 +330,6 @@
             preBuild = ''
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/ || true
             '';
-            # temporary https://github.com/DioxusLabs/dioxus/issues/4758
-            postBuild = ''
-              rm $out/public/wasm/chunk_*.wasm || true
-              rm $out/public/wasm/module_*.wasm || true
-              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url" || true
-            '';
             nativeBuildInputs = nativeBuildInputs ++ [
               # don't rebuild deps if version changes, maybe later patch this in post-build?
               (pkgs.writeShellScriptBin "git" ''
