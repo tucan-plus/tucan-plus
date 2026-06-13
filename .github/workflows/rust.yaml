@@ -14,12 +14,19 @@ env:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: ubuntu-26.04
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
+    - uses: cachix/install-nix-action@v31
+      with:
+        nix_path: nixpkgs=channel:nixos-unstable
+    - uses: cachix/cachix-action@v17
+      with:
+        name: tucan-plus
+        signingKey: '${{ secrets.CACHIX_SIGNING_KEY }}'
     - run: |
           nix build -L .#extension-unpacked
-    - uses: actions/upload-artifact@v4
+    - uses: actions/upload-artifact@v7
       with:
         name: tucan-plus-extension-nightly-zip
         path: result/

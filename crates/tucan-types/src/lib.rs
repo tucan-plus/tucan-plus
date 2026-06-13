@@ -105,6 +105,8 @@ pub enum TucanError {
     NotCached,
     #[error("Login required")]
     LoginRequired,
+    #[error("Panic")]
+    Panic,
 }
 
 impl IntoResponse for TucanError {
@@ -123,6 +125,7 @@ impl IntoResponse for TucanError {
             }
             Self::NotCached => (StatusCode::NOT_FOUND, "not cached").into_response(),
             Self::LoginRequired => (StatusCode::UNAUTHORIZED, "login required").into_response(),
+            Self::Panic => (StatusCode::INTERNAL_SERVER_ERROR, "panic").into_response(),
         }
     }
 }

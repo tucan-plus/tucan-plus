@@ -93,21 +93,26 @@ rustup toolchain install nightly-2025-09-08 --component rustfmt
 ### Running as local webserver
 
 ```bash
-cargo install --git https://github.com/mohe2015/dioxus.git --branch wip dioxus-cli
+# https://github.com/dioxuslabs/dioxus/issues/5322
+cargo install --git https://github.com/mohe2015/dioxus.git --branch wip dioxus-cli # --debug
+
+TODO try dioxus build first, probably simpler than serve
+omg it was somehow using two different versions of that crate, wtf
 
 cd crates/tucan-plus-dioxus/
 
 export VARIANT=debug
 export VARIANT=release
 
-mkdir /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
+# dioxus serve and --release seems to not be a valid configuration currently
+
+mkdir -p /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-dx serve --web --verbose --base-path public --hot-patch
+dx serve --web --verbose --base-path public --hot-patch=false
+
 dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
-
-sed -i 's/importMeta.url/import.meta.url/g' ./tucan-plus-extension/public/assets/tucan-plus-dioxus-*.js
 
 
 https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/Content_Security_Policy#scripts_from_localhost

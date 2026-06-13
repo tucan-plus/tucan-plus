@@ -7,6 +7,11 @@
     crane.url = "github:ipetkov/crane";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs =
@@ -15,6 +20,7 @@
       nixpkgs,
       crane,
       flake-utils,
+      rust-overlay,
       ...
     }:
     flake-utils.lib.eachDefaultSystem (
@@ -22,13 +28,134 @@
       let
         pkgs = import nixpkgs {
           inherit system;
-          config.allowUnfree = true;
-          config.android_sdk.accept_license = true;
+          overlays = [ (import rust-overlay) ];
         };
 
         inherit (pkgs) lib;
 
-        craneLib = crane.mkLib pkgs;
+        # https://crane.dev/examples/build-std.html
+
+        rustToolchainFor =
+          p:
+          p.rust-bin.selectLatestNightlyWith (
+            toolchain:
+            toolchain.default.override {
+              extensions = [ "rust-src" ];
+            targets = [ "wasm32-unknown-unknown" ];
+            }
+          );
+        rustToolchain = rustToolchainFor pkgs;
+
+        craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
+
+        wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
+          src = pkgs.fetchCrate {
+            pname = "wasm-bindgen-cli";
+            version = "0.2.122";
+            hash = "sha256-vO4RSxi/sMWxmsEs3GuljdMfIRSu75A+Q+c5wgYToRU=";
+          };
+
+          cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
+            inherit src;
+            inherit (src) pname version;
+            hash = "sha256-Inup6vvJSG5ghNyeDPyZbfZo4d0LsMG2OJfStoaeDBs=";
+          };
+        });
+
+        # https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/di/dioxus-cli/package.nix
+        # needed for walrus with exception proposal
+        dioxus-cli = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
+          pname = "dioxus-cli";
+          version = "0.8.0-alpha.0";
+
+          src = pkgs.fetchFromGitHub {
+            owner = "mohe2015";
+            repo = "dioxus";
+            rev = "3f0a89734f931e0b2dddc41e71b581b0095ac99d";
+            hash = "sha256-+kLEOK5lhZL8tCuzTzhAGYatytec4sh2YSXMm+uQGx4=";
+          };
+          cargoBuildFlags = [ "-p" "dioxus-cli" ];
+          cargoTestFlags = [ "-p" "dioxus-cli" ];
+
+          cargoHash = "sha256-jd4adW5ord3dJXRkkgPswdGfpN+4Lf+eS4vyKC0Lz0c=";
+
+          doCheck = false;
+
+          buildFeatures = [
+            "no-downloads" "disable-telemetry"
+          ];
+
+          env = {
+            OPENSSL_NO_VENDOR = 1;
+          };
+
+          nativeBuildInputs = [
+            pkgs.pkg-config
+            pkgs.cacert
+            pkgs.installShellFiles
+            pkgs.makeWrapper
+          ];
+
+          buildInputs = [
+            pkgs.openssl
+          ];
+
+          nativeCheckInputs = [
+            pkgs.rustfmt
+          ];
+
+          checkFlags = [
+            # requires network access
+            "--skip=serve::proxy::test"
+            # requires monorepo structure and mobile toolchains
+            "--skip=test_harnesses::run_harness"
+          ];
+
+          passthru = {
+            tests = {
+              version = pkgs.testers.testVersion {
+                package = dioxus-cli;
+              };
+
+              withTelemetry = dioxus-cli.override {
+                withTelemetry = true;
+              };
+            };
+          };
+
+          postInstall = ''
+            installShellCompletion --cmd dx \
+              --bash <($out/bin/dx completions bash) \
+              --fish <($out/bin/dx completions fish) \
+              --zsh <($out/bin/dx completions zsh)
+          '';
+
+          postFixup = ''
+            wrapProgram $out/bin/dx \
+              --suffix PATH : ${
+                lib.makeBinPath [
+                  pkgs.esbuild
+                  wasm-bindgen
+                ]
+              }
+          '';
+
+          meta = {
+            description = "CLI for building fullstack web, desktop, and mobile apps with a single codebase.";
+            homepage = "https://dioxus.dev";
+            changelog = "https://github.com/DioxusLabs/dioxus/releases";
+            license = with lib.licenses; [
+              mit
+              asl20
+            ];
+            maintainers = with lib.maintainers; [
+              cathalmullan
+              anish
+            ];
+            platforms = lib.platforms.all;
+            mainProgram = "dx";
+          };
+        });
 
         cargoDioxus =
           craneLib:
@@ -60,14 +187,14 @@
           craneLib.mkCargoDerivation (
             {
               buildPhaseCargoCommand = ''
-                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${pkgs.dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
+                DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${dioxusMainArgs} ${cargoExtraArgs}
               '';
               cargoArtifacts = craneLib.buildDepsOnly (
                 {
                   # build, don't bundle
                   # TODO make dx home persistent as it's useful
                   buildPhaseCargoCommand = ''
-                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${pkgs.dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
+                    DX_HOME=$(mktemp -d) DIOXUS_LOG=trace,walrus=debug ${dioxus-cli}/bin/dx ${dioxusBuildDepsOnlyCommand} --trace ${profile} --base-path public ${dioxusExtraArgs} ${cargoExtraArgs}
                   '';
                   doCheck = false;
                   dummySrc = craneLib.mkDummySrc {
@@ -103,7 +230,6 @@
           ./crates/tucan-plus-dioxus/assets/bootstrap.bundle.min.js
           ./crates/tucan-plus-dioxus/assets/bootstrap.patch.js
           ./crates/tucan-plus-dioxus/Dioxus.toml
-          ./crates/tucan-plus-dioxus/.cargo/config.toml
         ];
 
         fileset-wasm = lib.fileset.unions [
@@ -164,6 +290,22 @@
         ];
 
         client-args = rec {
+          cargoVendorDir = craneLib.vendorMultipleCargoDeps {
+            inherit (craneLib.findCargoFiles src) cargoConfigs;
+            cargoLockList = [
+              ./Cargo.lock
+
+              # Unfortunately this approach requires IFD (import-from-derivation)
+              # otherwise Nix will refuse to read the Cargo.lock from our toolchain
+              # (unless we build with `--impure`).
+              #
+              # Another way around this is to manually copy the rustlib `Cargo.lock`
+              # to the repo and import it with `./path/to/rustlib/Cargo.lock` which
+              # will avoid IFD entirely but will require manually keeping the file
+              # up to date!
+              "${rustToolchain.passthru.availableComponents.rust-src}/lib/rustlib/src/rust/library/Cargo.lock"
+            ];
+          };
           dioxusExtraArgs = "--web";
           CARGO_PROFILE_WASM_RELEASE_DEBUG = "false"; # for non-wasm-split
           dioxusMainArgs = "--out-dir $out"; # --wasm-split --features wasm-split
@@ -188,12 +330,6 @@
           notBuildDepsOnly = {
             preBuild = ''
               rm -R ./target/dx/tucan-plus-dioxus/release/web/public/ || true
-            '';
-            # temporary https://github.com/DioxusLabs/dioxus/issues/4758
-            postBuild = ''
-              rm $out/public/wasm/chunk_*.wasm || true
-              rm $out/public/wasm/module_*.wasm || true
-              substituteInPlace $out/public/assets/tucan-plus-dioxus-*.js --replace-fail "importMeta.url" "import.meta.url" || true
             '';
             nativeBuildInputs = nativeBuildInputs ++ [
               # don't rebuild deps if version changes, maybe later patch this in post-build?
@@ -220,8 +356,8 @@
           checkPhaseCargoCommand = '''';
           nativeBuildInputs = [
             pkgs.which
-            pkgs.wasm-bindgen-cli_0_2_114
             pkgs.binaryen
+            wasm-bindgen
             pkgs.llvmPackages_21.bintools
           ];
           doNotPostBuildInstallCargoBinaries = true;
@@ -432,7 +568,7 @@
             pkgs.android-tools
             pkgs.binaryen
             pkgs.llvmPackages_21.bintools
-            pkgs.dioxus-cli
+            dioxus-cli
           ];
         };
       }
