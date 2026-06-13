@@ -64,7 +64,7 @@
 
         # https://github.com/NixOS/nixpkgs/blob/master/pkgs/by-name/di/dioxus-cli/package.nix
         # needed for walrus with exception proposal
-        dioxus-cli = dioxus-cli = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
+        dioxus-cli = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
           pname = "dioxus-cli";
           version = "0.8.0-alpha.0";
 
