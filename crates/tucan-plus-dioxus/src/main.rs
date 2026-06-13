@@ -301,6 +301,19 @@ extern "C" {
 #[cfg_attr(target_arch = "wasm32", wasm_bindgen(main))]
 #[cfg_attr(not(target_arch = "wasm32"), tokio::main)]
 pub async fn main() {
+    // From https://github.com/rustwasm/console_error_panic_hook, licensed under MIT and Apache 2.0
+    panic::set_hook(Box::new(|info| {
+        let mut msg = "Version: ".to_string();
+        msg.push_str(git_version::git_version!());
+        msg.push('\n');
+        msg.push_str(&info.to_string());
+        msg.push_str("\n\nStack:\n\n");
+        let e = Error::new();
+        let stack = e.stack();
+        msg.push_str(&stack);
+        msg.push_str("\n\n");
+        error(msg.clone());
+    }));
     console_log::init().unwrap();
 
     dioxus::logger::init(Level::INFO).expect("logger failed to init");
