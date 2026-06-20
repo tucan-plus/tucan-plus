@@ -87,9 +87,9 @@ jobs:
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
+        gh release create --repo ${{ github.repository }} --generate-notes v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
     - if: ${{ !inputs.publish }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        gh release create --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
+        gh release create --repo ${{ github.repository }} --generate-notes --prerelease v${{ needs.build-and-sign.outputs.version }} tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.xpi tucan-plus-extension-${{ needs.build-and-sign.outputs.version }}.crx updates.xml updates.json
