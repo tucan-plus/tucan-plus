@@ -37,13 +37,10 @@
 
         rustToolchainFor =
           p:
-          p.rust-bin.selectLatestNightlyWith (
-            toolchain:
-            toolchain.default.override {
-              extensions = [ "rust-src" ];
+          p.rust-bin.nightly."2026-09-26".default.override {
+            extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
-            }
-          );
+          };
         rustToolchain = rustToolchainFor pkgs;
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
