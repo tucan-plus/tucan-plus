@@ -196,9 +196,9 @@ dependencies = [
 
 [[package]]
 name = "brotli"
-version = "9.0.0"
+version = "9.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8b851b75c23ca7873623d612fe49bd1989aeb03d08fb9432187eb253d3d4c6b"
+checksum = "6737ce8b81460bf9407909f73ff50bf13f7cb8577e1e76715f57ed0eba58ba44"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -207,9 +207,9 @@ dependencies = [
 
 [[package]]
 name = "brotli-decompressor"
-version = "6.0.1"
+version = "6.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "941cd9bd4ddab83cb46fa5a2d428f1c857b24ac78cb876cf7beb710840934bd7"
+checksum = "34c6783f42c21c952ad7112b354f0ba2f10760e9decea5b1b60523d6e270faaf"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -380,7 +380,7 @@ checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
 [[package]]
 name = "const-serialize"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "const-serialize-macro",
  "dioxus-const-vec",
@@ -390,7 +390,7 @@ dependencies = [
 [[package]]
 name = "const-serialize-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -711,7 +711,7 @@ dependencies = [
 [[package]]
 name = "dioxus"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-asset-resolver",
  "dioxus-cli-config",
@@ -738,7 +738,7 @@ dependencies = [
 [[package]]
 name = "dioxus-asset-resolver"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-cli-config",
  "http",
@@ -758,7 +758,7 @@ dependencies = [
 [[package]]
 name = "dioxus-cli-config"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -766,22 +766,22 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "dioxus-config-macros"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "dioxus-const-vec"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "dioxus-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "anyhow",
  "const_format",
@@ -806,7 +806,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "convert_case 0.8.0",
  "dioxus-rsx",
@@ -818,7 +818,7 @@ dependencies = [
 [[package]]
 name = "dioxus-core-template"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-const-vec",
  "serde",
@@ -828,12 +828,12 @@ dependencies = [
 [[package]]
 name = "dioxus-core-types"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "dioxus-devtools"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -850,7 +850,7 @@ dependencies = [
 [[package]]
 name = "dioxus-devtools-types"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "serde",
@@ -860,7 +860,7 @@ dependencies = [
 [[package]]
 name = "dioxus-document"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "dioxus-core-macro",
@@ -878,7 +878,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -936,7 +936,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "anyhow",
  "axum-core",
@@ -963,7 +963,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "const_format",
  "convert_case 0.8.0",
@@ -976,7 +976,7 @@ dependencies = [
 [[package]]
 name = "dioxus-history"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "tracing",
@@ -985,7 +985,7 @@ dependencies = [
 [[package]]
 name = "dioxus-hooks"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "dioxus-signals",
@@ -1000,7 +1000,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "async-trait",
  "bytes",
@@ -1023,7 +1023,7 @@ dependencies = [
 [[package]]
 name = "dioxus-html-internal-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "convert_case 0.8.0",
  "proc-macro2",
@@ -1034,7 +1034,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "js-sys",
  "lazy-js-bundle",
@@ -1049,7 +1049,7 @@ dependencies = [
 [[package]]
 name = "dioxus-logger"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-cli-config",
  "tracing",
@@ -1060,7 +1060,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -1079,7 +1079,7 @@ dependencies = [
 [[package]]
 name = "dioxus-router-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "base16",
  "digest 0.10.7",
@@ -1093,7 +1093,7 @@ dependencies = [
 [[package]]
 name = "dioxus-rsx"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core-template",
  "proc-macro2",
@@ -1106,7 +1106,7 @@ dependencies = [
 [[package]]
 name = "dioxus-signals"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "futures-channel",
@@ -1121,7 +1121,7 @@ dependencies = [
 [[package]]
 name = "dioxus-stores"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-core",
  "dioxus-signals",
@@ -1132,7 +1132,7 @@ dependencies = [
 [[package]]
 name = "dioxus-stores-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "convert_case 0.8.0",
  "proc-macro2",
@@ -1143,7 +1143,7 @@ dependencies = [
 [[package]]
 name = "dioxus-web"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dioxus-cli-config",
  "dioxus-core",
@@ -1326,9 +1326,9 @@ checksum = "00d174d5400e5e8fd687ad1049e2f578285fa914201b1af7e8b112a4546bd826"
 
 [[package]]
 name = "erased-serde"
-version = "0.4.10"
+version = "0.4.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2add8a07dd6a8d93ff627029c51de145e12686fbc36ecb298ac22e74cf02dec"
+checksum = "1e59b668157f32d3459d4bd634861a06ffa2503a461ca5f0916b9f0252605e66"
 dependencies = [
  "serde",
  "serde_core",
@@ -1487,7 +1487,7 @@ dependencies = [
 [[package]]
 name = "generational-box"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "parking_lot",
  "tracing",
@@ -2134,7 +2134,7 @@ checksum = "a4933f3f57a8e9d9da04db23fb153356ecaf00cbd14aee46279c33dc80925c37"
 [[package]]
 name = "lazy-js-bundle"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "lazy_static"
@@ -2227,7 +2227,7 @@ dependencies = [
 [[package]]
 name = "manganis"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "const-serialize",
  "jni 0.21.1",
@@ -2241,7 +2241,7 @@ dependencies = [
 [[package]]
 name = "manganis-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "const-serialize",
  "dioxus-cli-config",
@@ -2253,7 +2253,7 @@ dependencies = [
 [[package]]
 name = "manganis-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "dunce",
  "macro-string",
@@ -3573,7 +3573,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "subsecond"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "js-sys",
  "libc",
@@ -3591,7 +3591,7 @@ dependencies = [
 [[package]]
 name = "subsecond-types"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#9a20e3cf505889144247b80d6cf291184e376112"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 dependencies = [
  "serde",
 ]
