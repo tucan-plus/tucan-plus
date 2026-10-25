@@ -2,6 +2,8 @@ use std::panic;
 
 use dioxus::prelude::*;
 use js_sys::Uint8Array;
+use sqlite_wasm_rs::vfs::VfsFilesManager;
+use sqlite_wasm_rs::vfs::transfer::DbTransfer;
 use tracing::Level;
 use tucan_plus_worker::MyDatabase;
 use tucan_types::LoginResponse;
@@ -365,7 +367,7 @@ async fn worker_main() {
                     let old_connection =
                         connection.replace(SqliteConnection::establish(":memory:").unwrap());
                     drop(old_connection);
-                    util.delete_db("tucan-plus.db").unwrap();
+                    util.remove("tucan-plus.db").unwrap();
                     let uint8array = Uint8Array::new(&import.data);
                     let mut slice = vec![0; uint8array.length().try_into().unwrap()];
                     uint8array.copy_to(&mut slice[..]);
@@ -420,7 +422,8 @@ async fn frontend_main() {
     let worker = MyDatabase::wait_for_worker(); // maybe move this before the wasm-split point?
 
     let anonymize = {
-        // TODO we need to update this when you update the value in the extension
+        // TODO we need to update this when you update the value in the
+        // extension
         let obj = js_sys::Object::new();
         js_sys::Reflect::set(&obj, &"anonymize".into(), &false.into()).unwrap();
         let storage = web_extensions_sys::chrome().storage().sync();

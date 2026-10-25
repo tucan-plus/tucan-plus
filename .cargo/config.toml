@@ -8,5 +8,11 @@ rustflags = ["-C", "panic=unwind", "--cfg=web_sys_unstable_apis", "--cfg=getrand
 [profile.dev]
 panic = "unwind"
 
+# Re-enable this workaround when updating nightly past 2026-09-26 until
+# https://github.com/rust-lang/rust/issues/164018 is fixed. Unoptimized f128
+# intrinsics can reference `fmal`, which wasm32-unknown-unknown does not provide.
+# [profile.dev.package.compiler_builtins]
+# opt-level = 3
+
 [profile.release]
 panic = "unwind"

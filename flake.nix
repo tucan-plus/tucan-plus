@@ -37,13 +37,10 @@
 
         rustToolchainFor =
           p:
-          p.rust-bin.selectLatestNightlyWith (
-            toolchain:
-            toolchain.default.override {
-              extensions = [ "rust-src" ];
+          p.rust-bin.nightly."2026-09-26".default.override {
+            extensions = [ "rust-src" ];
             targets = [ "wasm32-unknown-unknown" ];
-            }
-          );
+          };
         rustToolchain = rustToolchainFor pkgs;
 
         craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchainFor;
@@ -51,14 +48,14 @@
         wasm-bindgen = (pkgs.buildWasmBindgenCli rec {
           src = pkgs.fetchCrate {
             pname = "wasm-bindgen-cli";
-            version = "0.2.122";
-            hash = "sha256-vO4RSxi/sMWxmsEs3GuljdMfIRSu75A+Q+c5wgYToRU=";
+            version = "0.2.129";
+            hash = "sha256-pcecKQd7E8Opw6bkFoE569epUi7gh5qpQF1e5PJY6V8=";
           };
 
           cargoDeps = pkgs.rustPlatform.fetchCargoVendor {
             inherit src;
             inherit (src) pname version;
-            hash = "sha256-Inup6vvJSG5ghNyeDPyZbfZo4d0LsMG2OJfStoaeDBs=";
+            hash = "sha256-vmUrWVU7kPJJxO5qIVeAkwQyWDELO1Z4Z5gitz2kco8=";
           };
         });
 
@@ -66,18 +63,18 @@
         # needed for walrus with exception proposal
         dioxus-cli = pkgs.rustPlatform.buildRustPackage (finalAttrs: {
           pname = "dioxus-cli";
-          version = "0.8.0-alpha.0";
+          version = "0.8.0-alpha.3";
 
           src = pkgs.fetchFromGitHub {
             owner = "mohe2015";
             repo = "dioxus";
-            rev = "3f0a89734f931e0b2dddc41e71b581b0095ac99d";
-            hash = "sha256-+kLEOK5lhZL8tCuzTzhAGYatytec4sh2YSXMm+uQGx4=";
+            rev = "7282ab627c3ff78507c461012ffbf35eea8a1994";
+            hash = "sha256-M/tqZsGqP3SqE5cma2NZLolYrrEjaoepY8BDmhWaK6w=";
           };
           cargoBuildFlags = [ "-p" "dioxus-cli" ];
           cargoTestFlags = [ "-p" "dioxus-cli" ];
 
-          cargoHash = "sha256-jd4adW5ord3dJXRkkgPswdGfpN+4Lf+eS4vyKC0Lz0c=";
+          cargoHash = "sha256-JLYEJIrklGZWDuXwN2F8pYUCIXtLTK2eB9P4XDb6Wlc=";
 
           doCheck = false;
 

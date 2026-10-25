@@ -368,7 +368,7 @@ pub(crate) fn anmeldung_internal(
                                                                         </p>
                                                                         <p>
                                                                     } => lecturers;
-                                                                    let begin_and_end = if html_handler.peek().is_some() {
+                                                                    let begin_and_end = if html_handler.peek().is_some() && RE.is_match(html_handler.peek().unwrap().value().as_text().unwrap()) {
                                                                             begin_and_end
                                                                         </p>
                                                                         <p>

@@ -3,70 +3,74 @@ members = ["./crates/*"]
 exclude = ["./crates/tucan-plus-tests"]
 resolver = "3"
 
+[workspace.package]
+version = "0.1.0"
+
 [workspace.dependencies]
-async-compression = { version = "0.4.27", features = ["brotli", "all-implementations"] }
-axum = { version = "0.8.1", features = ["macros"] }
-axum-core = "0.5.0"
-axum-extra = { version = "0.12.5", features = ["cookie"] }
+async-compression = { version = "0.4.51", features = ["brotli", "all-implementations"] }
+axum = { version = "0.8.9", features = ["macros"] }
+axum-core = "0.5.6"
+axum-extra = { version = "0.12.6", features = ["cookie"] }
 bytes = "1"
 console_log = { version = "1" }
 cookie = "0.18"
 data-encoding = "2"
-diesel = { version = "2.3.10", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
-diesel_migrations = { version = "2.3.1", features = ["sqlite"] }
-dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "wip", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
+diesel = { version = "2.3.14", features = ["sqlite", "returning_clauses_for_sqlite_3_35", "time", "r2d2"] }
+diesel_migrations = { version = "2.3.2", features = ["sqlite"] }
+# wasm-streams 0.7 for panic=unwind, closures with panic=unwind
+dioxus = { git = "https://github.com/mohe2015/dioxus.git", branch = "new-wip", features = ["launch", "devtools", "logger", "lib", "router", "web"] }
 dotenvy = "0.15"
 dynosaur = "0.3"
 ego-tree = "0.11"
-env_logger = "0.11.8"
-fragile = { git = "https://github.com/mitsuhiko/fragile.git", features = ["future"] }
-futures = "0.3.31"
+env_logger = "0.11.11"
+fragile = { version = "3", features = ["future"] }
+futures = "0.3.34"
 futures-core = "0.3"
 futures-util = { version = "0.3", features = ["io"] }
 getrandom = { version = "0.4", features = ["wasm_js"] }
 getrandom2 = { version = "0.2", features = ["wasm_js"] }
 git-version = "0.3"
-html5ever = "0.39"
-itertools = "0.14"
+html5ever = "0.40"
+itertools = "0.15"
 js-sys = "0.3"
 log = { version = "0.4" }
 num = "0.4"
 plotters = { version = "0.3.7", default-features = false, features = ["svg_backend", "histogram"] }
 proc-macro2 = "1"
 quote = "1"
-rand = "0.10.0"
+rand = "0.10.3"
 regex = { version = "1" }
 reqwest = { version = "0.13", default-features = false, features = ["rustls", "http2", "charset"] }
-scraper = { version = "0.27", features = ["deterministic"] }
+scraper = { version = "0.29", features = ["deterministic"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 serde-wasm-bindgen = "0.6"
 sha3 = "0.12"
-sqlite-wasm-rs = { version = "0.5.2" }
-sqlite-wasm-vfs = "0.2.0"
-syn = { version = "2", features = ["full", "parsing", "extra-traits"] }
+sqlite-wasm-rs = { version = "0.6", features = ["wasm-bindgen"] }
+sqlite-wasm-vfs = { version = "0.3", features = ["sahpool"] }
+syn = { version = "3", features = ["full", "parsing", "extra-traits"] }
 thiserror = "2"
-time = { version = "0.3.47", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
+time = { version = "0.3.55", features = ["serde-human-readable", "wasm-bindgen", "macros"] }
 tokio = { version = "1", default-features = false }
 tokio-util = "0.7"
-tower = "0.5.2"
-tower-http = { version = "0.6.6", features = ["cors"] }
-tracing = "0.1.41"
+tower = "0.5.3"
+tower-http = { version = "0.7.1", features = ["cors"] }
+tracing = "0.1.44"
 url = "2"
-utoipa = "5"
-utoipa-axum = "0.2"
-utoipa-swagger-ui = { version = "9", features = ["axum", "vendored"] }
-wasm-bindgen = { version = "0.2.115" }
+utoipa = "6"
+utoipa-axum = "0.3"
+utoipa-swagger-ui = { version = "10", features = ["axum", "vendored"] }
+wasm-bindgen = { version = "0.2.129" }
 wasm-bindgen-futures = "0.4"
 web-sys = { version = "0.3" }
-derive_more = { version = "2.0.1", features = ["from"] }
+derive_more = { version = "2.1.1", features = ["from"] }
 enum_dispatch = "0.3.13"
 erased-serde = "0.4"
-keyring-core = { version = "0.7" }
+keyring-core = { version = "1.0" }
 typetag = "0.2"
 # https://github.com/web-extensions-rs/web-extensions/pull/19/changes?w=1
 web-extensions = { git = "https://github.com/mohe2015/web-extensions", branch = "fix-closure-unwind" }
-web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
+web-extensions-sys = "0.4.2"
 
 html-extractor = { path = "crates/html-extractor" }
 html-handler = { path = "crates/html-handler" }
@@ -75,6 +79,5 @@ tucan-plus-worker = { path = "crates/tucan-plus-worker" }
 tucan-types = { path = "crates/tucan-types" }
 
 [patch.crates-io]
-indexed_db_futures = { git = "https://github.com/mohe2015/rust-indexed-db", branch = "wasm-unwind" }
-web-extensions-sys = { git = "https://github.com/mohe2015/web-extensions-sys.git", branch = "mohe2015-patch-1" }
-wasm-streams = { git = "https://github.com/guybedford/wasm-streams.git", rev = "c4035580f31a1f3c907d361d8e43ebac6c738a26" }
+gloo-timers = { git = "https://github.com/ranile/gloo.git" } # 552bedcb2ca8c384edc8f66d6bdda6a5e7ec3697, panic=unwind
+reqwest = { git = "https://github.com/mohe2015/reqwest.git", branch = "wasm-streams-0.7" } # wasm-streams 0.7 for panic=unwind

@@ -750,8 +750,8 @@ pub struct MyDatabase {
 #[cfg(target_arch = "wasm32")]
 #[wasm_bindgen::prelude::wasm_bindgen]
 extern "C" {
-    // Getters can only be declared on classes, so we need a fake type to declare it
-    // on.
+    // Getters can only be declared on classes, so we need a fake type to
+    // declare it on.
     #[wasm_bindgen]
     #[expect(non_camel_case_types)]
     type meta;
@@ -809,8 +809,7 @@ impl MyDatabase {
                 js_sys::Promise::new(&mut cb)
             })
         };
-        let _intentional =
-            lock_manager.request_with_callback("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional = lock_manager.request("opfs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());

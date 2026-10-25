@@ -19,9 +19,9 @@ function asyncClosure(closure) {
 
 const imprintInFooter = /** @type {HTMLAnchorElement | null} */ (document.getElementById("pageFootControl_imp"))
 
-if (document.body.classList.contains("access_denied")) {
+if (document.body?.classList.contains("access_denied")) {
     document.cookie = `id=; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
-} else if (document.body.classList.contains("redirect")) {
+} else if (document.body?.classList.contains("redirect")) {
     const sessionId = /** @type {HTMLElement} */ (document.getElementById("sessionId"))
     if (sessionId.innerText === "000000000000001") {
         document.cookie = `id=; Secure; expires=Thu, 01 Jan 1970 00:00:00 UTC`;
