@@ -3,10 +3,16 @@ build-std = ["core", "alloc", "std", "panic_unwind", "panic_abort"]
 
 [build]
 target = "wasm32-unknown-unknown"
-rustflags = ["-C", "panic=unwind", "--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
+# Hotpatch side modules must share the base module's Rust panic exception tag.
+rustflags = ["-C", "panic=unwind", "-C", "link-arg=--export-if-defined=__cpp_exception", "--cfg=web_sys_unstable_apis", "--cfg=getrandom_backend=\"wasm_js\""]
 
 [profile.dev]
 panic = "unwind"
+
+[profile.dev.package.compiler_builtins]
+# Hotpatch whole-archive linking retains unused, unoptimized f128 intrinsics
+# that reference `fmal`, which wasm32-unknown-unknown does not provide.
+opt-level = 3
 
 [profile.release]
 panic = "unwind"

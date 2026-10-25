@@ -119,7 +119,7 @@ mkdir -p /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 mkdir -p /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public
 sudo mount --bind /home/moritz/Documents/tucan-plus/target/dx/tucan-plus-dioxus/$VARIANT/web/public/ /home/moritz/Documents/tucan-plus/tucan-plus-extension/public
 # restart browser to inherit mounts?
-dx serve --web --verbose --base-path public --hot-patch=false
+dx serve --web --verbose --base-path public
 
 dx serve --web --verbose --base-path public --release
 sudo umount /home/moritz/Documents/tucan-plus/tucan-plus-extension/public

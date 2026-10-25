@@ -809,7 +809,7 @@ impl MyDatabase {
                 js_sys::Promise::new(&mut cb)
             })
         };
-        let _intentional = lock_manager.request("opfs", lock_closure.as_ref().unchecked_ref());
+        let _intentional = lock_manager.request("opfffs", lock_closure.as_ref().unchecked_ref());
         lock_closure.forget();
 
         let broadcast_channel = Fragile::new(BroadcastChannel::new("global").unwrap());
