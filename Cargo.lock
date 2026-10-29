@@ -92,9 +92,9 @@ checksum = "f2032f911046de80f0a198e0901378627c33f59ea0ac00e363d481118bd70a53"
 
 [[package]]
 name = "aws-lc-rs"
-version = "1.18.2"
+version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faac5829c2b74c28f830747e7818ccfb684261b5f48a1118b1e2a13d36dfab13"
+checksum = "048006790404103c488e6c5616b3e7e702a71292aadda08e8f7698a9e0d2eb53"
 dependencies = [
  "aws-lc-sys",
  "zeroize",
@@ -102,9 +102,9 @@ dependencies = [
 
 [[package]]
 name = "aws-lc-sys"
-version = "0.46.0"
+version = "0.47.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f1622d8446a2d4b2ce0c7eefc73dd43a99779028d5ee5c2dd8073a658ba8a2bc"
+checksum = "8bfbe32ac36b3c428696ce315464181bc4029d689fd58e3f2a4e58c252242f52"
 dependencies = [
  "cc",
  "cmake",
@@ -196,9 +196,9 @@ dependencies = [
 
 [[package]]
 name = "brotli"
-version = "9.1.0"
+version = "9.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6737ce8b81460bf9407909f73ff50bf13f7cb8577e1e76715f57ed0eba58ba44"
+checksum = "627b7cfb0578f0eafce087a90fcd40add1231900b69e4d4de2d456260a4f5d81"
 dependencies = [
  "alloc-no-stdlib",
  "alloc-stdlib",
@@ -380,7 +380,7 @@ checksum = "a6ef517f0926dd24a1582492c791b6a4818a4d94e789a334894aa15b0d12f55c"
 [[package]]
 name = "const-serialize"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "const-serialize-macro",
  "dioxus-const-vec",
@@ -390,7 +390,7 @@ dependencies = [
 [[package]]
 name = "const-serialize-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -435,18 +435,18 @@ dependencies = [
 
 [[package]]
 name = "convert_case"
-version = "0.8.0"
+version = "0.10.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "baaaa0ecca5b51987b9423ccdc971514dd8b0bb7b4060b983d3664dad3f1f89f"
+checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
 dependencies = [
  "unicode-segmentation",
 ]
 
 [[package]]
 name = "convert_case"
-version = "0.10.0"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
+checksum = "1af709f1f33454bf52eadfc8c78b3b9ef9cb26fb54d16dc9cd9a7299f899fd1b"
 dependencies = [
  "unicode-segmentation",
 ]
@@ -711,24 +711,17 @@ dependencies = [
 [[package]]
 name = "dioxus"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dioxus-asset-resolver",
  "dioxus-cli-config",
  "dioxus-config-macro",
- "dioxus-config-macros",
  "dioxus-core",
- "dioxus-core-macro",
  "dioxus-devtools",
- "dioxus-document",
  "dioxus-fullstack",
  "dioxus-history",
- "dioxus-hooks",
- "dioxus-html",
  "dioxus-logger",
  "dioxus-router",
- "dioxus-signals",
- "dioxus-stores",
  "dioxus-web",
  "manganis",
  "subsecond",
@@ -738,7 +731,7 @@ dependencies = [
 [[package]]
 name = "dioxus-asset-resolver"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dioxus-cli-config",
  "http",
@@ -756,9 +749,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "dioxus-base-types"
+version = "0.8.0-alpha.3"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
+
+[[package]]
 name = "dioxus-cli-config"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "wasm-bindgen",
 ]
@@ -766,79 +764,42 @@ dependencies = [
 [[package]]
 name = "dioxus-config-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 
 [[package]]
 name = "dioxus-config-macros"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 
 [[package]]
 name = "dioxus-const-vec"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 
 [[package]]
 name = "dioxus-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "anyhow",
- "const_format",
- "dioxus-const-vec",
- "dioxus-core-macro",
- "dioxus-core-template",
- "dioxus-core-types",
- "futures-channel",
- "futures-util",
- "generational-box",
- "longest-increasing-subsequence",
- "rustc-hash 2.1.3",
- "rustversion",
- "serde",
- "slab",
- "slotmap",
- "subsecond",
- "tracing",
- "xxhash-rust",
+ "dioxus-config-macros",
+ "dioxus-document",
+ "dioxus-hooks",
+ "dioxus-html",
+ "dioxus-signals",
+ "dioxus-stores",
+ "dioxus-vdom",
+ "dioxus-vdom-macro",
 ]
-
-[[package]]
-name = "dioxus-core-macro"
-version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
-dependencies = [
- "convert_case 0.8.0",
- "dioxus-rsx",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
-name = "dioxus-core-template"
-version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
-dependencies = [
- "dioxus-const-vec",
- "serde",
- "xxhash-rust",
-]
-
-[[package]]
-name = "dioxus-core-types"
-version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
 
 [[package]]
 name = "dioxus-devtools"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dioxus-cli-config",
- "dioxus-core",
  "dioxus-devtools-types",
  "dioxus-signals",
+ "dioxus-vdom",
  "serde",
  "serde_json",
  "subsecond",
@@ -850,9 +811,9 @@ dependencies = [
 [[package]]
 name = "dioxus-devtools-types"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
+ "dioxus-vdom",
  "serde",
  "subsecond-types",
 ]
@@ -860,12 +821,12 @@ dependencies = [
 [[package]]
 name = "dioxus-document"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
- "dioxus-core-macro",
- "dioxus-core-types",
+ "dioxus-base-types",
  "dioxus-html",
+ "dioxus-vdom",
+ "dioxus-vdom-macro",
  "futures-channel",
  "futures-util",
  "generational-box",
@@ -878,7 +839,7 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "anyhow",
  "async-stream",
@@ -893,12 +854,12 @@ dependencies = [
  "derive_more",
  "dioxus-asset-resolver",
  "dioxus-cli-config",
- "dioxus-core",
  "dioxus-fullstack-core",
  "dioxus-fullstack-macro",
  "dioxus-hooks",
  "dioxus-html",
  "dioxus-signals",
+ "dioxus-vdom",
  "form_urlencoded",
  "futures",
  "futures-channel",
@@ -936,23 +897,23 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "anyhow",
  "axum-core",
  "base64 0.22.1",
  "ciborium",
- "dioxus-core",
  "dioxus-document",
  "dioxus-history",
  "dioxus-hooks",
  "dioxus-signals",
+ "dioxus-vdom",
  "futures-channel",
  "futures-util",
  "generational-box",
  "http",
  "inventory",
- "parking_lot",
+ "parking_lot 0.12.5",
  "serde",
  "serde_json",
  "thiserror 2.0.21",
@@ -963,10 +924,10 @@ dependencies = [
 [[package]]
 name = "dioxus-fullstack-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "const_format",
- "convert_case 0.8.0",
+ "convert_case 0.12.0",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
@@ -976,19 +937,19 @@ dependencies = [
 [[package]]
 name = "dioxus-history"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
+ "dioxus-vdom",
  "tracing",
 ]
 
 [[package]]
 name = "dioxus-hooks"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
  "dioxus-signals",
+ "dioxus-vdom",
  "futures-channel",
  "futures-util",
  "generational-box",
@@ -1000,15 +961,15 @@ dependencies = [
 [[package]]
 name = "dioxus-html"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "async-trait",
  "bytes",
- "dioxus-core",
- "dioxus-core-macro",
- "dioxus-core-types",
+ "dioxus-base-types",
  "dioxus-hooks",
  "dioxus-html-internal-macro",
+ "dioxus-vdom",
+ "dioxus-vdom-macro",
  "enumset",
  "euclid",
  "futures-channel",
@@ -1023,9 +984,9 @@ dependencies = [
 [[package]]
 name = "dioxus-html-internal-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "convert_case 0.8.0",
+ "convert_case 0.12.0",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
@@ -1034,7 +995,7 @@ dependencies = [
 [[package]]
 name = "dioxus-interpreter-js"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "js-sys",
  "lazy-js-bundle",
@@ -1049,7 +1010,7 @@ dependencies = [
 [[package]]
 name = "dioxus-logger"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dioxus-cli-config",
  "tracing",
@@ -1060,16 +1021,16 @@ dependencies = [
 [[package]]
 name = "dioxus-router"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dioxus-cli-config",
- "dioxus-core",
- "dioxus-core-macro",
  "dioxus-history",
  "dioxus-hooks",
  "dioxus-html",
  "dioxus-router-macro",
  "dioxus-signals",
+ "dioxus-vdom",
+ "dioxus-vdom-macro",
  "percent-encoding",
  "rustversion",
  "tracing",
@@ -1079,10 +1040,11 @@ dependencies = [
 [[package]]
 name = "dioxus-router-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "base16",
  "digest 0.10.7",
+ "proc-macro-crate",
  "proc-macro2",
  "quote",
  "sha2",
@@ -1093,9 +1055,9 @@ dependencies = [
 [[package]]
 name = "dioxus-rsx"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core-template",
+ "dioxus-vdom-template",
  "proc-macro2",
  "proc-macro2-diagnostics",
  "quote",
@@ -1106,13 +1068,13 @@ dependencies = [
 [[package]]
 name = "dioxus-signals"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
+ "dioxus-vdom",
  "futures-channel",
  "futures-util",
  "generational-box",
- "parking_lot",
+ "parking_lot 0.12.5",
  "rustc-hash 2.1.3",
  "tracing",
  "warnings",
@@ -1121,39 +1083,87 @@ dependencies = [
 [[package]]
 name = "dioxus-stores"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "dioxus-core",
  "dioxus-signals",
  "dioxus-stores-macro",
+ "dioxus-vdom",
  "generational-box",
 ]
 
 [[package]]
 name = "dioxus-stores-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "convert_case 0.8.0",
+ "convert_case 0.12.0",
  "proc-macro2",
  "quote",
  "syn 2.0.119",
 ]
 
 [[package]]
+name = "dioxus-vdom"
+version = "0.8.0-alpha.3"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
+dependencies = [
+ "anyhow",
+ "const_format",
+ "dioxus-base-types",
+ "dioxus-const-vec",
+ "dioxus-vdom-macro",
+ "dioxus-vdom-template",
+ "futures-channel",
+ "futures-util",
+ "generational-box",
+ "longest-increasing-subsequence",
+ "rustc-hash 2.1.3",
+ "rustversion",
+ "serde",
+ "slab",
+ "slotmap",
+ "subsecond",
+ "tracing",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "dioxus-vdom-macro"
+version = "0.8.0-alpha.3"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
+dependencies = [
+ "convert_case 0.12.0",
+ "dioxus-rsx",
+ "proc-macro-crate",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "dioxus-vdom-template"
+version = "0.8.0-alpha.3"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
+dependencies = [
+ "dioxus-const-vec",
+ "serde",
+ "xxhash-rust",
+]
+
+[[package]]
 name = "dioxus-web"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
+ "dioxus-base-types",
  "dioxus-cli-config",
- "dioxus-core",
- "dioxus-core-types",
  "dioxus-devtools",
  "dioxus-document",
  "dioxus-history",
  "dioxus-html",
  "dioxus-interpreter-js",
  "dioxus-signals",
+ "dioxus-vdom",
  "futures-channel",
  "futures-util",
  "generational-box",
@@ -1487,9 +1497,9 @@ dependencies = [
 [[package]]
 name = "generational-box"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
- "parking_lot",
+ "parking_lot 0.12.5",
  "tracing",
 ]
 
@@ -2134,7 +2144,7 @@ checksum = "a4933f3f57a8e9d9da04db23fb153356ecaf00cbd14aee46279c33dc80925c37"
 [[package]]
 name = "lazy-js-bundle"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 
 [[package]]
 name = "lazy_static"
@@ -2196,6 +2206,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "lock_api"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "65d91b22da179613dcf4d6ec8349563f52a363f6849e03b00dd0a185ec4a59af"
+dependencies = [
+ "scopeguard",
+]
+
+[[package]]
 name = "log"
 version = "0.4.34"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2227,7 +2246,7 @@ dependencies = [
 [[package]]
 name = "manganis"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "const-serialize",
  "jni 0.21.1",
@@ -2241,11 +2260,11 @@ dependencies = [
 [[package]]
 name = "manganis-core"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "const-serialize",
+ "dioxus-base-types",
  "dioxus-cli-config",
- "dioxus-core-types",
  "serde",
  "winnow 0.7.15",
 ]
@@ -2253,7 +2272,7 @@ dependencies = [
 [[package]]
 name = "manganis-macro"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "dunce",
  "macro-string",
@@ -2554,9 +2573,9 @@ checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
 name = "openssl-probe"
-version = "0.2.1"
+version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
+checksum = "7e036b411754132fd6b74e94b74e9a13c5cf606fa93d1885c35860d3060820b1"
 
 [[package]]
 name = "parking_lot"
@@ -2564,8 +2583,18 @@ version = "0.12.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "93857453250e3077bd71ff98b6a65ea6621a19bb0f559a85248955ac12c45a1a"
 dependencies = [
- "lock_api",
- "parking_lot_core",
+ "lock_api 0.4.14",
+ "parking_lot_core 0.9.12",
+]
+
+[[package]]
+name = "parking_lot"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a9cf937ca4e1d0b7578784559063422fc39ae7c5a00f02471f2614d5486fd226"
+dependencies = [
+ "lock_api 0.5.0",
+ "parking_lot_core 0.10.0",
 ]
 
 [[package]]
@@ -2576,7 +2605,19 @@ checksum = "2621685985a2ebf1c516881c026032ac7deafcda1a2c9b7850dc81e3dfcb64c1"
 dependencies = [
  "cfg-if",
  "libc",
- "redox_syscall",
+ "redox_syscall 0.5.18",
+ "smallvec",
+ "windows-link",
+]
+
+[[package]]
+name = "parking_lot_core"
+version = "0.10.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9cfff060068cc18aa7815010fcaf80c68c7fb9e85fc7f5c0f9bf142c21d19826"
+dependencies = [
+ "libc",
+ "redox_syscall 0.9.5",
  "smallvec",
  "windows-link",
 ]
@@ -2861,7 +2902,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51de85fb3fb6524929c8a2eb85e6b6d363de4e8c48f9e2c2eac4944abc181c93"
 dependencies = [
  "log",
- "parking_lot",
+ "parking_lot 0.12.5",
  "scheduled-thread-pool",
 ]
 
@@ -2931,6 +2972,15 @@ name = "redox_syscall"
 version = "0.5.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ed2bf2547551a7053d6fdfafda3f938979645c44812fbfcda098faae3f1a362d"
+dependencies = [
+ "bitflags",
+]
+
+[[package]]
+name = "redox_syscall"
+version = "0.9.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "580c875845b41ecb1564ad1ae4703044cef774145e3d7a94dc2b3fa7c97868fd"
 dependencies = [
  "bitflags",
 ]
@@ -3056,9 +3106,9 @@ dependencies = [
 
 [[package]]
 name = "rustix"
-version = "1.1.5"
+version = "1.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "891efababe418670775f199f0d233d84843c227a0949a883ce15b37c78d6629d"
+checksum = "e5e76742e5294153d4dde1207dbec5bdd81eef6fabdc0d2118babadabfd858aa"
 dependencies = [
  "bitflags",
  "errno",
@@ -3176,11 +3226,11 @@ dependencies = [
 
 [[package]]
 name = "scheduled-thread-pool"
-version = "0.2.7"
+version = "0.2.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cbc66816425a074528352f5789333ecff06ca41b36b0b0efdfbb29edc391a19"
+checksum = "f304b290c05b371b2aa1e8718242ff0394530f9334ecedcb9ae51330f37fc1ba"
 dependencies = [
- "parking_lot",
+ "parking_lot 0.13.0",
 ]
 
 [[package]]
@@ -3547,7 +3597,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ffa8a5dbe8b3f0bbe29d4c3225daafaeead63afdc1b65fc4c01a1384166038e6"
 dependencies = [
  "new_debug_unreachable",
- "parking_lot",
+ "parking_lot 0.12.5",
  "phf_shared",
  "precomputed-hash",
 ]
@@ -3573,7 +3623,7 @@ checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
 [[package]]
 name = "subsecond"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "js-sys",
  "libc",
@@ -3591,7 +3641,7 @@ dependencies = [
 [[package]]
 name = "subsecond-types"
 version = "0.8.0-alpha.3"
-source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#7282ab627c3ff78507c461012ffbf35eea8a1994"
+source = "git+https://github.com/mohe2015/dioxus.git?branch=new-wip#3dcd8e31255b98090bdc3ae20dfdc5ed98f67617"
 dependencies = [
  "serde",
 ]
@@ -4148,9 +4198,9 @@ checksum = "c6f5d3c3b1bf09027a88a6bc961fc00497d651009560b5463668dc81b0fa87a8"
 
 [[package]]
 name = "unicode-width"
-version = "0.2.2"
+version = "0.2.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4ac048d71ede7ee76d585517add45da530660ef4390e49b098733c6e897f254"
+checksum = "ca718471876992059f251e33aafc334346ada08042b7661dd1fe313a9bced557"
 
 [[package]]
 name = "unicode-xid"
@@ -4178,9 +4228,18 @@ dependencies = [
 
 [[package]]
 name = "utf8_iter"
-version = "1.0.4"
+version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
+checksum = "af3bd9d3e571c26fcce9d033b87ea5ab061b8d2ffe9b7a5675d810d68f03edf0"
+dependencies = [
+ "utf_types",
+]
+
+[[package]]
+name = "utf_types"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3a3b425286980a367278453f3b6d28cdcb134b574e5a35824a6ff5eebad50bb6"
 
 [[package]]
 name = "utoipa"
