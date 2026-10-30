@@ -19,7 +19,8 @@ export async function recoverTabs() {
                 redirect: {
                     // I think this needs to statically be an allowed url
                     transform: {
-                        scheme: EXTENSION_DOMAIN.split("://")[0],
+                        // The runtime supplies the extension scheme (moz-extension on Firefox).
+                        scheme: /** @type {chrome.declarativeNetRequest.URLTransform["scheme"]} */ (EXTENSION_DOMAIN.split("://")[0]),
                         host: EXTENSION_DOMAIN.slice(0, -1).replace("moz-extension://", "").replace("chrome-extension://", "")
                     }
                 },
