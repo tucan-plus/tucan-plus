@@ -61,6 +61,8 @@ Just open the project in VSCodium.
 ```bash
 nix flake update
 npx npm-check-updates
+cd tucan-plus-extension
+npx npm-check-updates
 cargo install cargo-edit
 cargo upgrade --ignore-rust-version --incompatible allow --pinned allow
 ```

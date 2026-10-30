@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["chrome"], /* Load the browser extension API declarations explicitly. */
     "target": "ESNext", /* Set the JavaScript language version for emitted JavaScript and include compatible library declarations. */
     "module": "ESNext", /* Specify what module code is generated. */
     "allowJs": true, /* Allow JavaScript files to be a part of your program. Use the 'checkJS' option to get errors from these files. */
